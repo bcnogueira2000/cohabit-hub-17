@@ -173,6 +173,79 @@ const Dashboard = () => {
           </div>
         </Card>
       </div>
+
+      <div className="grid lg:grid-cols-2 gap-6 mt-6">
+        <Card className="p-5 lg:p-6 shadow-card border-border/60">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h2 className="font-display text-xl font-semibold flex items-center gap-2">
+                <LogIn className="h-5 w-5 text-success" /> Próximas entradas
+              </h2>
+              <p className="text-sm text-muted-foreground">Próximos 7 dias</p>
+            </div>
+            <Button asChild variant="ghost" size="sm" className="text-primary">
+              <Link to="/stays">Ver estadias <ArrowRight className="h-3.5 w-3.5 ml-1" /></Link>
+            </Button>
+          </div>
+          <div className="space-y-2">
+            {upcomingArrivals.length === 0 && (
+              <div className="text-sm text-muted-foreground py-4 text-center">Sem entradas agendadas.</div>
+            )}
+            {upcomingArrivals.map((s) => {
+              const room = rooms.find((r) => r.id === s.roomId);
+              return (
+                <Link key={s.id} to="/stays" className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted/50 transition-smooth border border-transparent hover:border-border">
+                  <div className="h-10 w-10 rounded-lg bg-success/10 text-success flex items-center justify-center font-display font-semibold text-sm">
+                    {new Date(s.checkIn).getDate()}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="font-medium text-sm truncate">{s.fullName}</div>
+                    <div className="text-xs text-muted-foreground">
+                      {room ? `Quarto ${room.number}` : "Sem quarto"} · {new Date(s.checkIn).toLocaleDateString("pt-PT", { weekday: "short", day: "numeric", month: "short" })}
+                    </div>
+                  </div>
+                  <Badge variant="outline" className="text-[10px]">{s.status === "confirmed" ? "Kit ✓" : "Pend."}</Badge>
+                </Link>
+              );
+            })}
+          </div>
+        </Card>
+
+        <Card className="p-5 lg:p-6 shadow-card border-border/60">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h2 className="font-display text-xl font-semibold flex items-center gap-2">
+                <LogOut className="h-5 w-5 text-warning" /> Próximas saídas
+              </h2>
+              <p className="text-sm text-muted-foreground">Próximos 7 dias</p>
+            </div>
+            <Button asChild variant="ghost" size="sm" className="text-primary">
+              <Link to="/stays">Ver estadias <ArrowRight className="h-3.5 w-3.5 ml-1" /></Link>
+            </Button>
+          </div>
+          <div className="space-y-2">
+            {upcomingDepartures.length === 0 && (
+              <div className="text-sm text-muted-foreground py-4 text-center">Sem saídas agendadas.</div>
+            )}
+            {upcomingDepartures.map((s) => {
+              const room = rooms.find((r) => r.id === s.roomId);
+              return (
+                <Link key={s.id} to="/stays" className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted/50 transition-smooth border border-transparent hover:border-border">
+                  <div className="h-10 w-10 rounded-lg bg-warning/15 text-warning flex items-center justify-center font-display font-semibold text-sm">
+                    {new Date(s.checkOut).getDate()}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="font-medium text-sm truncate">{s.fullName}</div>
+                    <div className="text-xs text-muted-foreground">
+                      {room ? `Quarto ${room.number}` : "—"} · {new Date(s.checkOut).toLocaleDateString("pt-PT", { weekday: "short", day: "numeric", month: "short" })}
+                    </div>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        </Card>
+      </div>
     </div>
   );
 };
