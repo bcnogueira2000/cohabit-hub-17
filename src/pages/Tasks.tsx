@@ -1,11 +1,13 @@
 import { useState } from "react";
-import { ListChecks, Calendar, Clock, AlertCircle } from "lucide-react";
+import { ListChecks, Calendar, Clock, AlertCircle, Plus } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { opsTasks as seed, taskStatusLabels, residents, rooms } from "@/lib/mockData";
+import { taskStatusLabels, residents, rooms } from "@/lib/mockData";
 import { OpsTask, TaskStatus } from "@/lib/types";
 import { cn } from "@/lib/utils";
+import { useTasks, tasksStore } from "@/lib/tasksStore";
+import { NewTaskDialog } from "@/components/NewTaskDialog";
 
 const columns: { id: TaskStatus; label: string; tone: string }[] = [
   { id: "todo", label: "A fazer", tone: "bg-info/10 text-info border-info/30" },
@@ -21,19 +23,30 @@ const priorityDot: Record<string, string> = {
 };
 
 const Tasks = () => {
-  const [tasks, setTasks] = useState(seed);
+  const tasks = useTasks();
   const [selected, setSelected] = useState<OpsTask | null>(null);
 
   const updateTask = (id: string, patch: Partial<OpsTask>) => {
-    setTasks((p) => p.map((t) => (t.id === id ? { ...t, ...patch } : t)));
+    tasksStore.update(id, patch);
     setSelected((s) => (s && s.id === id ? { ...s, ...patch } : s));
   };
 
   return (
     <div className="px-4 lg:px-10 py-6 lg:py-10 max-w-7xl mx-auto">
-      <div className="mb-6">
-        <h1 className="font-display text-3xl lg:text-4xl font-semibold">Tasks</h1>
-        <p className="text-muted-foreground mt-1">Tarefas operacionais atribuídas à equipa</p>
+      <div className="mb-6 flex items-start justify-between gap-4">
+        <div>
+          <h1 className="font-display text-3xl lg:text-4xl font-semibold">Tasks</h1>
+          <p className="text-muted-foreground mt-1">Tarefas operacionais atribuídas à equipa</p>
+        </div>
+        <NewTaskDialog
+          nextCode={tasksStore.nextCode()}
+          onCreate={(t) => tasksStore.add(t)}
+          trigger={
+            <Button className="rounded-full gradient-warm border-0 shadow-elegant">
+              <Plus className="h-4 w-4 mr-1.5" /> Nova tarefa
+            </Button>
+          }
+        />
       </div>
 
       <div className="grid lg:grid-cols-4 gap-4">
