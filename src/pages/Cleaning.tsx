@@ -5,8 +5,8 @@ import { Card } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Checkbox } from "@/components/ui/checkbox";
-import { cleaningTasks as seed, cleaningTypeLabels } from "@/lib/mockData";
-import { CleaningTask } from "@/lib/types";
+import { cleaningTasks as seed, cleaningTypeLabels, cleaningServiceLabels, cleaningServiceDescriptions, cleaningSourceLabels } from "@/lib/mockData";
+import { CleaningTask, CleaningService } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 const isToday = (iso: string) => {
