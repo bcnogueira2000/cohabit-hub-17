@@ -73,11 +73,77 @@ export const requests: Request[] = [
 ];
 
 export const cleaningTasks: CleaningTask[] = [
-  { id: "c1", type: "room_regular", roomId: "r3", area: "Quarto 103", scheduledFor: iso(0, 11), status: "scheduled", assignedTo: "Equipa A" },
-  { id: "c2", type: "kitchen", roomId: null, area: "Cozinha 1º andar", scheduledFor: iso(0, 14), status: "in_progress", assignedTo: "Equipa A" },
+  { id: "c1", type: "room_regular", roomId: "r3", area: "Quarto 103", scheduledFor: iso(0, 11), status: "scheduled", assignedTo: "Equipa A",
+    checklist: [
+      { label: "Cama refeita com lençóis novos", done: false },
+      { label: "Aspirar / varrer chão", done: false },
+      { label: "Pó nas superfícies", done: false },
+      { label: "Lixo removido", done: false },
+      { label: "Casa de banho privada", done: false },
+      { label: "Verificar avarias", done: false },
+    ] },
+  { id: "c2", type: "kitchen", roomId: null, area: "Cozinha 1º andar", scheduledFor: iso(0, 14), status: "in_progress", assignedTo: "Equipa A",
+    checklist: [
+      { label: "Bancadas limpas", done: true },
+      { label: "Lavar louça acumulada", done: true },
+      { label: "Frigorífico — check exterior", done: false },
+      { label: "Lixo + reciclagem", done: false },
+      { label: "Chão lavado", done: false },
+    ] },
   { id: "c3", type: "bathroom", roomId: null, area: "WC partilhado 2º andar", scheduledFor: iso(0, 15), status: "scheduled", assignedTo: "Equipa B" },
   { id: "c4", type: "checkout_inspection", roomId: "r4", area: "Quarto 201", scheduledFor: iso(1, 10), status: "scheduled", assignedTo: null },
+  { id: "c5", type: "common", roomId: null, area: "Sala comum — 2º andar", scheduledFor: iso(1, 12), status: "scheduled", assignedTo: "Equipa A" },
+  { id: "c6", type: "room_regular", roomId: "r1", area: "Quarto 101", scheduledFor: iso(-1, 11), status: "completed", assignedTo: "Equipa B" },
+  { id: "c7", type: "kitchen", roomId: null, area: "Cozinha 3º andar", scheduledFor: iso(-1, 14), status: "completed", assignedTo: "Equipa A" },
 ];
+
+export const cleaningTypeLabels: Record<string, string> = {
+  room_regular: "Quarto — Regular",
+  room_deep: "Quarto — Profunda",
+  bathroom: "Casa de banho",
+  kitchen: "Cozinha",
+  common: "Áreas comuns",
+  checkout_inspection: "Inspeção check-out",
+};
+
+export const opsTasks: import("./types").OpsTask[] = [
+  { id: "t1", code: "T-001", title: "Comprar lâmpadas LED para cozinha 3", description: "Stock acabou. Comprar 6 unidades.", category: "supplier", status: "todo", priority: "medium", assignedTo: "Maria", roomId: null, residentId: null, requestId: "req5", dueDate: iso(2, 18), createdAt: iso(-2) },
+  { id: "t2", code: "T-002", title: "Reparar torneira quarto 101", description: "Substituir vedante.", category: "maintenance", status: "in_progress", priority: "high", assignedTo: "Carlos", roomId: "r1", residentId: "p1", requestId: "req1", dueDate: iso(0, 18), createdAt: iso(-1) },
+  { id: "t3", code: "T-003", title: "Preparar kit boas-vindas Inês", description: "Toalhas, chave, manual residente.", category: "logistics", status: "todo", priority: "high", assignedTo: "Maria", roomId: null, residentId: "p5", requestId: null, dueDate: iso(6, 17), createdAt: iso(0) },
+  { id: "t4", code: "T-004", title: "Renegociar contrato fornecedor limpeza", description: "Revisão anual.", category: "admin", status: "blocked", priority: "low", assignedTo: "Ana", roomId: null, residentId: null, requestId: null, dueDate: iso(14), createdAt: iso(-5) },
+  { id: "t5", code: "T-005", title: "Inspeção saída quarto 201", description: "Verificar estado antes de devolver caução.", category: "logistics", status: "todo", priority: "high", assignedTo: null, roomId: "r4", residentId: "p3", requestId: null, dueDate: iso(5, 11), createdAt: iso(0) },
+  { id: "t6", code: "T-006", title: "Manual residente impresso", description: "Imprimir 20 cópias.", category: "admin", status: "done", priority: "low", assignedTo: "Maria", roomId: null, residentId: null, requestId: null, dueDate: iso(-2), createdAt: iso(-7) },
+];
+
+export const spaces: import("./types").Space[] = [
+  { id: "s1", name: "Sala de Reunião 1", capacity: 6, description: "Mesa grande, TV, ideal para chamadas em equipa." },
+  { id: "s2", name: "Sala de Reunião 2", capacity: 4, description: "Sala íntima para 1:1 ou pequenas calls." },
+  { id: "s3", name: "Cowork Lounge", capacity: 12, description: "Zona de trabalho partilhado com sofás." },
+];
+
+export const bookings: import("./types").Booking[] = [
+  { id: "b1", spaceId: "s1", residentId: "p1", title: "Reunião de equipa", start: iso(0, 10), end: iso(0, 11) },
+  { id: "b2", spaceId: "s2", residentId: "p4", title: "Call cliente", start: iso(0, 14), end: iso(0, 15) },
+  { id: "b3", spaceId: "s1", residentId: "p2", title: "Workshop", start: iso(1, 16), end: iso(1, 18) },
+  { id: "b4", spaceId: "s3", residentId: "p3", title: "Sessão coworking", start: iso(2, 9), end: iso(2, 13) },
+  { id: "b5", spaceId: "s1", residentId: "p4", title: "Entrevista", start: iso(3, 11), end: iso(3, 12) },
+];
+
+export const taskStatusLabels: Record<string, string> = {
+  todo: "A fazer",
+  in_progress: "Em curso",
+  done: "Concluída",
+  blocked: "Bloqueada",
+};
+
+export const roomStatusLabels: Record<string, string> = {
+  available: "Disponível",
+  occupied: "Ocupado",
+  reserved: "Reservado",
+  maintenance: "Manutenção",
+  cleaning_required: "Precisa limpeza",
+  out_of_service: "Fora de serviço",
+};
 
 export const categoryLabels: Record<string, string> = {
   maintenance: "Manutenção",
