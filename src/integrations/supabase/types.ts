@@ -14,7 +14,367 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      bookings: {
+        Row: {
+          created_at: string
+          end_at: string
+          id: string
+          notes: string | null
+          resident_id: string | null
+          space_id: string
+          start_at: string
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          end_at: string
+          id?: string
+          notes?: string | null
+          resident_id?: string | null
+          space_id: string
+          start_at: string
+          title: string
+        }
+        Update: {
+          created_at?: string
+          end_at?: string
+          id?: string
+          notes?: string | null
+          resident_id?: string | null
+          space_id?: string
+          start_at?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bookings_resident_id_fkey"
+            columns: ["resident_id"]
+            isOneToOne: false
+            referencedRelation: "residents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_space_id_fkey"
+            columns: ["space_id"]
+            isOneToOne: false
+            referencedRelation: "spaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cleaning_tasks: {
+        Row: {
+          area: string
+          assigned_to: string | null
+          checklist: Json | null
+          created_at: string
+          id: string
+          notes: string | null
+          room_id: string | null
+          scheduled_for: string
+          service: Database["public"]["Enums"]["cleaning_service"]
+          source: Database["public"]["Enums"]["cleaning_source"]
+          source_ref: string | null
+          status: Database["public"]["Enums"]["cleaning_status"]
+          type: Database["public"]["Enums"]["cleaning_type"]
+          updated_at: string
+        }
+        Insert: {
+          area: string
+          assigned_to?: string | null
+          checklist?: Json | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          room_id?: string | null
+          scheduled_for: string
+          service?: Database["public"]["Enums"]["cleaning_service"]
+          source?: Database["public"]["Enums"]["cleaning_source"]
+          source_ref?: string | null
+          status?: Database["public"]["Enums"]["cleaning_status"]
+          type: Database["public"]["Enums"]["cleaning_type"]
+          updated_at?: string
+        }
+        Update: {
+          area?: string
+          assigned_to?: string | null
+          checklist?: Json | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          room_id?: string | null
+          scheduled_for?: string
+          service?: Database["public"]["Enums"]["cleaning_service"]
+          source?: Database["public"]["Enums"]["cleaning_source"]
+          source_ref?: string | null
+          status?: Database["public"]["Enums"]["cleaning_status"]
+          type?: Database["public"]["Enums"]["cleaning_type"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cleaning_tasks_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "rooms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ops_tasks: {
+        Row: {
+          assigned_to: string | null
+          category: Database["public"]["Enums"]["task_category"]
+          code: string
+          created_at: string
+          description: string | null
+          due_date: string | null
+          id: string
+          priority: Database["public"]["Enums"]["task_priority"]
+          request_id: string | null
+          resident_id: string | null
+          room_id: string | null
+          status: Database["public"]["Enums"]["task_status"]
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          assigned_to?: string | null
+          category?: Database["public"]["Enums"]["task_category"]
+          code: string
+          created_at?: string
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          priority?: Database["public"]["Enums"]["task_priority"]
+          request_id?: string | null
+          resident_id?: string | null
+          room_id?: string | null
+          status?: Database["public"]["Enums"]["task_status"]
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          assigned_to?: string | null
+          category?: Database["public"]["Enums"]["task_category"]
+          code?: string
+          created_at?: string
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          priority?: Database["public"]["Enums"]["task_priority"]
+          request_id?: string | null
+          resident_id?: string | null
+          room_id?: string | null
+          status?: Database["public"]["Enums"]["task_status"]
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ops_tasks_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "requests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ops_tasks_resident_id_fkey"
+            columns: ["resident_id"]
+            isOneToOne: false
+            referencedRelation: "residents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ops_tasks_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "rooms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      requests: {
+        Row: {
+          assigned_to: string | null
+          category: Database["public"]["Enums"]["request_category"]
+          code: string
+          created_at: string
+          description: string | null
+          id: string
+          location: string | null
+          permission_to_enter: Database["public"]["Enums"]["permission_to_enter"]
+          priority: Database["public"]["Enums"]["request_priority"]
+          resident_id: string | null
+          room_id: string | null
+          status: Database["public"]["Enums"]["request_status"]
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          assigned_to?: string | null
+          category: Database["public"]["Enums"]["request_category"]
+          code: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          location?: string | null
+          permission_to_enter?: Database["public"]["Enums"]["permission_to_enter"]
+          priority?: Database["public"]["Enums"]["request_priority"]
+          resident_id?: string | null
+          room_id?: string | null
+          status?: Database["public"]["Enums"]["request_status"]
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          assigned_to?: string | null
+          category?: Database["public"]["Enums"]["request_category"]
+          code?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          location?: string | null
+          permission_to_enter?: Database["public"]["Enums"]["permission_to_enter"]
+          priority?: Database["public"]["Enums"]["request_priority"]
+          resident_id?: string | null
+          room_id?: string | null
+          status?: Database["public"]["Enums"]["request_status"]
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "requests_resident_id_fkey"
+            columns: ["resident_id"]
+            isOneToOne: false
+            referencedRelation: "residents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "requests_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "rooms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      residents: {
+        Row: {
+          avatar_color: string | null
+          created_at: string
+          email: string
+          full_name: string
+          id: string
+          move_in: string | null
+          move_out: string | null
+          phone: string | null
+          room_id: string | null
+          status: Database["public"]["Enums"]["resident_status"]
+          updated_at: string
+        }
+        Insert: {
+          avatar_color?: string | null
+          created_at?: string
+          email: string
+          full_name: string
+          id?: string
+          move_in?: string | null
+          move_out?: string | null
+          phone?: string | null
+          room_id?: string | null
+          status?: Database["public"]["Enums"]["resident_status"]
+          updated_at?: string
+        }
+        Update: {
+          avatar_color?: string | null
+          created_at?: string
+          email?: string
+          full_name?: string
+          id?: string
+          move_in?: string | null
+          move_out?: string | null
+          phone?: string | null
+          room_id?: string | null
+          status?: Database["public"]["Enums"]["resident_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "residents_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "rooms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      rooms: {
+        Row: {
+          created_at: string
+          current_resident_id: string | null
+          floor: number
+          id: string
+          number: string
+          status: Database["public"]["Enums"]["room_status"]
+          typology: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          current_resident_id?: string | null
+          floor: number
+          id?: string
+          number: string
+          status?: Database["public"]["Enums"]["room_status"]
+          typology: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          current_resident_id?: string | null
+          floor?: number
+          id?: string
+          number?: string
+          status?: Database["public"]["Enums"]["room_status"]
+          typology?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rooms_current_resident_fk"
+            columns: ["current_resident_id"]
+            isOneToOne: false
+            referencedRelation: "residents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      spaces: {
+        Row: {
+          capacity: number
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          capacity?: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          capacity?: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -23,7 +383,51 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      cleaning_service: "normal" | "simple"
+      cleaning_source: "scheduled" | "checkout" | "request" | "manual"
+      cleaning_status: "scheduled" | "in_progress" | "completed" | "skipped"
+      cleaning_type:
+        | "room_regular"
+        | "room_deep"
+        | "bathroom"
+        | "kitchen"
+        | "common"
+        | "checkout_inspection"
+      permission_to_enter: "yes" | "no" | "with_notice"
+      request_category:
+        | "maintenance"
+        | "cleaning"
+        | "consumables"
+        | "wifi_tech"
+        | "noise"
+        | "billing"
+        | "lost_found"
+        | "feedback"
+        | "other"
+      request_priority: "low" | "medium" | "high" | "urgent"
+      request_status:
+        | "open"
+        | "in_progress"
+        | "waiting_resident"
+        | "waiting_supplier"
+        | "resolved"
+        | "closed"
+      resident_status: "upcoming" | "active" | "checking_out" | "past"
+      room_status:
+        | "available"
+        | "occupied"
+        | "reserved"
+        | "maintenance"
+        | "cleaning_required"
+        | "out_of_service"
+      task_category:
+        | "maintenance"
+        | "logistics"
+        | "admin"
+        | "supplier"
+        | "other"
+      task_priority: "low" | "medium" | "high"
+      task_status: "todo" | "in_progress" | "done" | "blocked"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +554,51 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      cleaning_service: ["normal", "simple"],
+      cleaning_source: ["scheduled", "checkout", "request", "manual"],
+      cleaning_status: ["scheduled", "in_progress", "completed", "skipped"],
+      cleaning_type: [
+        "room_regular",
+        "room_deep",
+        "bathroom",
+        "kitchen",
+        "common",
+        "checkout_inspection",
+      ],
+      permission_to_enter: ["yes", "no", "with_notice"],
+      request_category: [
+        "maintenance",
+        "cleaning",
+        "consumables",
+        "wifi_tech",
+        "noise",
+        "billing",
+        "lost_found",
+        "feedback",
+        "other",
+      ],
+      request_priority: ["low", "medium", "high", "urgent"],
+      request_status: [
+        "open",
+        "in_progress",
+        "waiting_resident",
+        "waiting_supplier",
+        "resolved",
+        "closed",
+      ],
+      resident_status: ["upcoming", "active", "checking_out", "past"],
+      room_status: [
+        "available",
+        "occupied",
+        "reserved",
+        "maintenance",
+        "cleaning_required",
+        "out_of_service",
+      ],
+      task_category: ["maintenance", "logistics", "admin", "supplier", "other"],
+      task_priority: ["low", "medium", "high"],
+      task_status: ["todo", "in_progress", "done", "blocked"],
+    },
   },
 } as const
