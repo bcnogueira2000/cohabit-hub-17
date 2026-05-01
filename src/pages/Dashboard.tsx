@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { requests, cleaningTasks, rooms, residents } from "@/lib/mockData";
 import { StatusBadge, PriorityBadge } from "@/components/ui/StatusBadge";
+import { NewTaskDialog } from "@/components/NewTaskDialog";
+import { tasksStore } from "@/lib/tasksStore";
 
 const greeting = () => {
   const h = new Date().getHours();
@@ -45,9 +47,15 @@ const Dashboard = () => {
           <p className="text-muted-foreground mt-1">Aqui está o que precisa da tua atenção hoje.</p>
         </div>
         <div className="flex gap-2">
-          <Button asChild variant="outline" className="rounded-full">
-            <Link to="/tasks"><ListChecks className="h-4 w-4 mr-1.5" /> Nova tarefa</Link>
-          </Button>
+          <NewTaskDialog
+            nextCode={tasksStore.nextCode()}
+            onCreate={(t) => tasksStore.add(t)}
+            trigger={
+              <Button variant="outline" className="rounded-full">
+                <ListChecks className="h-4 w-4 mr-1.5" /> Nova tarefa
+              </Button>
+            }
+          />
           <Button asChild className="rounded-full gradient-warm border-0 shadow-elegant">
             <Link to="/requests/new"><Plus className="h-4 w-4 mr-1.5" /> Novo pedido</Link>
           </Button>
