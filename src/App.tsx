@@ -23,6 +23,7 @@ import Bookings from "./pages/Bookings";
 import Insights from "./pages/Insights";
 import Settings from "./pages/Settings";
 import MyDay from "./pages/MyDay";
+import Stays from "./pages/Stays";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
