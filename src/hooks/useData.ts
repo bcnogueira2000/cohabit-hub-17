@@ -88,6 +88,7 @@ export const useCreateRequest = () => {
       permissionToEnter?: any;
     }) => {
       const { error, data } = await supabase.from("requests").insert({
+        code: "",
         title: input.title,
         category: input.category,
         description: input.description ?? "",
@@ -131,6 +132,7 @@ export const useCreateOpsTask = () => {
       assignedTo?: string | null; dueDate?: string | null;
     }) => {
       const { error, data } = await supabase.from("ops_tasks").insert({
+        code: "",
         title: input.title,
         description: input.description ?? "",
         category: input.category,
