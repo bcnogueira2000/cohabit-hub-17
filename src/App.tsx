@@ -23,6 +23,7 @@ import Bookings from "./pages/Bookings";
 import Insights from "./pages/Insights";
 import Settings from "./pages/Settings";
 import MyDay from "./pages/MyDay";
+import Stays from "./pages/Stays";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -50,6 +51,7 @@ const App = () => (
               <Route path="/residents/:id" element={<ResidentDetail />} />
               <Route path="/rooms" element={<Rooms />} />
               <Route path="/rooms/:id" element={<RoomDetail />} />
+              <Route path="/stays" element={<Stays />} />
               <Route path="/bookings" element={<Bookings />} />
               <Route path="/insights" element={<Insights />} />
               <Route path="/settings" element={<Settings />} />

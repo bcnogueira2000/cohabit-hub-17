@@ -105,3 +105,22 @@ export interface Booking {
   end: string;
   notes?: string;
 }
+
+export type StayStatus = "pending" | "confirmed" | "checked_in" | "checked_out" | "cancelled";
+export type StaySource = "manual" | "public_form" | "external";
+
+export interface Stay {
+  id: string;
+  residentId: string | null;
+  fullName: string;
+  email: string;
+  phone: string;
+  roomId: string | null;
+  checkIn: string;
+  checkOut: string;
+  status: StayStatus;
+  source: StaySource;
+  notes?: string;
+  createdAt: string;
+  updatedAt: string;
+}

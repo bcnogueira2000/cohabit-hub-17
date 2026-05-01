@@ -1,5 +1,5 @@
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
-import { LayoutDashboard, Inbox, Sparkles, ListChecks, Users, DoorClosed, CalendarRange, BarChart3, Settings, MoreHorizontal, Sun, LogOut } from "lucide-react";
+import { LayoutDashboard, Inbox, Sparkles, ListChecks, Users, DoorClosed, CalendarRange, BarChart3, Settings, MoreHorizontal, Sun, LogOut, LogIn } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -13,8 +13,9 @@ const navItems = [
   { to: "/cleaning", label: "Cleaning", icon: Sparkles },
   { to: "/tasks", label: "Tasks", icon: ListChecks },
   { to: "/residents", label: "Residents", icon: Users },
+  { to: "/stays", label: "Estadias", icon: LogIn },
   { to: "/rooms", label: "Rooms", icon: DoorClosed },
-  { to: "/bookings", label: "Bookings", icon: CalendarRange },
+  { to: "/bookings", label: "Reservas espaços", icon: CalendarRange },
   { to: "/insights", label: "Insights", icon: BarChart3 },
   { to: "/settings", label: "Settings", icon: Settings },
 ];

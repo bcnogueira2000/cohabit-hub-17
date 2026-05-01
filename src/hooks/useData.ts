@@ -1,9 +1,9 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
-  mapBooking, mapCleaning, mapOpsTask, mapRequest, mapResident, mapRoom, mapSpace,
+  mapBooking, mapCleaning, mapOpsTask, mapRequest, mapResident, mapRoom, mapSpace, mapStay,
 } from "@/lib/dataMappers";
-import type { Booking, CleaningTask, OpsTask, Request, Resident, Room, Space } from "@/lib/types";
+import type { Booking, CleaningTask, OpsTask, Request, Resident, Room, Space, Stay } from "@/lib/types";
 
 // ============ READ HOOKS ============
 
@@ -205,5 +205,86 @@ export const useDeleteBooking = () => {
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["bookings"] }),
+  });
+};
+
+// ============ STAYS ============
+
+export const useStays = () =>
+  useQuery({
+    queryKey: ["stays"],
+    queryFn: async (): Promise<Stay[]> => {
+      const { data, error } = await supabase.from("stays" as any).select("*").order("check_in", { ascending: true });
+      if (error) throw error;
+      return ((data ?? []) as any[]).map(mapStay);
+    },
+  });
+
+export const useCreateStay = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: {
+      fullName: string; email: string; phone?: string;
+      roomId?: string | null; checkIn: string; checkOut: string;
+      status?: "pending" | "confirmed"; source?: "manual" | "public_form" | "external";
+      notes?: string;
+    }) => {
+      const { data, error } = await supabase.from("stays" as any).insert({
+        full_name: input.fullName,
+        email: input.email,
+        phone: input.phone ?? null,
+        room_id: input.roomId ?? null,
+        check_in: input.checkIn,
+        check_out: input.checkOut,
+        status: input.status ?? "confirmed",
+        source: input.source ?? "manual",
+        notes: input.notes ?? null,
+      } as any).select().single();
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["stays"] });
+      qc.invalidateQueries({ queryKey: ["residents"] });
+      qc.invalidateQueries({ queryKey: ["rooms"] });
+      qc.invalidateQueries({ queryKey: ["ops_tasks"] });
+      qc.invalidateQueries({ queryKey: ["cleaning_tasks"] });
+    },
+  });
+};
+
+export const useUpdateStay = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, patch }: { id: string; patch: Partial<Stay> }) => {
+      const dbPatch: any = {};
+      if (patch.status) dbPatch.status = patch.status;
+      if (patch.roomId !== undefined) dbPatch.room_id = patch.roomId;
+      if (patch.checkIn) dbPatch.check_in = patch.checkIn;
+      if (patch.checkOut) dbPatch.check_out = patch.checkOut;
+      if (patch.notes !== undefined) dbPatch.notes = patch.notes;
+      if (patch.fullName) dbPatch.full_name = patch.fullName;
+      if (patch.phone !== undefined) dbPatch.phone = patch.phone;
+      const { error } = await supabase.from("stays" as any).update(dbPatch).eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["stays"] });
+      qc.invalidateQueries({ queryKey: ["residents"] });
+      qc.invalidateQueries({ queryKey: ["rooms"] });
+      qc.invalidateQueries({ queryKey: ["ops_tasks"] });
+      qc.invalidateQueries({ queryKey: ["cleaning_tasks"] });
+    },
+  });
+};
+
+export const useDeleteStay = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("stays" as any).delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["stays"] }),
   });
 };

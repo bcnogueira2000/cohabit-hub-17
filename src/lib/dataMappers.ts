@@ -1,4 +1,4 @@
-import type { Resident, Room, Request, CleaningTask, OpsTask, Booking, Space } from "./types";
+import type { Resident, Room, Request, CleaningTask, OpsTask, Booking, Space, Stay } from "./types";
 
 // Maps from DB snake_case rows to the app's camelCase types.
 // Lets us keep existing pages mostly intact.
@@ -84,4 +84,20 @@ export const mapBooking = (b: any): Booking => ({
   start: b.start_at,
   end: b.end_at,
   notes: b.notes ?? undefined,
+});
+
+export const mapStay = (s: any): Stay => ({
+  id: s.id,
+  residentId: s.resident_id ?? null,
+  fullName: s.full_name,
+  email: s.email,
+  phone: s.phone ?? "",
+  roomId: s.room_id ?? null,
+  checkIn: s.check_in,
+  checkOut: s.check_out,
+  status: s.status,
+  source: s.source,
+  notes: s.notes ?? undefined,
+  createdAt: s.created_at,
+  updatedAt: s.updated_at,
 });
