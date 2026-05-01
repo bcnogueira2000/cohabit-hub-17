@@ -11,7 +11,6 @@ import { useToast } from "@/hooks/use-toast";
 interface Props {
   trigger: ReactNode;
   onCreate: (task: OpsTask) => void;
-  nextCode: string;
 }
 
 const categories: OpsTask["category"][] = ["maintenance", "logistics", "admin", "supplier", "other"];
@@ -23,7 +22,7 @@ const categoryLabels: Record<string, string> = {
   other: "Outro",
 };
 
-export const NewTaskDialog = ({ trigger, onCreate, nextCode }: Props) => {
+export const NewTaskDialog = ({ trigger, onCreate }: Props) => {
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -45,7 +44,7 @@ export const NewTaskDialog = ({ trigger, onCreate, nextCode }: Props) => {
     }
     const task: OpsTask = {
       id: `t-${Date.now()}`,
-      code: nextCode,
+      code: "",
       title: title.trim(),
       description: description.trim(),
       category,
@@ -59,7 +58,7 @@ export const NewTaskDialog = ({ trigger, onCreate, nextCode }: Props) => {
       createdAt: new Date().toISOString(),
     };
     onCreate(task);
-    toast({ title: "Tarefa criada", description: `${task.code} · ${task.title}` });
+    toast({ title: "Tarefa criada", description: task.title });
     reset();
     setOpen(false);
   };
