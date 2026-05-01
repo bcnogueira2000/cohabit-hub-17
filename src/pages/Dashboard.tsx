@@ -2,10 +2,10 @@ import { Link } from "react-router-dom";
 import { Plus, ArrowRight, Inbox, Sparkles, DoorClosed, AlertTriangle, ListChecks, Sun } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { requests, cleaningTasks, rooms, residents } from "@/lib/mockData";
 import { StatusBadge, PriorityBadge } from "@/components/ui/StatusBadge";
 import { NewTaskDialog } from "@/components/NewTaskDialog";
-import { tasksStore } from "@/lib/tasksStore";
+import { useRequests, useCleaningTasks, useRooms, useResidents, useCreateOpsTask } from "@/hooks/useData";
+import { useAuth } from "@/hooks/useAuth";
 
 const greeting = () => {
   const h = new Date().getHours();
@@ -18,12 +18,21 @@ const formatDate = () =>
   new Date().toLocaleDateString("pt-PT", { weekday: "long", day: "numeric", month: "long" });
 
 const Dashboard = () => {
+  const { user } = useAuth();
+  const { data: requests = [] } = useRequests();
+  const { data: cleaningTasks = [] } = useCleaningTasks();
+  const { data: rooms = [] } = useRooms();
+  const { data: residents = [] } = useResidents();
+  const createTask = useCreateOpsTask();
+
   const openRequests = requests.filter((r) => r.status === "open" || r.status === "in_progress");
   const urgent = requests.filter((r) => r.priority === "urgent" && r.status !== "resolved" && r.status !== "closed");
   const todaysCleaning = cleaningTasks.filter((t) => t.status !== "completed");
   const occupied = rooms.filter((r) => r.status === "occupied").length;
-  const occupancy = Math.round((occupied / rooms.length) * 100);
+  const occupancy = rooms.length ? Math.round((occupied / rooms.length) * 100) : 0;
   const checkingOut = residents.filter((r) => r.status === "checking_out").length;
+
+  const firstName = user?.email?.split("@")[0] ?? "equipa";
 
   const kpis = [
     { label: "Pedidos abertos", value: openRequests.length, sub: `${urgent.length} urgentes`, icon: Inbox, accent: "bg-primary/10 text-primary" },
@@ -34,22 +43,23 @@ const Dashboard = () => {
 
   return (
     <div className="px-4 lg:px-10 py-6 lg:py-10 max-w-7xl mx-auto">
-      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-8">
         <div>
           <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
             <Sun className="h-4 w-4" />
             <span className="capitalize">{formatDate()}</span>
           </div>
-          <h1 className="font-display text-3xl lg:text-4xl font-semibold text-foreground">
-            {greeting()}, Maria.
+          <h1 className="font-display text-3xl lg:text-4xl font-semibold text-foreground capitalize">
+            {greeting()}, {firstName}.
           </h1>
           <p className="text-muted-foreground mt-1">Aqui está o que precisa da tua atenção hoje.</p>
         </div>
         <div className="flex gap-2">
           <NewTaskDialog
-            nextCode={tasksStore.nextCode()}
-            onCreate={(t) => tasksStore.add(t)}
+            onCreate={(t) => createTask.mutate({
+              title: t.title, description: t.description, category: t.category,
+              priority: t.priority, assignedTo: t.assignedTo, dueDate: t.dueDate,
+            })}
             trigger={
               <Button variant="outline" className="rounded-full">
                 <ListChecks className="h-4 w-4 mr-1.5" /> Nova tarefa
@@ -62,7 +72,6 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* KPI Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4 mb-8">
         {kpis.map(({ label, value, sub, icon: Icon, accent }) => (
           <Card key={label} className="p-4 lg:p-5 shadow-card hover:shadow-elegant transition-smooth border-border/60">
@@ -78,9 +87,7 @@ const Dashboard = () => {
         ))}
       </div>
 
-      {/* Two columns */}
       <div className="grid lg:grid-cols-3 gap-6">
-        {/* Open requests */}
         <Card className="lg:col-span-2 p-5 lg:p-6 shadow-card border-border/60">
           <div className="flex items-center justify-between mb-4">
             <div>
@@ -92,6 +99,9 @@ const Dashboard = () => {
             </Button>
           </div>
           <div className="space-y-2">
+            {openRequests.length === 0 && (
+              <div className="text-sm text-muted-foreground py-6 text-center">Sem pedidos abertos. ✨</div>
+            )}
             {openRequests.slice(0, 5).map((r) => {
               const resident = residents.find((p) => p.id === r.residentId);
               return (
@@ -117,7 +127,6 @@ const Dashboard = () => {
           </div>
         </Card>
 
-        {/* Today's cleaning */}
         <Card className="p-5 lg:p-6 shadow-card border-border/60">
           <div className="flex items-center justify-between mb-4">
             <div>
@@ -129,7 +138,10 @@ const Dashboard = () => {
             </Button>
           </div>
           <div className="space-y-2">
-            {todaysCleaning.map((t) => (
+            {todaysCleaning.length === 0 && (
+              <div className="text-sm text-muted-foreground py-4 text-center">Sem limpezas agendadas.</div>
+            )}
+            {todaysCleaning.slice(0, 6).map((t) => (
               <div key={t.id} className="flex items-center gap-3 p-3 rounded-lg bg-muted/40">
                 <div className={`h-9 w-9 rounded-lg flex items-center justify-center ${
                   t.status === "in_progress" ? "bg-warning/20 text-warning" : "bg-secondary text-secondary-foreground"
