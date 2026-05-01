@@ -1,5 +1,5 @@
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
-import { LayoutDashboard, Inbox, Sparkles, ListChecks, Users, DoorClosed, CalendarRange, BarChart3, Settings, MoreHorizontal, Sun, LogOut } from "lucide-react";
+import { LayoutDashboard, Inbox, Sparkles, ListChecks, Users, DoorClosed, CalendarRange, BarChart3, Settings, MoreHorizontal, Sun, LogOut, LogIn } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
