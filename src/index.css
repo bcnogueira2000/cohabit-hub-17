@@ -1,96 +1,107 @@
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
-*/
+/* Living Colours Ops — Boutique warm design system. All colors in HSL. */
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    /* Surfaces — warm cream */
+    --background: 33 36% 96%;
+    --foreground: 20 25% 14%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card: 35 40% 99%;
+    --card-foreground: 20 25% 14%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover: 35 40% 99%;
+    --popover-foreground: 20 25% 14%;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    /* Brand — terracotta */
+    --primary: 14 55% 48%;
+    --primary-foreground: 33 40% 97%;
+    --primary-glow: 18 70% 60%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    /* Sage secondary */
+    --secondary: 95 14% 88%;
+    --secondary-foreground: 110 18% 22%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: 33 24% 92%;
+    --muted-foreground: 25 12% 42%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --accent: 38 60% 88%;
+    --accent-foreground: 20 35% 22%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 4 70% 50%;
+    --destructive-foreground: 33 40% 97%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --success: 140 38% 38%;
+    --success-foreground: 33 40% 97%;
 
-    --radius: 0.5rem;
+    --warning: 35 85% 52%;
+    --warning-foreground: 20 35% 14%;
 
-    --sidebar-background: 0 0% 98%;
+    --info: 200 50% 42%;
+    --info-foreground: 33 40% 97%;
 
-    --sidebar-foreground: 240 5.3% 26.1%;
+    --border: 30 22% 86%;
+    --input: 30 22% 86%;
+    --ring: 14 55% 48%;
 
-    --sidebar-primary: 240 5.9% 10%;
+    --radius: 0.875rem;
 
-    --sidebar-primary-foreground: 0 0% 98%;
+    /* Gradients */
+    --gradient-warm: linear-gradient(135deg, hsl(14 55% 48%) 0%, hsl(28 70% 58%) 100%);
+    --gradient-soft: linear-gradient(180deg, hsl(35 40% 99%) 0%, hsl(33 36% 96%) 100%);
+    --gradient-sage: linear-gradient(135deg, hsl(110 18% 32%) 0%, hsl(95 22% 48%) 100%);
 
-    --sidebar-accent: 240 4.8% 95.9%;
+    /* Shadows */
+    --shadow-soft: 0 1px 2px hsl(20 25% 14% / 0.04), 0 4px 12px hsl(20 25% 14% / 0.04);
+    --shadow-elegant: 0 8px 24px -8px hsl(14 55% 48% / 0.18);
+    --shadow-card: 0 1px 3px hsl(20 25% 14% / 0.05);
 
-    --sidebar-accent-foreground: 240 5.9% 10%;
+    --transition-smooth: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 
-    --sidebar-border: 220 13% 91%;
-
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    /* Sidebar */
+    --sidebar-background: 35 40% 99%;
+    --sidebar-foreground: 20 25% 22%;
+    --sidebar-primary: 14 55% 48%;
+    --sidebar-primary-foreground: 33 40% 97%;
+    --sidebar-accent: 33 30% 94%;
+    --sidebar-accent-foreground: 14 55% 38%;
+    --sidebar-border: 30 22% 90%;
+    --sidebar-ring: 14 55% 48%;
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --background: 22 18% 10%;
+    --foreground: 33 30% 94%;
+    --card: 22 16% 13%;
+    --card-foreground: 33 30% 94%;
+    --popover: 22 16% 13%;
+    --popover-foreground: 33 30% 94%;
+    --primary: 18 70% 60%;
+    --primary-foreground: 22 18% 10%;
+    --secondary: 110 12% 22%;
+    --secondary-foreground: 95 14% 88%;
+    --muted: 22 14% 18%;
+    --muted-foreground: 30 14% 64%;
+    --accent: 22 18% 22%;
+    --accent-foreground: 33 30% 94%;
+    --destructive: 4 65% 55%;
+    --destructive-foreground: 33 30% 94%;
+    --border: 22 14% 22%;
+    --input: 22 14% 22%;
+    --ring: 18 70% 60%;
+    --sidebar-background: 22 16% 12%;
+    --sidebar-foreground: 33 30% 88%;
+    --sidebar-primary: 18 70% 60%;
+    --sidebar-primary-foreground: 22 18% 10%;
+    --sidebar-accent: 22 14% 18%;
+    --sidebar-accent-foreground: 18 70% 65%;
+    --sidebar-border: 22 14% 20%;
+    --sidebar-ring: 18 70% 60%;
   }
 }
 
@@ -99,7 +110,30 @@ All colors MUST be HSL.
     @apply border-border;
   }
 
+  html {
+    font-family: 'Inter', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
   body {
     @apply bg-background text-foreground;
+    font-feature-settings: 'cv11', 'ss01';
   }
+
+  h1, h2, h3, h4, .font-display {
+    font-family: 'Fraunces', Georgia, serif;
+    font-optical-sizing: auto;
+    letter-spacing: -0.015em;
+  }
+}
+
+@layer utilities {
+  .gradient-warm { background: var(--gradient-warm); }
+  .gradient-soft { background: var(--gradient-soft); }
+  .gradient-sage { background: var(--gradient-sage); }
+  .shadow-soft { box-shadow: var(--shadow-soft); }
+  .shadow-elegant { box-shadow: var(--shadow-elegant); }
+  .shadow-card { box-shadow: var(--shadow-card); }
+  .transition-smooth { transition: var(--transition-smooth); }
 }
