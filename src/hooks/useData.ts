@@ -1,9 +1,9 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
-  mapBooking, mapCleaning, mapOpsTask, mapRequest, mapResident, mapRoom, mapSpace,
+  mapBooking, mapCleaning, mapOpsTask, mapRequest, mapResident, mapRoom, mapSpace, mapStay,
 } from "@/lib/dataMappers";
-import type { Booking, CleaningTask, OpsTask, Request, Resident, Room, Space } from "@/lib/types";
+import type { Booking, CleaningTask, OpsTask, Request, Resident, Room, Space, Stay } from "@/lib/types";
 
 // ============ READ HOOKS ============
 
