@@ -38,7 +38,10 @@ const Brand = () => (
 
 export const AppShell = () => {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user, signOut } = useAuth();
   const [moreOpen, setMoreOpen] = useState(false);
+  const handleSignOut = async () => { await signOut(); navigate("/auth", { replace: true }); };
 
   return (
     <div className="min-h-screen bg-background">
@@ -67,11 +70,15 @@ export const AppShell = () => {
             </NavLink>
           ))}
         </nav>
-        <div className="p-3 border-t border-sidebar-border">
-          <div className="rounded-lg bg-accent/60 p-3">
-            <div className="text-xs font-medium text-accent-foreground">Versão MVP</div>
-            <div className="text-[11px] text-muted-foreground mt-0.5">Operations Hub v0.1</div>
-          </div>
+        <div className="p-3 border-t border-sidebar-border space-y-2">
+          {user && (
+            <div className="px-2 py-1 text-[11px] text-muted-foreground truncate" title={user.email ?? ""}>
+              {user.email}
+            </div>
+          )}
+          <button onClick={handleSignOut} className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-sidebar-foreground hover:bg-sidebar-accent/60 transition-smooth">
+            <LogOut className="h-4 w-4" /> Sair
+          </button>
         </div>
       </aside>
 
