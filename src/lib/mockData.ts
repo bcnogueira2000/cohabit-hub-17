@@ -73,7 +73,7 @@ export const requests: Request[] = [
 ];
 
 export const cleaningTasks: CleaningTask[] = [
-  { id: "c1", type: "room_regular", roomId: "r3", area: "Quarto 103", scheduledFor: iso(0, 11), status: "scheduled", assignedTo: "Equipa A",
+  { id: "c1", type: "room_regular", service: "normal", source: "checkout", sourceRef: "p3", roomId: "r3", area: "Quarto 103", scheduledFor: iso(0, 11), status: "scheduled", assignedTo: "Equipa A",
     checklist: [
       { label: "Cama refeita com lençóis novos", done: false },
       { label: "Aspirar / varrer chão", done: false },
@@ -82,7 +82,7 @@ export const cleaningTasks: CleaningTask[] = [
       { label: "Casa de banho privada", done: false },
       { label: "Verificar avarias", done: false },
     ] },
-  { id: "c2", type: "kitchen", roomId: null, area: "Cozinha 1º andar", scheduledFor: iso(0, 14), status: "in_progress", assignedTo: "Equipa A",
+  { id: "c2", type: "kitchen", service: "normal", source: "scheduled", roomId: null, area: "Cozinha 1º andar", scheduledFor: iso(0, 14), status: "in_progress", assignedTo: "Equipa A",
     checklist: [
       { label: "Bancadas limpas", done: true },
       { label: "Lavar louça acumulada", done: true },
@@ -90,11 +90,11 @@ export const cleaningTasks: CleaningTask[] = [
       { label: "Lixo + reciclagem", done: false },
       { label: "Chão lavado", done: false },
     ] },
-  { id: "c3", type: "bathroom", roomId: null, area: "WC partilhado 2º andar", scheduledFor: iso(0, 15), status: "scheduled", assignedTo: "Equipa B" },
-  { id: "c4", type: "checkout_inspection", roomId: "r4", area: "Quarto 201", scheduledFor: iso(1, 10), status: "scheduled", assignedTo: null },
-  { id: "c5", type: "common", roomId: null, area: "Sala comum — 2º andar", scheduledFor: iso(1, 12), status: "scheduled", assignedTo: "Equipa A" },
-  { id: "c6", type: "room_regular", roomId: "r1", area: "Quarto 101", scheduledFor: iso(-1, 11), status: "completed", assignedTo: "Equipa B" },
-  { id: "c7", type: "kitchen", roomId: null, area: "Cozinha 3º andar", scheduledFor: iso(-1, 14), status: "completed", assignedTo: "Equipa A" },
+  { id: "c3", type: "bathroom", service: "simple", source: "scheduled", roomId: null, area: "WC partilhado 2º andar", scheduledFor: iso(0, 15), status: "scheduled", assignedTo: "Equipa B" },
+  { id: "c4", type: "checkout_inspection", service: "normal", source: "checkout", sourceRef: "p3", roomId: "r4", area: "Quarto 201", scheduledFor: iso(1, 10), status: "scheduled", assignedTo: null },
+  { id: "c5", type: "common", service: "simple", source: "scheduled", roomId: null, area: "Sala comum — 2º andar", scheduledFor: iso(1, 12), status: "scheduled", assignedTo: "Equipa A" },
+  { id: "c6", type: "room_regular", service: "simple", source: "manual", roomId: "r1", area: "Quarto 101", scheduledFor: iso(-1, 11), status: "completed", assignedTo: "Equipa B" },
+  { id: "c7", type: "kitchen", service: "normal", source: "request", sourceRef: "req3", roomId: null, area: "Cozinha 3º andar", scheduledFor: iso(-1, 14), status: "completed", assignedTo: "Equipa A" },
 ];
 
 export const cleaningTypeLabels: Record<string, string> = {
@@ -104,6 +104,23 @@ export const cleaningTypeLabels: Record<string, string> = {
   kitchen: "Cozinha",
   common: "Áreas comuns",
   checkout_inspection: "Inspeção check-out",
+};
+
+export const cleaningServiceLabels: Record<string, string> = {
+  normal: "Normal",
+  simple: "Simples",
+};
+
+export const cleaningServiceDescriptions: Record<string, string> = {
+  normal: "Limpeza completa: aspirar, lavar chão, casa de banho profunda, mudança de lençóis, pó em todas as superfícies.",
+  simple: "Manutenção rápida: lixo, superfícies visíveis, reposição de consumíveis, sem mudança de lençóis.",
+};
+
+export const cleaningSourceLabels: Record<string, string> = {
+  scheduled: "Plano semanal",
+  checkout: "Check-out",
+  request: "Pedido residente",
+  manual: "Manual",
 };
 
 export const opsTasks: import("./types").OpsTask[] = [
