@@ -1,19 +1,16 @@
 import { useState } from "react";
-import { Sparkles, Check, Clock, MapPin, User } from "lucide-react";
+import { Sparkles, Check, Clock, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Checkbox } from "@/components/ui/checkbox";
-import { cleaningTasks as seed, cleaningTypeLabels, cleaningServiceLabels, cleaningServiceDescriptions, cleaningSourceLabels } from "@/lib/mockData";
-import { CleaningTask, CleaningService } from "@/lib/types";
+import { useCleaningTasks, useUpdateCleaningTask } from "@/hooks/useData";
+import { cleaningTypeLabels, cleaningServiceLabels, cleaningServiceDescriptions, cleaningSourceLabels } from "@/lib/labels";
+import { CleaningTask } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
-const isToday = (iso: string) => {
-  const d = new Date(iso);
-  const now = new Date();
-  return d.toDateString() === now.toDateString();
-};
+const isToday = (iso: string) => new Date(iso).toDateString() === new Date().toDateString();
 const isFuture = (iso: string) => new Date(iso) > new Date() && !isToday(iso);
 
 const statusStyles: Record<string, string> = {
@@ -22,45 +19,33 @@ const statusStyles: Record<string, string> = {
   completed: "bg-success/15 text-success",
   skipped: "bg-muted text-muted-foreground",
 };
-
 const statusLabel: Record<string, string> = {
-  scheduled: "Agendada",
-  in_progress: "Em curso",
-  completed: "Concluída",
-  skipped: "Saltada",
+  scheduled: "Agendada", in_progress: "Em curso", completed: "Concluída", skipped: "Saltada",
 };
 
 const Cleaning = () => {
-  const [tasks, setTasks] = useState(seed);
-  const [selected, setSelected] = useState<CleaningTask | null>(null);
+  const { data: tasks = [] } = useCleaningTasks();
+  const updateCleaning = useUpdateCleaningTask();
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const selected = tasks.find((t) => t.id === selectedId) || null;
 
   const today = tasks.filter((t) => isToday(t.scheduledFor) && t.status !== "completed");
   const upcoming = tasks.filter((t) => isFuture(t.scheduledFor));
   const completed = tasks.filter((t) => t.status === "completed");
 
-  const updateTask = (id: string, patch: Partial<CleaningTask>) => {
-    setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, ...patch } : t)));
-    setSelected((s) => (s && s.id === id ? { ...s, ...patch } : s));
-  };
+  const updateTask = (id: string, patch: Partial<CleaningTask>) => updateCleaning.mutate({ id, patch });
 
   const TaskCard = ({ t }: { t: CleaningTask }) => (
-    <Card
-      onClick={() => setSelected(t)}
-      className="p-4 cursor-pointer hover:shadow-elegant transition-smooth border-border/60"
-    >
+    <Card onClick={() => setSelectedId(t.id)} className="p-4 cursor-pointer hover:shadow-elegant transition-smooth border-border/60">
       <div className="flex items-start gap-3">
         <div className="h-10 w-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
           <Sparkles className="h-5 w-5" />
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex flex-wrap items-center gap-2 mb-1">
-            <span className={cn("text-xs px-2 py-0.5 rounded-full font-medium", statusStyles[t.status])}>
-              {statusLabel[t.status]}
-            </span>
-            <span className={cn(
-              "text-[11px] px-2 py-0.5 rounded-full font-semibold uppercase tracking-wide",
-              t.service === "normal" ? "bg-primary/15 text-primary" : "bg-secondary/15 text-secondary"
-            )}>
+            <span className={cn("text-xs px-2 py-0.5 rounded-full font-medium", statusStyles[t.status])}>{statusLabel[t.status]}</span>
+            <span className={cn("text-[11px] px-2 py-0.5 rounded-full font-semibold uppercase tracking-wide",
+              t.service === "normal" ? "bg-primary/15 text-primary" : "bg-secondary/15 text-secondary")}>
               {cleaningServiceLabels[t.service]}
             </span>
             <span className="text-[11px] text-muted-foreground">{cleaningTypeLabels[t.type]}</span>
@@ -71,7 +56,7 @@ const Cleaning = () => {
               {new Date(t.scheduledFor).toLocaleString("pt-PT", { weekday: "short", hour: "2-digit", minute: "2-digit" })}
             </span>
             {t.assignedTo && <span className="flex items-center gap-1"><User className="h-3 w-3" />{t.assignedTo}</span>}
-            <span className="flex items-center gap-1 text-[11px]">· Origem: {cleaningSourceLabels[t.source]}</span>
+            <span className="text-[11px]">· Origem: {cleaningSourceLabels[t.source]}</span>
           </div>
         </div>
       </div>
@@ -91,7 +76,6 @@ const Cleaning = () => {
           <TabsTrigger value="upcoming" className="rounded-full data-[state=active]:bg-card">Próximas · {upcoming.length}</TabsTrigger>
           <TabsTrigger value="completed" className="rounded-full data-[state=active]:bg-card">Concluídas · {completed.length}</TabsTrigger>
         </TabsList>
-
         <TabsContent value="today" className="space-y-2">
           {today.length === 0 && <Card className="p-10 text-center text-muted-foreground border-dashed">Nada agendado para hoje.</Card>}
           {today.map((t) => <TaskCard key={t.id} t={t} />)}
@@ -105,71 +89,50 @@ const Cleaning = () => {
         </TabsContent>
       </Tabs>
 
-      <Sheet open={!!selected} onOpenChange={(open) => !open && setSelected(null)}>
+      <Sheet open={!!selected} onOpenChange={(o) => !o && setSelectedId(null)}>
         <SheetContent className="w-full sm:max-w-lg overflow-y-auto">
           {selected && (
             <>
               <SheetHeader>
                 <div className="flex flex-wrap items-center gap-2 mb-2">
-                  <div className={cn("inline-flex text-xs px-2 py-0.5 rounded-full font-medium", statusStyles[selected.status])}>
-                    {statusLabel[selected.status]}
-                  </div>
-                  <div className={cn(
-                    "inline-flex text-[11px] px-2 py-0.5 rounded-full font-semibold uppercase tracking-wide",
-                    selected.service === "normal" ? "bg-primary/15 text-primary" : "bg-secondary/15 text-secondary"
-                  )}>
+                  <div className={cn("inline-flex text-xs px-2 py-0.5 rounded-full font-medium", statusStyles[selected.status])}>{statusLabel[selected.status]}</div>
+                  <div className={cn("inline-flex text-[11px] px-2 py-0.5 rounded-full font-semibold uppercase tracking-wide",
+                    selected.service === "normal" ? "bg-primary/15 text-primary" : "bg-secondary/15 text-secondary")}>
                     Serviço {cleaningServiceLabels[selected.service]}
                   </div>
                 </div>
                 <SheetTitle className="font-display text-2xl">{selected.area}</SheetTitle>
               </SheetHeader>
-
               <div className="rounded-lg bg-muted/40 border border-border/60 p-3 my-4 text-xs text-muted-foreground">
                 {cleaningServiceDescriptions[selected.service]}
               </div>
-
               <div className="space-y-3 my-4 text-sm">
-                <div className="flex items-center gap-2 text-muted-foreground">
-                  <Sparkles className="h-4 w-4" /> {cleaningTypeLabels[selected.type]}
-                </div>
-                <div className="flex items-center gap-2 text-muted-foreground">
-                  <Clock className="h-4 w-4" />
+                <div className="flex items-center gap-2 text-muted-foreground"><Sparkles className="h-4 w-4" /> {cleaningTypeLabels[selected.type]}</div>
+                <div className="flex items-center gap-2 text-muted-foreground"><Clock className="h-4 w-4" />
                   {new Date(selected.scheduledFor).toLocaleString("pt-PT", { dateStyle: "medium", timeStyle: "short" })}
                 </div>
-                {selected.assignedTo && (
-                  <div className="flex items-center gap-2 text-muted-foreground">
-                    <User className="h-4 w-4" /> {selected.assignedTo}
-                  </div>
-                )}
+                {selected.assignedTo && <div className="flex items-center gap-2 text-muted-foreground"><User className="h-4 w-4" /> {selected.assignedTo}</div>}
                 <div className="flex items-center gap-2 text-muted-foreground">
                   <span className="text-[11px] uppercase tracking-wide">Origem:</span> {cleaningSourceLabels[selected.source]}
                 </div>
               </div>
-
-              {selected.checklist && (
+              {selected.checklist && Array.isArray(selected.checklist) && selected.checklist.length > 0 && (
                 <div className="mb-5">
                   <h3 className="font-display text-lg font-semibold mb-2">Checklist</h3>
                   <div className="space-y-1.5">
                     {selected.checklist.map((item, idx) => (
-                      <label
-                        key={idx}
-                        className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-muted/40 cursor-pointer"
-                      >
-                        <Checkbox
-                          checked={item.done}
-                          onCheckedChange={(checked) => {
-                            const newChecklist = [...selected.checklist!];
-                            newChecklist[idx] = { ...item, done: !!checked };
-                            updateTask(selected.id, { checklist: newChecklist });
-                          }}
-                        />
+                      <label key={idx} className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-muted/40 cursor-pointer">
+                        <Checkbox checked={item.done} onCheckedChange={(c) => {
+                          const next = [...selected.checklist!];
+                          next[idx] = { ...item, done: !!c };
+                          updateTask(selected.id, { checklist: next });
+                        }} />
                         <span className={cn("text-sm", item.done && "line-through text-muted-foreground")}>{item.label}</span>
                       </label>
                     ))}
                   </div>
                 </div>
               )}
-
               <div className="flex flex-wrap gap-2 pt-3 border-t border-border">
                 {selected.status !== "in_progress" && (
                   <Button onClick={() => updateTask(selected.id, { status: "in_progress" })} className="rounded-full gradient-warm border-0">

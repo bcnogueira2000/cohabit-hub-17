@@ -2,11 +2,16 @@ import { Link, useParams } from "react-router-dom";
 import { ArrowLeft, Calendar, MapPin, User, Tag, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { requests, residents, categoryLabels } from "@/lib/mockData";
+import { useRequests, useResidents, useUpdateRequest } from "@/hooks/useData";
+import { categoryLabels } from "@/lib/labels";
 import { StatusBadge, PriorityBadge } from "@/components/ui/StatusBadge";
+import { toast } from "sonner";
 
 const RequestDetail = () => {
   const { id } = useParams();
+  const { data: requests = [] } = useRequests();
+  const { data: residents = [] } = useResidents();
+  const updateRequest = useUpdateRequest();
   const request = requests.find((r) => r.id === id);
 
   if (!request) {
@@ -22,12 +27,11 @@ const RequestDetail = () => {
 
   const resident = residents.find((p) => p.id === request.residentId);
   const created = new Date(request.createdAt).toLocaleString("pt-PT", { dateStyle: "medium", timeStyle: "short" });
+  const permissionLabel = { yes: "Sim", no: "Não", with_notice: "Apenas com aviso" }[request.permissionToEnter];
 
-  const permissionLabel = {
-    yes: "Sim",
-    no: "Não",
-    with_notice: "Apenas com aviso",
-  }[request.permissionToEnter];
+  const setStatus = (status: any) => {
+    updateRequest.mutate({ id: request.id, patch: { status } }, { onSuccess: () => toast.success("Estado atualizado") });
+  };
 
   return (
     <div className="px-4 lg:px-10 py-6 lg:py-10 max-w-4xl mx-auto">
@@ -43,11 +47,18 @@ const RequestDetail = () => {
       <h1 className="font-display text-3xl lg:text-4xl font-semibold mb-2">{request.title}</h1>
       <p className="text-muted-foreground mb-6">{request.description}</p>
 
+      <Card className="p-4 mb-6 border-border/60 bg-accent/40">
+        <p className="text-sm">
+          ✨ Foi criada automaticamente uma tarefa relacionada com este pedido.
+          Vê em <Link to="/tasks" className="font-medium text-primary hover:underline">Tasks</Link> ou <Link to="/cleaning" className="font-medium text-primary hover:underline">Cleaning</Link> conforme a categoria.
+        </p>
+      </Card>
+
       <div className="grid sm:grid-cols-2 gap-3 mb-6">
         {[
           { icon: Tag, label: "Categoria", value: categoryLabels[request.category] },
           { icon: User, label: "Residente", value: resident?.fullName || "—" },
-          { icon: MapPin, label: "Local", value: request.location },
+          { icon: MapPin, label: "Local", value: request.location || "—" },
           { icon: Calendar, label: "Criado", value: created },
           { icon: User, label: "Atribuído a", value: request.assignedTo || "Não atribuído" },
           { icon: ShieldCheck, label: "Permissão para entrar", value: permissionLabel },
@@ -65,16 +76,13 @@ const RequestDetail = () => {
       <Card className="p-5 border-border/60 shadow-card">
         <h3 className="font-display text-lg font-semibold mb-3">Ações rápidas</h3>
         <div className="flex flex-wrap gap-2">
-          <Button className="rounded-full gradient-warm border-0">Marcar em curso</Button>
-          <Button variant="outline" className="rounded-full">Atribuir</Button>
-          <Button variant="outline" className="rounded-full">Aguarda residente</Button>
-          <Button variant="outline" className="rounded-full text-success border-success/40 hover:bg-success/10 hover:text-success">
+          <Button onClick={() => setStatus("in_progress")} className="rounded-full gradient-warm border-0">Marcar em curso</Button>
+          <Button onClick={() => setStatus("waiting_resident")} variant="outline" className="rounded-full">Aguarda residente</Button>
+          <Button onClick={() => setStatus("waiting_supplier")} variant="outline" className="rounded-full">Aguarda fornecedor</Button>
+          <Button onClick={() => setStatus("resolved")} variant="outline" className="rounded-full text-success border-success/40 hover:bg-success/10 hover:text-success">
             Marcar resolvido
           </Button>
         </div>
-        <p className="text-xs text-muted-foreground mt-4">
-          As ações estão preparadas para a próxima fase com Lovable Cloud — neste MVP os estados são mock.
-        </p>
       </Card>
     </div>
   );

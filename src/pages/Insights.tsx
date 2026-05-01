@@ -1,23 +1,32 @@
 import { TrendingUp, Sparkles, Users, AlertTriangle, Clock, CheckCircle2 } from "lucide-react";
 import { Card } from "@/components/ui/card";
-import { requests, cleaningTasks, rooms, residents, opsTasks } from "@/lib/mockData";
+import { useRequests, useCleaningTasks, useRooms, useResidents, useOpsTasks } from "@/hooks/useData";
+
+const catLabel: Record<string, string> = {
+  maintenance: "Manutenção", cleaning: "Limpeza", consumables: "Consumíveis", wifi_tech: "Wi-Fi/Tech",
+  noise: "Ruído", billing: "Faturação", lost_found: "Perdidos", feedback: "Feedback", other: "Outros",
+};
 
 const Insights = () => {
-  const totalRequests = requests.length;
+  const { data: requests = [] } = useRequests();
+  const { data: cleaningTasks = [] } = useCleaningTasks();
+  const { data: rooms = [] } = useRooms();
+  const { data: residents = [] } = useResidents();
+  const { data: opsTasks = [] } = useOpsTasks();
+
+  const totalRequests = requests.length || 1;
   const resolved = requests.filter((r) => r.status === "resolved" || r.status === "closed").length;
   const resolutionRate = Math.round((resolved / totalRequests) * 100);
   const urgentOpen = requests.filter((r) => r.priority === "urgent" && r.status !== "resolved" && r.status !== "closed").length;
   const cleaningsCompleted = cleaningTasks.filter((t) => t.status === "completed").length;
   const cleaningsTotal = cleaningTasks.length;
-  const occupancy = Math.round((rooms.filter((r) => r.status === "occupied").length / rooms.length) * 100);
+  const occupancy = rooms.length ? Math.round((rooms.filter((r) => r.status === "occupied").length / rooms.length) * 100) : 0;
   const overdueTasks = opsTasks.filter((t) => t.dueDate && new Date(t.dueDate) < new Date() && t.status !== "done").length;
 
-  const byCategory = requests.reduce<Record<string, number>>((acc, r) => {
-    acc[r.category] = (acc[r.category] || 0) + 1;
-    return acc;
-  }, {});
+  const byCategory: Record<string, number> = {};
+  requests.forEach((r) => { byCategory[r.category] = (byCategory[r.category] ?? 0) + 1; });
   const sortedCats = Object.entries(byCategory).sort((a, b) => b[1] - a[1]);
-  const maxCat = sortedCats[0]?.[1] || 1;
+  const maxCat = sortedCats[0]?.[1] ?? 1;
 
   const alerts: { icon: any; text: string; tone: string }[] = [];
   if (urgentOpen > 0) alerts.push({ icon: AlertTriangle, text: `${urgentOpen} pedido(s) urgente(s) por resolver`, tone: "bg-destructive/10 text-destructive border-destructive/30" });
@@ -26,16 +35,11 @@ const Insights = () => {
   if (checkingOut > 0) alerts.push({ icon: Users, text: `${checkingOut} check-out(s) próximo(s) — preparar inspeção`, tone: "bg-info/10 text-info border-info/30" });
 
   const kpis = [
-    { label: "Taxa de resolução", value: `${resolutionRate}%`, sub: `${resolved}/${totalRequests} pedidos`, icon: CheckCircle2, tone: "bg-success/10 text-success" },
+    { label: "Taxa de resolução", value: `${resolutionRate}%`, sub: `${resolved}/${requests.length} pedidos`, icon: CheckCircle2, tone: "bg-success/10 text-success" },
     { label: "Ocupação", value: `${occupancy}%`, sub: "Quartos ativos", icon: TrendingUp, tone: "bg-primary/10 text-primary" },
     { label: "Limpezas concluídas", value: `${cleaningsCompleted}/${cleaningsTotal}`, sub: "Esta semana", icon: Sparkles, tone: "bg-info/10 text-info" },
     { label: "Pedidos urgentes", value: urgentOpen, sub: "Por resolver", icon: AlertTriangle, tone: "bg-destructive/10 text-destructive" },
   ];
-
-  const catLabel: Record<string, string> = {
-    maintenance: "Manutenção", cleaning: "Limpeza", consumables: "Consumíveis", wifi_tech: "Wi-Fi/Tech",
-    noise: "Ruído", billing: "Faturação", lost_found: "Perdidos", feedback: "Feedback", other: "Outros",
-  };
 
   return (
     <div className="px-4 lg:px-10 py-6 lg:py-10 max-w-7xl mx-auto">
