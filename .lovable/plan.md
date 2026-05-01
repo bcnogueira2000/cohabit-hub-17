@@ -1,119 +1,116 @@
-## Plano: Cloud + Automatismos + Vista Mobile Staff
 
-Vamos abordar os 3 pontos prioritários, na ordem que faz mais sentido técnico.
+## Diagnóstico
 
----
+Investiguei a BD e confirmei duas coisas:
 
-### Etapa 1 — Ativar Lovable Cloud + Autenticação
+**1. Os automatismos NÃO estão ativos.**
+As funções `auto_create_from_request` e `auto_create_checkout_tasks` existem, mas **nunca foram ligadas às tabelas** via `CREATE TRIGGER`. Resultado: criar um pedido ou marcar um residente como `checking_out` não dispara nada. Mesmo os geradores de código (`REQ-001`, `T-001`) e o `updated_at` automático estão desligados.
 
-**Auth simples (sem tabela de profiles, sem papéis):**
-- Email + password
-- Google sign-in
-- Página `/auth` com tabs Login / Sign-up
-- Página `/reset-password` (obrigatória)
-- `ProtectedRoute` que envolve o `AppShell` — se não autenticado, redireciona para `/auth`
-- Rota `/submit` (pedido público de residente) e `/auth` ficam fora da proteção
+**2. Falta o fluxo de entrada de residentes.**
+Hoje, `residents` é uma tabela isolada — só lá entra quem for inserido manualmente. Não há ligação entre uma reserva (booking de quarto / contrato) e a criação do residente. Por isso o sistema não tem como reagir a entradas para gerar limpezas de check-in, kits de boas-vindas, etc.
 
-**Schema inicial (tabelas com RLS "authenticated users only"):**
-- `requests` — espelha `Request` em `types.ts`
-- `ops_tasks` — espelha `OpsTask`
-- `cleaning_tasks` — espelha `CleaningTask` (com `service`, `source`, `source_ref`, `checklist` jsonb)
-- `residents`, `rooms`, `bookings`, `spaces`
-
-RLS: qualquer utilizador autenticado pode ler/escrever (staff interno, sem segregação por papel para já — fica preparado para adicionar `user_roles` mais tarde quando quiseres distinguir limpeza/manutenção/admin).
-
-**Migração de dados:** seed inicial com o conteúdo atual de `mockData.ts` para a base não ficar vazia.
-
-**Hooks de dados:** substituir os imports diretos de `mockData` por hooks `useRequests()`, `useTasks()`, `useCleaningTasks()`, etc. usando `@tanstack/react-query` + supabase client. O `tasksStore` é removido.
+A tabela `bookings` que existe hoje serve apenas para **reservas de espaços comuns** (sala de coworking, etc.), não para reservas de quarto / contratos de estadia. São coisas diferentes.
 
 ---
 
-### Etapa 2 — Automatismos request → task / cleaning
+## Plano
 
-Comportamento: **automático com edição** (cria sempre, admin pode editar/eliminar antes de atribuir).
+### Etapa 1 — Ativar todos os triggers em falta
 
-**Regras (executadas via Postgres trigger `AFTER INSERT ON requests`):**
-
-| Categoria do pedido          | Cria automaticamente                                  |
-|------------------------------|-------------------------------------------------------|
-| `maintenance`                | `ops_task` (categoria=maintenance, prioridade herdada) |
-| `cleaning`                   | `cleaning_task` (service=normal, source=request)      |
-| `consumables`                | `cleaning_task` (service=simple, source=request)      |
-| `wifi_tech`                  | `ops_task` (categoria=maintenance)                    |
-| `noise` / `billing` / outros | `ops_task` (categoria=admin)                          |
-
-Cada item criado guarda `request_id` para rastreabilidade. Banner no detalhe do pedido: "Tarefa T-XXX criada automaticamente — [ver]". Admin pode arquivar/eliminar a task gerada sem afetar o pedido.
-
-**Trigger adicional `residents`:** quando `status` muda para `checking_out`, cria automaticamente:
-- `cleaning_task` tipo `checkout_inspection` (service=normal, source=checkout)
-- `ops_task` "Inspeção saída quarto X" + "Devolução de caução"
-
----
-
-### Etapa 3 — Vista mobile `/my-day`
-
-Rota dedicada otimizada para telemóvel, dentro do `AppShell` (mesma auth).
-
-**Layout:**
-- Header curto: data + nome do utilizador autenticado + botão filtro (Todas / Limpeza / Manutenção)
-- Lista cronológica única misturando `cleaning_tasks` e `ops_tasks` do dia, ordenada por hora
-- Cada item: hora, área/quarto, tipo, badge de prioridade, status
-- Tap no item abre **bottom sheet** com:
-  - Descrição completa
-  - Checklist tickável (para limpezas) — sync imediato à BD
-  - Notas (textarea)
-  - Botões grandes: "Iniciar" → "Concluir" / "Bloquear"
-- Pull-to-refresh
-
-**Filtro inicial:** mostra tarefas atribuídas a `assigned_to` que corresponde ao email do user logado, com fallback "ver todas".
-
-Link `/my-day` adicionado ao menu lateral com ícone próprio. URL partilhável para a equipa abrir no telemóvel após login.
-
----
-
-### Detalhes técnicos
+Migration que cria os `CREATE TRIGGER` para as funções já existentes:
 
 ```text
-src/
-├── integrations/supabase/   (gerado pela Cloud)
-├── hooks/
-│   ├── useAuth.tsx          listener onAuthStateChange + getSession
-│   ├── useRequests.ts       react-query CRUD
-│   ├── useTasks.ts
-│   └── useCleaningTasks.ts
-├── components/
-│   ├── ProtectedRoute.tsx
-│   └── mobile/
-│       ├── MyDayList.tsx
-│       └── TaskBottomSheet.tsx
-├── pages/
-│   ├── Auth.tsx
-│   ├── ResetPassword.tsx
-│   └── MyDay.tsx
-└── lib/
-    └── tasksStore.ts        REMOVIDO
+requests       BEFORE INSERT  → gen_request_code
+requests       BEFORE UPDATE  → set_updated_at
+requests       AFTER  INSERT  → auto_create_from_request
+ops_tasks      BEFORE INSERT  → gen_ops_task_code
+ops_tasks      BEFORE UPDATE  → set_updated_at
+cleaning_tasks BEFORE UPDATE  → set_updated_at
+residents      BEFORE UPDATE  → set_updated_at
+residents      AFTER INSERT/UPDATE OF status → auto_create_checkout_tasks
+rooms          BEFORE UPDATE  → set_updated_at
 ```
 
-**Migrations SQL:**
-1. Criar enums (`request_status`, `request_priority`, `cleaning_service`, etc.)
-2. Criar 7 tabelas com FKs
-3. Habilitar RLS + policies (`authenticated` pode tudo)
-4. Trigger `auto_create_task_from_request()`
-5. Trigger `auto_create_checkout_tasks()`
-6. Seed dos dados mock
+Depois disto, cada novo pedido cria automaticamente a `ops_task` ou `cleaning_task` correspondente, e marcar um residente como `checking_out` gera inspeção + devolução de caução.
 
-**Mock data:** `mockData.ts` mantém-se como referência para o seed mas deixa de ser usado em runtime.
+### Etapa 2 — Modelo de entrada de residentes (stays)
+
+Criar um conceito novo, separado dos `bookings` de espaços:
+
+**Nova tabela `stays`** (contratos de estadia / reservas de quarto):
+```text
+id, resident_id (nullable até confirmar), full_name, email, phone,
+room_id, check_in, check_out, status (pending|confirmed|checked_in|checked_out|cancelled),
+source (manual|public_form|external), notes, created_at, updated_at
+```
+
+**Fluxo proposto:**
+
+```text
+1. Estadia criada (manual ou formulário) → status=pending|confirmed
+2. Quando check_in se aproxima (D-1) ou status muda para checked_in:
+   ├─ cria/atualiza `resident` (status=upcoming → active)
+   ├─ atualiza `room.status` = reserved/occupied
+   ├─ cria `cleaning_task` (room_regular, service=normal) agendada para D-1
+   └─ cria `ops_task` "Kit boas-vindas — <nome>" agendada para D-0
+3. Quando check_out se aproxima (D-1) ou status muda para checked_out:
+   ├─ marca `resident.status` = checking_out
+   │   (e isso já dispara o trigger Etapa 1: inspeção + caução)
+   └─ liberta `room.status` = cleaning_required
+```
+
+Tudo isto via **3 triggers novos** em `stays`:
+- `trg_stay_checkin_prep` (BEFORE check_in date OR status=checked_in)
+- `trg_stay_checkout_prep` (status=checked_out)
+- `trg_stay_sync_resident` (mantém `residents` em sincronia)
+
+### Etapa 3 — Interface de gestão de stays
+
+**Página nova `/stays`** (Estadias / Reservas de quarto):
+- Lista cronológica com filtros: A chegar / Em casa / A sair / Histórico
+- Botão "Nova estadia" → form (nome, email, telefone, quarto, datas, fonte)
+- Detalhe da estadia mostra timeline: estadia criada → kit agendado → limpeza agendada → check-in → check-out → caução devolvida
+- Ações rápidas: "Confirmar check-in", "Marcar como saído"
+
+**Renomear o atual `/bookings` para `/spaces-bookings`** (ou apenas no rótulo da nav: "Reservas de espaços") para deixar claro que é só para sala comum / coworking.
+
+**Formulário público `/book-room`** (opcional, próxima iteração): permite preencher uma estadia diretamente que entra como `status=pending` na lista de gestão para o admin confirmar.
+
+### Etapa 4 — Dashboard: secção "Próximas entradas/saídas"
+
+Card no dashboard com:
+- Próximas 3 chegadas (próximos 7 dias) com estado das tarefas associadas (limpeza ✓ / kit ✓)
+- Próximas 3 saídas com estado da inspeção e caução
 
 ---
 
-### Fora do âmbito (próximas etapas, não agora)
+## Detalhes técnicos
 
-- Tabela `user_roles` e segregação por papel
-- Notificações por email
-- Inventário de consumíveis
-- Portal do residente
-- Anexos/fotos
+**Ficheiros novos:**
+- `supabase/migrations/<ts>_attach_triggers.sql` — Etapa 1
+- `supabase/migrations/<ts>_create_stays.sql` — tabela + enum + triggers + RLS
+- `src/pages/Stays.tsx`, `src/pages/StayDetail.tsx`
+- Hooks `useStays`, `useCreateStay`, `useUpdateStay` em `useData.ts`
+- Atualização de `dataMappers.ts` e `types.ts`
+
+**Triggers Etapa 2 (Postgres):**
+```sql
+-- ao criar/confirmar stay
+CREATE FUNCTION stay_prepare_checkin() ... cria cleaning_task + ops_task kit
+CREATE FUNCTION stay_sync_resident() ... upsert em residents
+CREATE FUNCTION stay_handle_checkout() ... marca resident=checking_out
+```
+
+**RLS:** mesmas políticas das outras tabelas (`authenticated` lê e escreve).
+
+**Sem alterações destrutivas:** os `bookings` atuais ficam intocados (só uma label diferente na nav).
 
 ---
 
-Aprovas para avançar?
+## Fora do âmbito desta etapa
+
+- Integração com Booking.com / Airbnb (próxima iteração — exigiria edge function + webhook)
+- Pagamentos / faturação
+- Assinatura digital de contrato
+
+Aprovas para avançar com as 4 etapas?

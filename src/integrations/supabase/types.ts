@@ -375,6 +375,54 @@ export type Database = {
         }
         Relationships: []
       }
+      stays: {
+        Row: {
+          check_in: string
+          check_out: string
+          created_at: string
+          email: string
+          full_name: string
+          id: string
+          notes: string | null
+          phone: string | null
+          resident_id: string | null
+          room_id: string | null
+          source: Database["public"]["Enums"]["stay_source"]
+          status: Database["public"]["Enums"]["stay_status"]
+          updated_at: string
+        }
+        Insert: {
+          check_in: string
+          check_out: string
+          created_at?: string
+          email: string
+          full_name: string
+          id?: string
+          notes?: string | null
+          phone?: string | null
+          resident_id?: string | null
+          room_id?: string | null
+          source?: Database["public"]["Enums"]["stay_source"]
+          status?: Database["public"]["Enums"]["stay_status"]
+          updated_at?: string
+        }
+        Update: {
+          check_in?: string
+          check_out?: string
+          created_at?: string
+          email?: string
+          full_name?: string
+          id?: string
+          notes?: string | null
+          phone?: string | null
+          resident_id?: string | null
+          room_id?: string | null
+          source?: Database["public"]["Enums"]["stay_source"]
+          status?: Database["public"]["Enums"]["stay_status"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -420,6 +468,13 @@ export type Database = {
         | "maintenance"
         | "cleaning_required"
         | "out_of_service"
+      stay_source: "manual" | "public_form" | "external"
+      stay_status:
+        | "pending"
+        | "confirmed"
+        | "checked_in"
+        | "checked_out"
+        | "cancelled"
       task_category:
         | "maintenance"
         | "logistics"
@@ -595,6 +650,14 @@ export const Constants = {
         "maintenance",
         "cleaning_required",
         "out_of_service",
+      ],
+      stay_source: ["manual", "public_form", "external"],
+      stay_status: [
+        "pending",
+        "confirmed",
+        "checked_in",
+        "checked_out",
+        "cancelled",
       ],
       task_category: ["maintenance", "logistics", "admin", "supplier", "other"],
       task_priority: ["low", "medium", "high"],
