@@ -24,7 +24,19 @@ const Dashboard = () => {
   const { data: cleaningTasks = [] } = useCleaningTasks();
   const { data: rooms = [] } = useRooms();
   const { data: residents = [] } = useResidents();
+  const { data: stays = [] } = useStays();
   const createTask = useCreateOpsTask();
+
+  const now = Date.now();
+  const in7d = now + 7 * 86400000;
+  const upcomingArrivals = stays
+    .filter((s) => (s.status === "confirmed" || s.status === "pending") && new Date(s.checkIn).getTime() >= now && new Date(s.checkIn).getTime() <= in7d)
+    .sort((a, b) => new Date(a.checkIn).getTime() - new Date(b.checkIn).getTime())
+    .slice(0, 3);
+  const upcomingDepartures = stays
+    .filter((s) => s.status === "checked_in" && new Date(s.checkOut).getTime() >= now && new Date(s.checkOut).getTime() <= in7d)
+    .sort((a, b) => new Date(a.checkOut).getTime() - new Date(b.checkOut).getTime())
+    .slice(0, 3);
 
   const openRequests = requests.filter((r) => r.status === "open" || r.status === "in_progress");
   const urgent = requests.filter((r) => r.priority === "urgent" && r.status !== "resolved" && r.status !== "closed");
