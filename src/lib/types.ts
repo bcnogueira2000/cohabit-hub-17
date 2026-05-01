@@ -51,12 +51,52 @@ export interface Request {
   permissionToEnter: "yes" | "no" | "with_notice";
 }
 
+export type CleaningType = "room_regular" | "room_deep" | "bathroom" | "kitchen" | "common" | "checkout_inspection";
+
 export interface CleaningTask {
   id: string;
-  type: "room_regular" | "room_deep" | "bathroom" | "kitchen" | "common" | "checkout_inspection";
+  type: CleaningType;
   roomId: string | null;
   area: string;
   scheduledFor: string;
   status: "scheduled" | "in_progress" | "completed" | "skipped";
   assignedTo: string | null;
+  notes?: string;
+  checklist?: { label: string; done: boolean }[];
+}
+
+export type TaskStatus = "todo" | "in_progress" | "done" | "blocked";
+export type TaskPriority = "low" | "medium" | "high";
+
+export interface OpsTask {
+  id: string;
+  code: string;
+  title: string;
+  description: string;
+  category: "maintenance" | "logistics" | "admin" | "supplier" | "other";
+  status: TaskStatus;
+  priority: TaskPriority;
+  assignedTo: string | null;
+  roomId: string | null;
+  residentId: string | null;
+  requestId: string | null;
+  dueDate: string | null;
+  createdAt: string;
+}
+
+export interface Space {
+  id: string;
+  name: string;
+  capacity: number;
+  description: string;
+}
+
+export interface Booking {
+  id: string;
+  spaceId: string;
+  residentId: string | null;
+  title: string;
+  start: string;
+  end: string;
+  notes?: string;
 }
