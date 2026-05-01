@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils";
 import { RequestPriority, RequestStatus } from "@/lib/types";
-import { priorityLabels, statusLabels } from "@/lib/mockData";
+import { priorityLabels, statusLabels } from "@/lib/labels";
 
 const statusStyles: Record<RequestStatus, string> = {
   open: "bg-info/15 text-info border-info/30",

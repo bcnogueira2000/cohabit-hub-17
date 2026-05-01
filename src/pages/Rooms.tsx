@@ -2,8 +2,9 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { DoorClosed, User } from "lucide-react";
 import { Card } from "@/components/ui/card";
-import { rooms, residents, roomStatusLabels } from "@/lib/mockData";
-import { RoomStatus } from "@/lib/types";
+import { useRooms, useResidents } from "@/hooks/useData";
+import { roomStatusLabels } from "@/lib/labels";
+import { Room, RoomStatus } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 const statusTone: Record<RoomStatus, string> = {
@@ -24,10 +25,12 @@ const statusFilters: { value: RoomStatus | "all"; label: string }[] = [
 ];
 
 const Rooms = () => {
+  const { data: rooms = [] } = useRooms();
+  const { data: residents = [] } = useResidents();
   const [filter, setFilter] = useState<RoomStatus | "all">("all");
   const filtered = rooms.filter((r) => filter === "all" || r.status === filter);
 
-  const byFloor = filtered.reduce<Record<number, typeof rooms>>((acc, r) => {
+  const byFloor = filtered.reduce<Record<number, Room[]>>((acc, r) => {
     (acc[r.floor] ||= []).push(r);
     return acc;
   }, {});
@@ -41,16 +44,9 @@ const Rooms = () => {
 
       <div className="flex gap-2 overflow-x-auto pb-2 mb-5 -mx-1 px-1">
         {statusFilters.map((f) => (
-          <button
-            key={f.value}
-            onClick={() => setFilter(f.value)}
-            className={cn(
-              "shrink-0 px-3.5 py-1.5 rounded-full text-sm font-medium border transition-smooth",
-              filter === f.value
-                ? "bg-foreground text-background border-foreground"
-                : "bg-card text-muted-foreground border-border hover:border-foreground/30"
-            )}
-          >
+          <button key={f.value} onClick={() => setFilter(f.value)}
+            className={cn("shrink-0 px-3.5 py-1.5 rounded-full text-sm font-medium border transition-smooth",
+              filter === f.value ? "bg-foreground text-background border-foreground" : "bg-card text-muted-foreground border-border hover:border-foreground/30")}>
             {f.label}
           </button>
         ))}
@@ -71,9 +67,7 @@ const Rooms = () => {
                           <DoorClosed className="h-4 w-4 text-muted-foreground" />
                           <span className="font-display text-2xl font-semibold">{r.number}</span>
                         </div>
-                        <span className={cn("text-[10px] px-2 py-0.5 rounded-full border font-medium", statusTone[r.status])}>
-                          {roomStatusLabels[r.status]}
-                        </span>
+                        <span className={cn("text-[10px] px-2 py-0.5 rounded-full border font-medium", statusTone[r.status])}>{roomStatusLabels[r.status]}</span>
                       </div>
                       <div className="text-xs text-muted-foreground mb-2">{r.typology}</div>
                       {resident ? (

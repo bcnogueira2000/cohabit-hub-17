@@ -1,13 +1,18 @@
 import { Link, useParams } from "react-router-dom";
-import { ArrowLeft, DoorClosed, User } from "lucide-react";
+import { ArrowLeft, DoorClosed } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { rooms, residents, requests, cleaningTasks, roomStatusLabels } from "@/lib/mockData";
+import { useRooms, useResidents, useRequests, useCleaningTasks } from "@/hooks/useData";
+import { roomStatusLabels } from "@/lib/labels";
 import { StatusBadge, PriorityBadge } from "@/components/ui/StatusBadge";
 
 const RoomDetail = () => {
   const { id } = useParams();
+  const { data: rooms = [] } = useRooms();
+  const { data: residents = [] } = useResidents();
+  const { data: requests = [] } = useRequests();
+  const { data: cleaningTasks = [] } = useCleaningTasks();
   const room = rooms.find((r) => r.id === id);
 
   if (!room) {
@@ -51,17 +56,12 @@ const RoomDetail = () => {
             <h3 className="font-display text-lg font-semibold mb-3">Residente atual</h3>
             {resident ? (
               <Link to={`/residents/${resident.id}`} className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted/50 transition-smooth">
-                <div
-                  className="h-10 w-10 rounded-full flex items-center justify-center text-primary-foreground font-medium"
-                  style={{ backgroundColor: resident.avatarColor }}
-                >
+                <div className="h-10 w-10 rounded-full flex items-center justify-center text-primary-foreground font-medium" style={{ backgroundColor: resident.avatarColor }}>
                   {resident.fullName.split(" ").map((s) => s[0]).slice(0, 2).join("")}
                 </div>
                 <div className="flex-1">
                   <div className="font-medium">{resident.fullName}</div>
-                  <div className="text-xs text-muted-foreground">
-                    Até {new Date(resident.moveOut).toLocaleDateString("pt-PT")}
-                  </div>
+                  <div className="text-xs text-muted-foreground">Até {resident.moveOut && new Date(resident.moveOut).toLocaleDateString("pt-PT")}</div>
                 </div>
               </Link>
             ) : (

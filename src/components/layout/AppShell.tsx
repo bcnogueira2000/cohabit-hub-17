@@ -1,12 +1,14 @@
-import { NavLink, Outlet, useLocation } from "react-router-dom";
-import { LayoutDashboard, Inbox, Sparkles, ListChecks, Users, DoorClosed, CalendarRange, BarChart3, Settings, MoreHorizontal, Home } from "lucide-react";
+import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
+import { LayoutDashboard, Inbox, Sparkles, ListChecks, Users, DoorClosed, CalendarRange, BarChart3, Settings, MoreHorizontal, Sun, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { useAuth } from "@/hooks/useAuth";
 import logo from "@/assets/logo.png";
 
 const navItems = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard, end: true },
+  { to: "/my-day", label: "O meu dia", icon: Sun },
   { to: "/requests", label: "Requests", icon: Inbox },
   { to: "/cleaning", label: "Cleaning", icon: Sparkles },
   { to: "/tasks", label: "Tasks", icon: ListChecks },
@@ -18,7 +20,7 @@ const navItems = [
 ];
 
 const mobileBottom = [
-  { to: "/", label: "Home", icon: Home, end: true },
+  { to: "/my-day", label: "Hoje", icon: Sun, end: false },
   { to: "/requests", label: "Requests", icon: Inbox },
   { to: "/cleaning", label: "Cleaning", icon: Sparkles },
   { to: "/tasks", label: "Tasks", icon: ListChecks },
@@ -36,7 +38,10 @@ const Brand = () => (
 
 export const AppShell = () => {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user, signOut } = useAuth();
   const [moreOpen, setMoreOpen] = useState(false);
+  const handleSignOut = async () => { await signOut(); navigate("/auth", { replace: true }); };
 
   return (
     <div className="min-h-screen bg-background">
@@ -65,11 +70,15 @@ export const AppShell = () => {
             </NavLink>
           ))}
         </nav>
-        <div className="p-3 border-t border-sidebar-border">
-          <div className="rounded-lg bg-accent/60 p-3">
-            <div className="text-xs font-medium text-accent-foreground">Versão MVP</div>
-            <div className="text-[11px] text-muted-foreground mt-0.5">Operations Hub v0.1</div>
-          </div>
+        <div className="p-3 border-t border-sidebar-border space-y-2">
+          {user && (
+            <div className="px-2 py-1 text-[11px] text-muted-foreground truncate" title={user.email ?? ""}>
+              {user.email}
+            </div>
+          )}
+          <button onClick={handleSignOut} className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-sidebar-foreground hover:bg-sidebar-accent/60 transition-smooth">
+            <LogOut className="h-4 w-4" /> Sair
+          </button>
         </div>
       </aside>
 
@@ -113,7 +122,7 @@ export const AppShell = () => {
             </SheetTrigger>
             <SheetContent side="bottom" className="rounded-t-2xl">
               <div className="grid grid-cols-2 gap-2 pt-4">
-                {navItems.slice(4).map(({ to, label, icon: Icon }) => (
+                {navItems.slice(5).map(({ to, label, icon: Icon }) => (
                   <NavLink
                     key={to}
                     to={to}
@@ -124,6 +133,13 @@ export const AppShell = () => {
                     <span className="text-sm font-medium">{label}</span>
                   </NavLink>
                 ))}
+                <button
+                  onClick={() => { setMoreOpen(false); handleSignOut(); }}
+                  className="flex items-center gap-3 rounded-lg p-3 bg-muted/40 hover:bg-muted transition-smooth col-span-2"
+                >
+                  <LogOut className="h-5 w-5 text-primary" />
+                  <span className="text-sm font-medium">Sair</span>
+                </button>
               </div>
             </SheetContent>
           </Sheet>

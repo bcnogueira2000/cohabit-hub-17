@@ -3,10 +3,10 @@ import { ListChecks, Calendar, Clock, AlertCircle, Plus } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { taskStatusLabels, residents, rooms } from "@/lib/mockData";
+import { useOpsTasks, useResidents, useRooms, useCreateOpsTask, useUpdateOpsTask } from "@/hooks/useData";
+import { taskStatusLabels } from "@/lib/labels";
 import { OpsTask, TaskStatus } from "@/lib/types";
 import { cn } from "@/lib/utils";
-import { useTasks, tasksStore } from "@/lib/tasksStore";
 import { NewTaskDialog } from "@/components/NewTaskDialog";
 
 const columns: { id: TaskStatus; label: string; tone: string }[] = [
@@ -17,19 +17,19 @@ const columns: { id: TaskStatus; label: string; tone: string }[] = [
 ];
 
 const priorityDot: Record<string, string> = {
-  low: "bg-muted-foreground/40",
-  medium: "bg-info",
-  high: "bg-destructive",
+  low: "bg-muted-foreground/40", medium: "bg-info", high: "bg-destructive",
 };
 
 const Tasks = () => {
-  const tasks = useTasks();
-  const [selected, setSelected] = useState<OpsTask | null>(null);
+  const { data: tasks = [] } = useOpsTasks();
+  const { data: residents = [] } = useResidents();
+  const { data: rooms = [] } = useRooms();
+  const createTask = useCreateOpsTask();
+  const updateTask = useUpdateOpsTask();
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const selected = tasks.find((t) => t.id === selectedId) || null;
 
-  const updateTask = (id: string, patch: Partial<OpsTask>) => {
-    tasksStore.update(id, patch);
-    setSelected((s) => (s && s.id === id ? { ...s, ...patch } : s));
-  };
+  const setStatus = (id: string, status: TaskStatus) => updateTask.mutate({ id, patch: { status } });
 
   return (
     <div className="px-4 lg:px-10 py-6 lg:py-10 max-w-7xl mx-auto">
@@ -39,8 +39,10 @@ const Tasks = () => {
           <p className="text-muted-foreground mt-1">Tarefas operacionais atribuídas à equipa</p>
         </div>
         <NewTaskDialog
-          nextCode={tasksStore.nextCode()}
-          onCreate={(t) => tasksStore.add(t)}
+          onCreate={(t) => createTask.mutate({
+            title: t.title, description: t.description, category: t.category,
+            priority: t.priority, assignedTo: t.assignedTo, dueDate: t.dueDate,
+          })}
           trigger={
             <Button className="rounded-full gradient-warm border-0 shadow-elegant">
               <Plus className="h-4 w-4 mr-1.5" /> Nova tarefa
@@ -55,20 +57,14 @@ const Tasks = () => {
           return (
             <div key={col.id} className="space-y-2">
               <div className="flex items-center justify-between px-1">
-                <div className={cn("inline-flex items-center gap-2 px-2.5 py-1 rounded-full border text-xs font-medium", col.tone)}>
-                  {col.label}
-                </div>
+                <div className={cn("inline-flex items-center gap-2 px-2.5 py-1 rounded-full border text-xs font-medium", col.tone)}>{col.label}</div>
                 <span className="text-xs text-muted-foreground">{items.length}</span>
               </div>
               <div className="space-y-2 min-h-[120px]">
                 {items.map((t) => {
                   const overdue = t.dueDate && new Date(t.dueDate) < new Date() && t.status !== "done";
                   return (
-                    <Card
-                      key={t.id}
-                      onClick={() => setSelected(t)}
-                      className="p-3.5 cursor-pointer hover:shadow-elegant transition-smooth border-border/60"
-                    >
+                    <Card key={t.id} onClick={() => setSelectedId(t.id)} className="p-3.5 cursor-pointer hover:shadow-elegant transition-smooth border-border/60">
                       <div className="flex items-start gap-2 mb-1.5">
                         <span className={cn("h-2 w-2 rounded-full mt-1.5 shrink-0", priorityDot[t.priority])} />
                         <span className="text-[10px] font-mono text-muted-foreground">{t.code}</span>
@@ -87,9 +83,7 @@ const Tasks = () => {
                   );
                 })}
                 {items.length === 0 && (
-                  <div className="text-center text-xs text-muted-foreground py-6 border-2 border-dashed border-border/50 rounded-lg">
-                    Vazio
-                  </div>
+                  <div className="text-center text-xs text-muted-foreground py-6 border-2 border-dashed border-border/50 rounded-lg">Vazio</div>
                 )}
               </div>
             </div>
@@ -97,7 +91,7 @@ const Tasks = () => {
         })}
       </div>
 
-      <Sheet open={!!selected} onOpenChange={(o) => !o && setSelected(null)}>
+      <Sheet open={!!selected} onOpenChange={(o) => !o && setSelectedId(null)}>
         <SheetContent className="w-full sm:max-w-lg overflow-y-auto">
           {selected && (
             <>
@@ -109,7 +103,7 @@ const Tasks = () => {
                 </div>
                 <SheetTitle className="font-display text-2xl">{selected.title}</SheetTitle>
               </SheetHeader>
-              <p className="text-sm text-muted-foreground my-4">{selected.description}</p>
+              <p className="text-sm text-muted-foreground my-4 whitespace-pre-line">{selected.description}</p>
 
               <div className="space-y-2 text-sm mb-5">
                 <div className="flex justify-between"><span className="text-muted-foreground">Estado</span><span>{taskStatusLabels[selected.status]}</span></div>
@@ -133,19 +127,17 @@ const Tasks = () => {
 
               <div className="flex flex-wrap gap-2 pt-3 border-t border-border">
                 {selected.status !== "in_progress" && selected.status !== "done" && (
-                  <Button onClick={() => updateTask(selected.id, { status: "in_progress" })} className="rounded-full gradient-warm border-0">
+                  <Button onClick={() => setStatus(selected.id, "in_progress")} className="rounded-full gradient-warm border-0">
                     <Clock className="h-4 w-4 mr-1.5" /> Iniciar
                   </Button>
                 )}
                 {selected.status !== "done" && (
-                  <Button onClick={() => updateTask(selected.id, { status: "done" })} variant="outline" className="rounded-full border-success/40 text-success hover:bg-success/10 hover:text-success">
+                  <Button onClick={() => setStatus(selected.id, "done")} variant="outline" className="rounded-full border-success/40 text-success hover:bg-success/10 hover:text-success">
                     <ListChecks className="h-4 w-4 mr-1.5" /> Concluir
                   </Button>
                 )}
                 {selected.status !== "blocked" && selected.status !== "done" && (
-                  <Button onClick={() => updateTask(selected.id, { status: "blocked" })} variant="outline" className="rounded-full">
-                    Bloquear
-                  </Button>
+                  <Button onClick={() => setStatus(selected.id, "blocked")} variant="outline" className="rounded-full">Bloquear</Button>
                 )}
               </div>
             </>

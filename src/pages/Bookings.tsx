@@ -2,8 +2,7 @@ import { useState } from "react";
 import { CalendarRange, Clock, Plus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { spaces, bookings as seed, residents } from "@/lib/mockData";
-import { Booking } from "@/lib/types";
+import { useSpaces, useBookings, useResidents, useCreateBooking, useDeleteBooking } from "@/hooks/useData";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -18,29 +17,33 @@ const days = Array.from({ length: 7 }).map((_, i) => {
 });
 
 const Bookings = () => {
-  const [bookings, setBookings] = useState(seed);
-  const [selectedSpace, setSelectedSpace] = useState<string>(spaces[0].id);
+  const { data: spaces = [] } = useSpaces();
+  const { data: bookings = [] } = useBookings();
+  const { data: residents = [] } = useResidents();
+  const createBooking = useCreateBooking();
+  const deleteBooking = useDeleteBooking();
+  const [selectedSpace, setSelectedSpace] = useState<string>("");
   const [open, setOpen] = useState(false);
 
   const cancelBooking = (id: string) => {
-    setBookings((p) => p.filter((b) => b.id !== id));
-    toast.success("Reserva cancelada");
+    deleteBooking.mutate(id, { onSuccess: () => toast.success("Reserva cancelada") });
   };
 
   const handleCreate = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const fd = new FormData(e.currentTarget);
-    const newBooking: Booking = {
-      id: `b${Date.now()}`,
-      spaceId: selectedSpace,
-      residentId: String(fd.get("resident")),
+    const spaceId = selectedSpace || spaces[0]?.id;
+    if (!spaceId) return;
+    createBooking.mutate({
+      spaceId,
+      residentId: String(fd.get("resident")) || null,
       title: String(fd.get("title")),
       start: new Date(`${fd.get("date")}T${fd.get("startTime")}`).toISOString(),
       end: new Date(`${fd.get("date")}T${fd.get("endTime")}`).toISOString(),
-    };
-    setBookings((p) => [...p, newBooking]);
-    setOpen(false);
-    toast.success("Reserva criada");
+    }, {
+      onSuccess: () => { setOpen(false); toast.success("Reserva criada"); },
+      onError: (e: any) => toast.error(e.message),
+    });
   };
 
   return (
@@ -61,7 +64,7 @@ const Bookings = () => {
             <form onSubmit={handleCreate} className="space-y-3">
               <div>
                 <Label>Espaço</Label>
-                <Select value={selectedSpace} onValueChange={setSelectedSpace}>
+                <Select value={selectedSpace || spaces[0]?.id} onValueChange={setSelectedSpace}>
                   <SelectTrigger className="mt-1.5"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     {spaces.map((s) => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
@@ -70,7 +73,7 @@ const Bookings = () => {
               </div>
               <div>
                 <Label>Residente</Label>
-                <Select name="resident" defaultValue={residents[0].id}>
+                <Select name="resident" defaultValue={residents[0]?.id}>
                   <SelectTrigger className="mt-1.5"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     {residents.map((r) => <SelectItem key={r.id} value={r.id}>{r.fullName}</SelectItem>)}
@@ -122,10 +125,8 @@ const Bookings = () => {
                                 {new Date(b.start).toLocaleTimeString("pt-PT", { hour: "2-digit", minute: "2-digit" })}
                               </div>
                               <div className="text-[9px] opacity-70 truncate">{r?.fullName.split(" ")[0]}</div>
-                              <button
-                                onClick={() => cancelBooking(b.id)}
-                                className="absolute -top-1 -right-1 hidden group-hover:flex h-4 w-4 rounded-full bg-destructive text-destructive-foreground items-center justify-center"
-                              >
+                              <button onClick={() => cancelBooking(b.id)}
+                                className="absolute -top-1 -right-1 hidden group-hover:flex h-4 w-4 rounded-full bg-destructive text-destructive-foreground items-center justify-center">
                                 <X className="h-2.5 w-2.5" />
                               </button>
                             </div>

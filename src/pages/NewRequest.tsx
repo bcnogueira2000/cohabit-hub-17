@@ -7,20 +7,37 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { categoryLabels, residents, rooms } from "@/lib/mockData";
+import { useResidents, useRooms, useCreateRequest } from "@/hooks/useData";
+import { categoryLabels } from "@/lib/labels";
 import { toast } from "sonner";
 
 const NewRequest = () => {
   const navigate = useNavigate();
-  const [submitting, setSubmitting] = useState(false);
+  const { data: residents = [] } = useResidents();
+  const { data: rooms = [] } = useRooms();
+  const createRequest = useCreateRequest();
+
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [category, setCategory] = useState<any>("maintenance");
+  const [priority, setPriority] = useState<any>("medium");
+  const [residentId, setResidentId] = useState<string | undefined>();
+  const [roomId, setRoomId] = useState<string | undefined>();
+  const [permission, setPermission] = useState<any>("with_notice");
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setSubmitting(true);
-    setTimeout(() => {
-      toast.success("Pedido criado", { description: "REQ-007 foi adicionado ao board." });
-      navigate("/requests");
-    }, 500);
+    const room = rooms.find((r) => r.id === roomId);
+    createRequest.mutate({
+      title, description, category, priority,
+      residentId: residentId ?? null,
+      roomId: roomId && roomId !== "common" ? roomId : null,
+      location: room ? `Quarto ${room.number}` : (roomId === "common" ? "Área comum" : ""),
+      permissionToEnter: permission,
+    }, {
+      onSuccess: () => { toast.success("Pedido criado"); navigate("/requests"); },
+      onError: (e: any) => toast.error(e.message),
+    });
   };
 
   return (
@@ -36,24 +53,22 @@ const NewRequest = () => {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <Label htmlFor="title">Título</Label>
-            <Input id="title" placeholder="Ex: Torneira a pingar" required className="mt-1.5" />
+            <Input id="title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Ex: Torneira a pingar" required className="mt-1.5" />
           </div>
 
           <div className="grid sm:grid-cols-2 gap-4">
             <div>
               <Label>Categoria</Label>
-              <Select defaultValue="maintenance">
+              <Select value={category} onValueChange={setCategory}>
                 <SelectTrigger className="mt-1.5"><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  {Object.entries(categoryLabels).map(([k, v]) => (
-                    <SelectItem key={k} value={k}>{v}</SelectItem>
-                  ))}
+                  {Object.entries(categoryLabels).map(([k, v]) => <SelectItem key={k} value={k}>{v}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
             <div>
               <Label>Prioridade</Label>
-              <Select defaultValue="medium">
+              <Select value={priority} onValueChange={setPriority}>
                 <SelectTrigger className="mt-1.5"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="low">Baixa</SelectItem>
@@ -68,23 +83,19 @@ const NewRequest = () => {
           <div className="grid sm:grid-cols-2 gap-4">
             <div>
               <Label>Residente</Label>
-              <Select>
+              <Select value={residentId} onValueChange={setResidentId}>
                 <SelectTrigger className="mt-1.5"><SelectValue placeholder="Selecionar…" /></SelectTrigger>
                 <SelectContent>
-                  {residents.map((r) => (
-                    <SelectItem key={r.id} value={r.id}>{r.fullName}</SelectItem>
-                  ))}
+                  {residents.map((r) => <SelectItem key={r.id} value={r.id}>{r.fullName}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
             <div>
               <Label>Quarto / Local</Label>
-              <Select>
+              <Select value={roomId} onValueChange={setRoomId}>
                 <SelectTrigger className="mt-1.5"><SelectValue placeholder="Selecionar…" /></SelectTrigger>
                 <SelectContent>
-                  {rooms.map((r) => (
-                    <SelectItem key={r.id} value={r.id}>Quarto {r.number}</SelectItem>
-                  ))}
+                  {rooms.map((r) => <SelectItem key={r.id} value={r.id}>Quarto {r.number}</SelectItem>)}
                   <SelectItem value="common">Área comum</SelectItem>
                 </SelectContent>
               </Select>
@@ -93,12 +104,12 @@ const NewRequest = () => {
 
           <div>
             <Label htmlFor="desc">Descrição</Label>
-            <Textarea id="desc" placeholder="Detalhes do pedido…" className="mt-1.5 min-h-[120px]" />
+            <Textarea id="desc" value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Detalhes do pedido…" className="mt-1.5 min-h-[120px]" />
           </div>
 
           <div>
             <Label>Permissão para entrar no quarto</Label>
-            <Select defaultValue="with_notice">
+            <Select value={permission} onValueChange={setPermission}>
               <SelectTrigger className="mt-1.5"><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="yes">Sim</SelectItem>
@@ -109,12 +120,10 @@ const NewRequest = () => {
           </div>
 
           <div className="flex gap-2 pt-2">
-            <Button type="submit" disabled={submitting} className="rounded-full gradient-warm border-0 shadow-elegant">
+            <Button type="submit" disabled={createRequest.isPending} className="rounded-full gradient-warm border-0 shadow-elegant">
               <Send className="h-4 w-4 mr-1.5" /> Criar pedido
             </Button>
-            <Button type="button" variant="outline" className="rounded-full" onClick={() => navigate(-1)}>
-              Cancelar
-            </Button>
+            <Button type="button" variant="outline" className="rounded-full" onClick={() => navigate(-1)}>Cancelar</Button>
           </div>
         </form>
       </Card>

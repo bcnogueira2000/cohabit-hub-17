@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
-import { residents, rooms, requests } from "@/lib/mockData";
+import { useResidents, useRooms, useRequests } from "@/hooks/useData";
 import { StatusBadge, PriorityBadge } from "@/components/ui/StatusBadge";
 import { useState } from "react";
 
@@ -20,6 +20,9 @@ const checkInItems = [
 
 const ResidentDetail = () => {
   const { id } = useParams();
+  const { data: residents = [] } = useResidents();
+  const { data: rooms = [] } = useRooms();
+  const { data: requests = [] } = useRequests();
   const resident = residents.find((r) => r.id === id);
   const [checks, setChecks] = useState<boolean[]>(checkInItems.map((_, i) => i < 3));
 
@@ -43,12 +46,7 @@ const ResidentDetail = () => {
       </Button>
 
       <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-6">
-        <div
-          className="h-20 w-20 rounded-full flex items-center justify-center text-primary-foreground font-display text-2xl font-semibold"
-          style={{ backgroundColor: resident.avatarColor }}
-        >
-          {initials}
-        </div>
+        <div className="h-20 w-20 rounded-full flex items-center justify-center text-primary-foreground font-display text-2xl font-semibold" style={{ backgroundColor: resident.avatarColor }}>{initials}</div>
         <div>
           <h1 className="font-display text-3xl font-semibold">{resident.fullName}</h1>
           <div className="flex flex-wrap gap-3 text-sm text-muted-foreground mt-1">
@@ -74,7 +72,7 @@ const ResidentDetail = () => {
             <Card className="p-4 border-border/60 shadow-card">
               <div className="text-xs text-muted-foreground flex items-center gap-1 mb-1"><Calendar className="h-3 w-3" /> Estadia</div>
               <div className="font-medium text-sm">
-                {new Date(resident.moveIn).toLocaleDateString("pt-PT")} → {new Date(resident.moveOut).toLocaleDateString("pt-PT")}
+                {resident.moveIn && new Date(resident.moveIn).toLocaleDateString("pt-PT")} → {resident.moveOut && new Date(resident.moveOut).toLocaleDateString("pt-PT")}
               </div>
             </Card>
           </div>
@@ -90,10 +88,7 @@ const ResidentDetail = () => {
             <div className="space-y-1">
               {checkInItems.map((item, i) => (
                 <label key={i} className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-muted/40 cursor-pointer">
-                  <Checkbox
-                    checked={checks[i]}
-                    onCheckedChange={(c) => setChecks((prev) => prev.map((v, idx) => (idx === i ? !!c : v)))}
-                  />
+                  <Checkbox checked={checks[i]} onCheckedChange={(c) => setChecks((prev) => prev.map((v, idx) => (idx === i ? !!c : v)))} />
                   <span className={checks[i] ? "line-through text-muted-foreground text-sm" : "text-sm"}>{item}</span>
                   {checks[i] && <Check className="h-4 w-4 text-success ml-auto" />}
                 </label>

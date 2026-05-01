@@ -3,23 +3,21 @@ import { Link } from "react-router-dom";
 import { Search, Mail, Phone, DoorClosed } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { residents, rooms, requests } from "@/lib/mockData";
+import { useResidents, useRooms, useRequests } from "@/hooks/useData";
 import { cn } from "@/lib/utils";
 
 const statusTone: Record<string, string> = {
-  active: "bg-success/15 text-success",
-  upcoming: "bg-info/15 text-info",
-  checking_out: "bg-warning/15 text-warning",
-  past: "bg-muted text-muted-foreground",
+  active: "bg-success/15 text-success", upcoming: "bg-info/15 text-info",
+  checking_out: "bg-warning/15 text-warning", past: "bg-muted text-muted-foreground",
 };
 const statusLabel: Record<string, string> = {
-  active: "Ativo",
-  upcoming: "A chegar",
-  checking_out: "Check-out próximo",
-  past: "Anterior",
+  active: "Ativo", upcoming: "A chegar", checking_out: "Check-out próximo", past: "Anterior",
 };
 
 const Residents = () => {
+  const { data: residents = [] } = useResidents();
+  const { data: rooms = [] } = useRooms();
+  const { data: requests = [] } = useRequests();
   const [search, setSearch] = useState("");
   const filtered = residents.filter((r) => r.fullName.toLowerCase().includes(search.toLowerCase()));
 
@@ -32,12 +30,7 @@ const Residents = () => {
 
       <div className="relative mb-5 max-w-md">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <Input
-          placeholder="Procurar residente…"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="pl-9 bg-card border-border/70 rounded-full"
-        />
+        <Input placeholder="Procurar residente…" value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9 bg-card border-border/70 rounded-full" />
       </div>
 
       <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -49,17 +42,10 @@ const Residents = () => {
             <Link key={r.id} to={`/residents/${r.id}`}>
               <Card className="p-4 hover:shadow-elegant transition-smooth border-border/60 cursor-pointer h-full">
                 <div className="flex items-start gap-3 mb-3">
-                  <div
-                    className="h-12 w-12 rounded-full flex items-center justify-center text-primary-foreground font-semibold shrink-0"
-                    style={{ backgroundColor: r.avatarColor }}
-                  >
-                    {initials}
-                  </div>
+                  <div className="h-12 w-12 rounded-full flex items-center justify-center text-primary-foreground font-semibold shrink-0" style={{ backgroundColor: r.avatarColor }}>{initials}</div>
                   <div className="flex-1 min-w-0">
                     <div className="font-medium truncate">{r.fullName}</div>
-                    <div className={cn("inline-flex text-xs px-2 py-0.5 rounded-full mt-1", statusTone[r.status])}>
-                      {statusLabel[r.status]}
-                    </div>
+                    <div className={cn("inline-flex text-xs px-2 py-0.5 rounded-full mt-1", statusTone[r.status])}>{statusLabel[r.status]}</div>
                   </div>
                 </div>
                 <div className="space-y-1.5 text-xs text-muted-foreground">
@@ -69,8 +55,8 @@ const Residents = () => {
                 </div>
                 <div className="flex items-center justify-between text-xs mt-3 pt-3 border-t border-border">
                   <span className="text-muted-foreground">
-                    {new Date(r.moveIn).toLocaleDateString("pt-PT", { day: "numeric", month: "short" })} →
-                    {" "}{new Date(r.moveOut).toLocaleDateString("pt-PT", { day: "numeric", month: "short" })}
+                    {r.moveIn && new Date(r.moveIn).toLocaleDateString("pt-PT", { day: "numeric", month: "short" })} →{" "}
+                    {r.moveOut && new Date(r.moveOut).toLocaleDateString("pt-PT", { day: "numeric", month: "short" })}
                   </span>
                   {openReqs > 0 && (
                     <span className="bg-primary/10 text-primary font-medium px-2 py-0.5 rounded-full">
