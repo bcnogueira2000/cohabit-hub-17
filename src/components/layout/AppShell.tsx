@@ -3,6 +3,7 @@ import { LayoutDashboard, Inbox, Sparkles, ListChecks, Users, DoorClosed, Calend
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import logo from "@/assets/logo.png";
 
 const navItems = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard, end: true },
@@ -25,12 +26,10 @@ const mobileBottom = [
 
 const Brand = () => (
   <div className="flex items-center gap-2.5 px-2 py-1">
-    <div className="h-9 w-9 rounded-xl gradient-warm shadow-elegant flex items-center justify-center">
-      <span className="font-display font-semibold text-primary-foreground text-lg leading-none">L</span>
-    </div>
+    <img src={logo} alt="Living Colours" className="h-10 w-10 object-contain" />
     <div className="leading-tight">
-      <div className="font-display text-base font-semibold text-foreground">Living Colours</div>
-      <div className="text-[11px] uppercase tracking-widest text-muted-foreground">Operations</div>
+      <div className="font-display text-base font-bold text-foreground tracking-tight">Living Colours</div>
+      <div className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground font-medium">Operations</div>
     </div>
   </div>
 );

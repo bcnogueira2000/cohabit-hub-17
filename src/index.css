@@ -1,107 +1,108 @@
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@100;200;300;400;500;600;700;800;900&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Living Colours Ops — Boutique warm design system. All colors in HSL. */
+/* Living Colours Ops — HJCC brand. Sage green + deep brown + cream. All HSL. */
 
 @layer base {
   :root {
-    /* Surfaces — warm cream */
-    --background: 33 36% 96%;
-    --foreground: 20 25% 14%;
+    /* Surfaces — warm cream (Pantone P 1-1 C) */
+    --background: 40 28% 95%;
+    --foreground: 25 30% 16%;
 
-    --card: 35 40% 99%;
-    --card-foreground: 20 25% 14%;
+    --card: 40 35% 98%;
+    --card-foreground: 25 30% 16%;
 
-    --popover: 35 40% 99%;
-    --popover-foreground: 20 25% 14%;
+    --popover: 40 35% 98%;
+    --popover-foreground: 25 30% 16%;
 
-    /* Brand — terracotta */
-    --primary: 14 55% 48%;
-    --primary-foreground: 33 40% 97%;
-    --primary-glow: 18 70% 60%;
+    /* Brand — sage green (Pantone P 159-12 C ~ #9AAC83) */
+    --primary: 88 18% 53%;
+    --primary-foreground: 40 35% 98%;
+    --primary-glow: 88 22% 62%;
 
-    /* Sage secondary */
-    --secondary: 95 14% 88%;
-    --secondary-foreground: 110 18% 22%;
+    /* Deep brown secondary (Pantone P 44-16 C) */
+    --secondary: 28 25% 22%;
+    --secondary-foreground: 40 28% 95%;
 
-    --muted: 33 24% 92%;
-    --muted-foreground: 25 12% 42%;
+    --muted: 38 18% 90%;
+    --muted-foreground: 25 12% 40%;
 
-    --accent: 38 60% 88%;
-    --accent-foreground: 20 35% 22%;
+    --accent: 88 18% 88%;
+    --accent-foreground: 88 25% 22%;
 
-    --destructive: 4 70% 50%;
-    --destructive-foreground: 33 40% 97%;
+    --destructive: 4 65% 48%;
+    --destructive-foreground: 40 35% 98%;
 
-    --success: 140 38% 38%;
-    --success-foreground: 33 40% 97%;
+    --success: 88 28% 38%;
+    --success-foreground: 40 35% 98%;
 
-    --warning: 35 85% 52%;
-    --warning-foreground: 20 35% 14%;
+    --warning: 32 75% 48%;
+    --warning-foreground: 25 30% 14%;
 
-    --info: 200 50% 42%;
-    --info-foreground: 33 40% 97%;
+    --info: 200 35% 38%;
+    --info-foreground: 40 35% 98%;
 
-    --border: 30 22% 86%;
-    --input: 30 22% 86%;
-    --ring: 14 55% 48%;
+    --border: 35 18% 84%;
+    --input: 35 18% 84%;
+    --ring: 88 18% 53%;
 
     --radius: 0.875rem;
 
     /* Gradients */
-    --gradient-warm: linear-gradient(135deg, hsl(14 55% 48%) 0%, hsl(28 70% 58%) 100%);
-    --gradient-soft: linear-gradient(180deg, hsl(35 40% 99%) 0%, hsl(33 36% 96%) 100%);
-    --gradient-sage: linear-gradient(135deg, hsl(110 18% 32%) 0%, hsl(95 22% 48%) 100%);
+    --gradient-warm: linear-gradient(135deg, hsl(88 18% 53%) 0%, hsl(88 22% 62%) 100%);
+    --gradient-soft: linear-gradient(180deg, hsl(40 35% 98%) 0%, hsl(40 28% 95%) 100%);
+    --gradient-sage: linear-gradient(135deg, hsl(88 22% 42%) 0%, hsl(88 18% 58%) 100%);
+    --gradient-earth: linear-gradient(135deg, hsl(28 25% 22%) 0%, hsl(28 20% 32%) 100%);
 
     /* Shadows */
-    --shadow-soft: 0 1px 2px hsl(20 25% 14% / 0.04), 0 4px 12px hsl(20 25% 14% / 0.04);
-    --shadow-elegant: 0 8px 24px -8px hsl(14 55% 48% / 0.18);
-    --shadow-card: 0 1px 3px hsl(20 25% 14% / 0.05);
+    --shadow-soft: 0 1px 2px hsl(28 25% 14% / 0.04), 0 4px 12px hsl(28 25% 14% / 0.04);
+    --shadow-elegant: 0 8px 24px -8px hsl(88 18% 35% / 0.22);
+    --shadow-card: 0 1px 3px hsl(28 25% 14% / 0.06);
 
     --transition-smooth: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 
     /* Sidebar */
-    --sidebar-background: 35 40% 99%;
-    --sidebar-foreground: 20 25% 22%;
-    --sidebar-primary: 14 55% 48%;
-    --sidebar-primary-foreground: 33 40% 97%;
-    --sidebar-accent: 33 30% 94%;
-    --sidebar-accent-foreground: 14 55% 38%;
-    --sidebar-border: 30 22% 90%;
-    --sidebar-ring: 14 55% 48%;
+    --sidebar-background: 40 35% 98%;
+    --sidebar-foreground: 25 25% 22%;
+    --sidebar-primary: 88 18% 53%;
+    --sidebar-primary-foreground: 40 35% 98%;
+    --sidebar-accent: 88 18% 92%;
+    --sidebar-accent-foreground: 88 25% 28%;
+    --sidebar-border: 35 18% 88%;
+    --sidebar-ring: 88 18% 53%;
   }
 
   .dark {
-    --background: 22 18% 10%;
-    --foreground: 33 30% 94%;
-    --card: 22 16% 13%;
-    --card-foreground: 33 30% 94%;
-    --popover: 22 16% 13%;
-    --popover-foreground: 33 30% 94%;
-    --primary: 18 70% 60%;
-    --primary-foreground: 22 18% 10%;
-    --secondary: 110 12% 22%;
-    --secondary-foreground: 95 14% 88%;
-    --muted: 22 14% 18%;
-    --muted-foreground: 30 14% 64%;
-    --accent: 22 18% 22%;
-    --accent-foreground: 33 30% 94%;
-    --destructive: 4 65% 55%;
-    --destructive-foreground: 33 30% 94%;
-    --border: 22 14% 22%;
-    --input: 22 14% 22%;
-    --ring: 18 70% 60%;
-    --sidebar-background: 22 16% 12%;
-    --sidebar-foreground: 33 30% 88%;
-    --sidebar-primary: 18 70% 60%;
-    --sidebar-primary-foreground: 22 18% 10%;
-    --sidebar-accent: 22 14% 18%;
-    --sidebar-accent-foreground: 18 70% 65%;
-    --sidebar-border: 22 14% 20%;
-    --sidebar-ring: 18 70% 60%;
+    --background: 28 18% 10%;
+    --foreground: 40 28% 92%;
+    --card: 28 16% 13%;
+    --card-foreground: 40 28% 92%;
+    --popover: 28 16% 13%;
+    --popover-foreground: 40 28% 92%;
+    --primary: 88 22% 60%;
+    --primary-foreground: 28 18% 10%;
+    --secondary: 28 18% 22%;
+    --secondary-foreground: 40 28% 92%;
+    --muted: 28 14% 18%;
+    --muted-foreground: 35 14% 64%;
+    --accent: 88 14% 22%;
+    --accent-foreground: 40 28% 92%;
+    --destructive: 4 60% 52%;
+    --destructive-foreground: 40 28% 92%;
+    --border: 28 14% 22%;
+    --input: 28 14% 22%;
+    --ring: 88 22% 60%;
+    --sidebar-background: 28 16% 12%;
+    --sidebar-foreground: 40 28% 86%;
+    --sidebar-primary: 88 22% 60%;
+    --sidebar-primary-foreground: 28 18% 10%;
+    --sidebar-accent: 28 14% 18%;
+    --sidebar-accent-foreground: 88 22% 70%;
+    --sidebar-border: 28 14% 20%;
+    --sidebar-ring: 88 22% 60%;
   }
 }
 
@@ -111,7 +112,7 @@
   }
 
   html {
-    font-family: 'Inter', system-ui, sans-serif;
+    font-family: 'Montserrat', system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
@@ -122,9 +123,9 @@
   }
 
   h1, h2, h3, h4, .font-display {
-    font-family: 'Fraunces', Georgia, serif;
-    font-optical-sizing: auto;
-    letter-spacing: -0.015em;
+    font-family: 'Montserrat', system-ui, sans-serif;
+    font-weight: 700;
+    letter-spacing: -0.02em;
   }
 }
 
@@ -132,6 +133,7 @@
   .gradient-warm { background: var(--gradient-warm); }
   .gradient-soft { background: var(--gradient-soft); }
   .gradient-sage { background: var(--gradient-sage); }
+  .gradient-earth { background: var(--gradient-earth); }
   .shadow-soft { box-shadow: var(--shadow-soft); }
   .shadow-elegant { box-shadow: var(--shadow-elegant); }
   .shadow-card { box-shadow: var(--shadow-card); }
