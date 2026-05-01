@@ -1,10 +1,11 @@
 import { Link } from "react-router-dom";
-import { Plus, ArrowRight, Inbox, Sparkles, DoorClosed, AlertTriangle, ListChecks, Sun } from "lucide-react";
+import { Plus, ArrowRight, Inbox, Sparkles, DoorClosed, AlertTriangle, ListChecks, Sun, LogIn, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { StatusBadge, PriorityBadge } from "@/components/ui/StatusBadge";
 import { NewTaskDialog } from "@/components/NewTaskDialog";
-import { useRequests, useCleaningTasks, useRooms, useResidents, useCreateOpsTask } from "@/hooks/useData";
+import { useRequests, useCleaningTasks, useRooms, useResidents, useCreateOpsTask, useStays } from "@/hooks/useData";
 import { useAuth } from "@/hooks/useAuth";
 
 const greeting = () => {
