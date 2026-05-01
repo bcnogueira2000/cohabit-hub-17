@@ -85,3 +85,19 @@ export const mapBooking = (b: any): Booking => ({
   end: b.end_at,
   notes: b.notes ?? undefined,
 });
+
+export const mapStay = (s: any): Stay => ({
+  id: s.id,
+  residentId: s.resident_id ?? null,
+  fullName: s.full_name,
+  email: s.email,
+  phone: s.phone ?? "",
+  roomId: s.room_id ?? null,
+  checkIn: s.check_in,
+  checkOut: s.check_out,
+  status: s.status,
+  source: s.source,
+  notes: s.notes ?? undefined,
+  createdAt: s.created_at,
+  updatedAt: s.updated_at,
+});
