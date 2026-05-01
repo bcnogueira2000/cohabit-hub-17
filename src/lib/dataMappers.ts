@@ -1,4 +1,4 @@
-import type { Resident, Room, Request, CleaningTask, OpsTask, Booking, Space } from "./types";
+import type { Resident, Room, Request, CleaningTask, OpsTask, Booking, Space, Stay } from "./types";
 
 // Maps from DB snake_case rows to the app's camelCase types.
 // Lets us keep existing pages mostly intact.
