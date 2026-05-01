@@ -1,12 +1,14 @@
-import { NavLink, Outlet, useLocation } from "react-router-dom";
-import { LayoutDashboard, Inbox, Sparkles, ListChecks, Users, DoorClosed, CalendarRange, BarChart3, Settings, MoreHorizontal, Home } from "lucide-react";
+import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
+import { LayoutDashboard, Inbox, Sparkles, ListChecks, Users, DoorClosed, CalendarRange, BarChart3, Settings, MoreHorizontal, Sun, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { useAuth } from "@/hooks/useAuth";
 import logo from "@/assets/logo.png";
 
 const navItems = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard, end: true },
+  { to: "/my-day", label: "O meu dia", icon: Sun },
   { to: "/requests", label: "Requests", icon: Inbox },
   { to: "/cleaning", label: "Cleaning", icon: Sparkles },
   { to: "/tasks", label: "Tasks", icon: ListChecks },
@@ -18,7 +20,7 @@ const navItems = [
 ];
 
 const mobileBottom = [
-  { to: "/", label: "Home", icon: Home, end: true },
+  { to: "/my-day", label: "Hoje", icon: Sun, end: false },
   { to: "/requests", label: "Requests", icon: Inbox },
   { to: "/cleaning", label: "Cleaning", icon: Sparkles },
   { to: "/tasks", label: "Tasks", icon: ListChecks },
