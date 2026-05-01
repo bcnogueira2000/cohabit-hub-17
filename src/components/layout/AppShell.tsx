@@ -13,8 +13,9 @@ const navItems = [
   { to: "/cleaning", label: "Cleaning", icon: Sparkles },
   { to: "/tasks", label: "Tasks", icon: ListChecks },
   { to: "/residents", label: "Residents", icon: Users },
+  { to: "/stays", label: "Estadias", icon: LogIn },
   { to: "/rooms", label: "Rooms", icon: DoorClosed },
-  { to: "/bookings", label: "Bookings", icon: CalendarRange },
+  { to: "/bookings", label: "Reservas espaços", icon: CalendarRange },
   { to: "/insights", label: "Insights", icon: BarChart3 },
   { to: "/settings", label: "Settings", icon: Settings },
 ];
