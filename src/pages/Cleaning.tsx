@@ -57,6 +57,12 @@ const Cleaning = () => {
             <span className={cn("text-xs px-2 py-0.5 rounded-full font-medium", statusStyles[t.status])}>
               {statusLabel[t.status]}
             </span>
+            <span className={cn(
+              "text-[11px] px-2 py-0.5 rounded-full font-semibold uppercase tracking-wide",
+              t.service === "normal" ? "bg-primary/15 text-primary" : "bg-secondary/15 text-secondary"
+            )}>
+              {cleaningServiceLabels[t.service]}
+            </span>
             <span className="text-[11px] text-muted-foreground">{cleaningTypeLabels[t.type]}</span>
           </div>
           <div className="font-medium">{t.area}</div>
@@ -65,6 +71,7 @@ const Cleaning = () => {
               {new Date(t.scheduledFor).toLocaleString("pt-PT", { weekday: "short", hour: "2-digit", minute: "2-digit" })}
             </span>
             {t.assignedTo && <span className="flex items-center gap-1"><User className="h-3 w-3" />{t.assignedTo}</span>}
+            <span className="flex items-center gap-1 text-[11px]">· Origem: {cleaningSourceLabels[t.source]}</span>
           </div>
         </div>
       </div>
