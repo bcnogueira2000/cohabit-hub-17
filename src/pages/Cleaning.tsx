@@ -5,8 +5,8 @@ import { Card } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Checkbox } from "@/components/ui/checkbox";
-import { cleaningTasks as seed, cleaningTypeLabels } from "@/lib/mockData";
-import { CleaningTask } from "@/lib/types";
+import { cleaningTasks as seed, cleaningTypeLabels, cleaningServiceLabels, cleaningServiceDescriptions, cleaningSourceLabels } from "@/lib/mockData";
+import { CleaningTask, CleaningService } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 const isToday = (iso: string) => {
@@ -57,6 +57,12 @@ const Cleaning = () => {
             <span className={cn("text-xs px-2 py-0.5 rounded-full font-medium", statusStyles[t.status])}>
               {statusLabel[t.status]}
             </span>
+            <span className={cn(
+              "text-[11px] px-2 py-0.5 rounded-full font-semibold uppercase tracking-wide",
+              t.service === "normal" ? "bg-primary/15 text-primary" : "bg-secondary/15 text-secondary"
+            )}>
+              {cleaningServiceLabels[t.service]}
+            </span>
             <span className="text-[11px] text-muted-foreground">{cleaningTypeLabels[t.type]}</span>
           </div>
           <div className="font-medium">{t.area}</div>
@@ -65,6 +71,7 @@ const Cleaning = () => {
               {new Date(t.scheduledFor).toLocaleString("pt-PT", { weekday: "short", hour: "2-digit", minute: "2-digit" })}
             </span>
             {t.assignedTo && <span className="flex items-center gap-1"><User className="h-3 w-3" />{t.assignedTo}</span>}
+            <span className="flex items-center gap-1 text-[11px]">· Origem: {cleaningSourceLabels[t.source]}</span>
           </div>
         </div>
       </div>
@@ -103,11 +110,23 @@ const Cleaning = () => {
           {selected && (
             <>
               <SheetHeader>
-                <div className={cn("inline-flex w-fit text-xs px-2 py-0.5 rounded-full font-medium mb-2", statusStyles[selected.status])}>
-                  {statusLabel[selected.status]}
+                <div className="flex flex-wrap items-center gap-2 mb-2">
+                  <div className={cn("inline-flex text-xs px-2 py-0.5 rounded-full font-medium", statusStyles[selected.status])}>
+                    {statusLabel[selected.status]}
+                  </div>
+                  <div className={cn(
+                    "inline-flex text-[11px] px-2 py-0.5 rounded-full font-semibold uppercase tracking-wide",
+                    selected.service === "normal" ? "bg-primary/15 text-primary" : "bg-secondary/15 text-secondary"
+                  )}>
+                    Serviço {cleaningServiceLabels[selected.service]}
+                  </div>
                 </div>
                 <SheetTitle className="font-display text-2xl">{selected.area}</SheetTitle>
               </SheetHeader>
+
+              <div className="rounded-lg bg-muted/40 border border-border/60 p-3 my-4 text-xs text-muted-foreground">
+                {cleaningServiceDescriptions[selected.service]}
+              </div>
 
               <div className="space-y-3 my-4 text-sm">
                 <div className="flex items-center gap-2 text-muted-foreground">
@@ -122,6 +141,9 @@ const Cleaning = () => {
                     <User className="h-4 w-4" /> {selected.assignedTo}
                   </div>
                 )}
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <span className="text-[11px] uppercase tracking-wide">Origem:</span> {cleaningSourceLabels[selected.source]}
+                </div>
               </div>
 
               {selected.checklist && (

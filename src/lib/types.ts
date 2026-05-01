@@ -52,10 +52,15 @@ export interface Request {
 }
 
 export type CleaningType = "room_regular" | "room_deep" | "bathroom" | "kitchen" | "common" | "checkout_inspection";
+export type CleaningService = "normal" | "simple";
+export type CleaningSource = "scheduled" | "checkout" | "request" | "manual";
 
 export interface CleaningTask {
   id: string;
   type: CleaningType;
+  service: CleaningService;
+  source: CleaningSource;
+  sourceRef?: string | null; // ex: requestId or residentId
   roomId: string | null;
   area: string;
   scheduledFor: string;
