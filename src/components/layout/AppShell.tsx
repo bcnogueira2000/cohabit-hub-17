@@ -122,7 +122,7 @@ export const AppShell = () => {
             </SheetTrigger>
             <SheetContent side="bottom" className="rounded-t-2xl">
               <div className="grid grid-cols-2 gap-2 pt-4">
-                {navItems.slice(4).map(({ to, label, icon: Icon }) => (
+                {navItems.slice(5).map(({ to, label, icon: Icon }) => (
                   <NavLink
                     key={to}
                     to={to}
@@ -133,6 +133,13 @@ export const AppShell = () => {
                     <span className="text-sm font-medium">{label}</span>
                   </NavLink>
                 ))}
+                <button
+                  onClick={() => { setMoreOpen(false); handleSignOut(); }}
+                  className="flex items-center gap-3 rounded-lg p-3 bg-muted/40 hover:bg-muted transition-smooth col-span-2"
+                >
+                  <LogOut className="h-5 w-5 text-primary" />
+                  <span className="text-sm font-medium">Sair</span>
+                </button>
               </div>
             </SheetContent>
           </Sheet>
