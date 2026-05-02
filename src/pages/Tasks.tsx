@@ -1,13 +1,22 @@
-import { useState } from "react";
-import { ListChecks, Calendar, Clock, AlertCircle, Plus } from "lucide-react";
+import { useEffect, useState } from "react";
+import { ListChecks, Calendar, Clock, AlertCircle, Plus, Trash2 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { useOpsTasks, useResidents, useRooms, useCreateOpsTask, useUpdateOpsTask } from "@/hooks/useData";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { useOpsTasks, useResidents, useRooms, useCreateOpsTask, useUpdateOpsTask, useDeleteOpsTask } from "@/hooks/useData";
+import { useStaffUsers } from "@/hooks/useStaffUsers";
 import { taskStatusLabels } from "@/lib/labels";
 import { OpsTask, TaskStatus } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { NewTaskDialog } from "@/components/NewTaskDialog";
+import { useToast } from "@/hooks/use-toast";
 
 const columns: { id: TaskStatus; label: string; tone: string }[] = [
   { id: "todo", label: "A fazer", tone: "bg-info/10 text-info border-info/30" },
