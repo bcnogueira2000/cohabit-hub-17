@@ -1,13 +1,13 @@
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
-import { LayoutDashboard, Inbox, Sparkles, ListChecks, Users, DoorClosed, CalendarRange, BarChart3, Settings, MoreHorizontal, Sun, LogOut, LogIn, UserCheck } from "lucide-react";
-import { usePendingProfiles } from "@/hooks/useProfile";
+import { LayoutDashboard, Inbox, Sparkles, ListChecks, Users, DoorClosed, CalendarRange, BarChart3, Settings, MoreHorizontal, Sun, LogOut, LogIn, UserCheck, Shield } from "lucide-react";
+import { usePendingProfiles, useMyRoles } from "@/hooks/useProfile";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useAuth } from "@/hooks/useAuth";
 import logo from "@/assets/logo.png";
 
-const navItems = [
+const baseNavItems = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard, end: true },
   { to: "/my-day", label: "O meu dia", icon: Sun },
   { to: "/requests", label: "Requests", icon: Inbox },
@@ -21,6 +21,8 @@ const navItems = [
   { to: "/insights", label: "Insights", icon: BarChart3 },
   { to: "/settings", label: "Settings", icon: Settings },
 ];
+
+const adminOnlyItem = { to: "/users", label: "Utilizadores", icon: Shield, end: false };
 
 const mobileBottom = [
   { to: "/my-day", label: "Hoje", icon: Sun, end: false },
@@ -44,6 +46,9 @@ export const AppShell = () => {
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
   const { data: pending = [] } = usePendingProfiles();
+  const { data: myRoles = [] } = useMyRoles();
+  const isAdmin = myRoles.includes("admin");
+  const navItems = isAdmin ? [...baseNavItems, adminOnlyItem] : baseNavItems;
   const [moreOpen, setMoreOpen] = useState(false);
   const handleSignOut = async () => { await signOut(); navigate("/auth", { replace: true }); };
 
