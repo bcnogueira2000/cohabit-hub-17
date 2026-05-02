@@ -97,3 +97,20 @@ export const useCreateRequest = () => {
 };
 
 export const isActiveRequest = (s: RequestStatus) => ACTIVE_STATUSES.includes(s);
+
+export const useCancelRequest = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from("requests")
+        .update({ status: "closed" })
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: (_d, id) => {
+      qc.invalidateQueries({ queryKey: ["my_requests"] });
+      qc.invalidateQueries({ queryKey: ["request", id] });
+    },
+  });
+};

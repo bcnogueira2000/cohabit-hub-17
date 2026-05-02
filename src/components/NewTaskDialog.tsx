@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { OpsTask, TaskPriority } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
+import { useStaffUsers } from "@/hooks/useStaffUsers";
 
 interface Props {
   trigger: ReactNode;
@@ -22,19 +23,22 @@ const categoryLabels: Record<string, string> = {
   other: "Outro",
 };
 
+const NONE = "__none__";
+
 export const NewTaskDialog = ({ trigger, onCreate }: Props) => {
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState<OpsTask["category"]>("maintenance");
   const [priority, setPriority] = useState<TaskPriority>("medium");
-  const [assignedTo, setAssignedTo] = useState("");
+  const [assignedUserId, setAssignedUserId] = useState<string>(NONE);
   const [dueDate, setDueDate] = useState("");
   const { toast } = useToast();
+  const { data: staff = [] } = useStaffUsers();
 
   const reset = () => {
     setTitle(""); setDescription(""); setCategory("maintenance");
-    setPriority("medium"); setAssignedTo(""); setDueDate("");
+    setPriority("medium"); setAssignedUserId(NONE); setDueDate("");
   };
 
   const submit = () => {
@@ -42,6 +46,8 @@ export const NewTaskDialog = ({ trigger, onCreate }: Props) => {
       toast({ title: "Título obrigatório", variant: "destructive" });
       return;
     }
+    const selected = staff.find((s) => s.user_id === assignedUserId);
+    const assignedName = selected?.full_name || selected?.email || null;
     const task: OpsTask = {
       id: `t-${Date.now()}`,
       code: "",
@@ -50,7 +56,8 @@ export const NewTaskDialog = ({ trigger, onCreate }: Props) => {
       category,
       status: "todo",
       priority,
-      assignedTo: assignedTo.trim() || null,
+      assignedTo: assignedName,
+      assignedToUserId: assignedUserId === NONE ? null : assignedUserId,
       roomId: null,
       residentId: null,
       requestId: null,
@@ -103,8 +110,18 @@ export const NewTaskDialog = ({ trigger, onCreate }: Props) => {
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <Label htmlFor="task-assigned">Atribuída a</Label>
-              <Input id="task-assigned" value={assignedTo} onChange={(e) => setAssignedTo(e.target.value)} placeholder="Nome" />
+              <Label>Atribuída a</Label>
+              <Select value={assignedUserId} onValueChange={setAssignedUserId}>
+                <SelectTrigger><SelectValue placeholder="Escolher…" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={NONE}>Não atribuído</SelectItem>
+                  {staff.map((s) => (
+                    <SelectItem key={s.user_id} value={s.user_id}>
+                      {s.full_name || s.email || s.user_id.slice(0, 8)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="task-due">Prazo</Label>

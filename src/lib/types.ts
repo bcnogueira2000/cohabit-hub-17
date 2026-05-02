@@ -46,6 +46,7 @@ export interface Request {
   priority: RequestPriority;
   status: RequestStatus;
   assignedTo: string | null;
+  assignedToUserId: string | null;
   createdAt: string;
   updatedAt: string;
   permissionToEnter: "yes" | "no" | "with_notice";
@@ -67,6 +68,7 @@ export interface CleaningTask {
   scheduledFor: string;
   status: "scheduled" | "in_progress" | "completed" | "skipped";
   assignedTo: string | null;
+  assignedToUserId: string | null;
   notes?: string;
   checklist?: { label: string; done: boolean }[];
 }
@@ -83,6 +85,7 @@ export interface OpsTask {
   status: TaskStatus;
   priority: TaskPriority;
   assignedTo: string | null;
+  assignedToUserId: string | null;
   roomId: string | null;
   residentId: string | null;
   requestId: string | null;

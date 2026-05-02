@@ -116,6 +116,7 @@ export const useUpdateRequest = () => {
       const dbPatch: any = {};
       if (patch.status) dbPatch.status = patch.status;
       if (patch.assignedTo !== undefined) dbPatch.assigned_to = patch.assignedTo;
+      if (patch.assignedToUserId !== undefined) dbPatch.assigned_to_user_id = patch.assignedToUserId;
       if (patch.priority) dbPatch.priority = patch.priority;
       const { error } = await supabase.from("requests").update(dbPatch).eq("id", id);
       if (error) throw error;
@@ -129,7 +130,7 @@ export const useCreateOpsTask = () => {
   return useMutation({
     mutationFn: async (input: {
       title: string; description?: string; category: any; priority: any;
-      assignedTo?: string | null; dueDate?: string | null;
+      assignedTo?: string | null; assignedToUserId?: string | null; dueDate?: string | null;
     }) => {
       const { error, data } = await supabase.from("ops_tasks").insert({
         code: "",
@@ -138,8 +139,9 @@ export const useCreateOpsTask = () => {
         category: input.category,
         priority: input.priority,
         assigned_to: input.assignedTo ?? null,
+        assigned_to_user_id: input.assignedToUserId ?? null,
         due_date: input.dueDate ?? null,
-      }).select().single();
+      } as any).select().single();
       if (error) throw error;
       return data;
     },
@@ -154,6 +156,7 @@ export const useUpdateOpsTask = () => {
       const dbPatch: any = {};
       if (patch.status) dbPatch.status = patch.status;
       if (patch.assignedTo !== undefined) dbPatch.assigned_to = patch.assignedTo;
+      if (patch.assignedToUserId !== undefined) dbPatch.assigned_to_user_id = patch.assignedToUserId;
       if (patch.priority) dbPatch.priority = patch.priority;
       if (patch.title) dbPatch.title = patch.title;
       if (patch.description !== undefined) dbPatch.description = patch.description;
@@ -171,6 +174,7 @@ export const useUpdateCleaningTask = () => {
       const dbPatch: any = {};
       if (patch.status) dbPatch.status = patch.status;
       if (patch.assignedTo !== undefined) dbPatch.assigned_to = patch.assignedTo;
+      if (patch.assignedToUserId !== undefined) dbPatch.assigned_to_user_id = patch.assignedToUserId;
       if (patch.checklist !== undefined) dbPatch.checklist = patch.checklist;
       if (patch.notes !== undefined) dbPatch.notes = patch.notes;
       const { error } = await supabase.from("cleaning_tasks").update(dbPatch).eq("id", id);

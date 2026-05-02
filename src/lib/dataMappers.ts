@@ -36,6 +36,7 @@ export const mapRequest = (r: any): Request => ({
   priority: r.priority,
   status: r.status,
   assignedTo: r.assigned_to ?? null,
+  assignedToUserId: r.assigned_to_user_id ?? null,
   createdAt: r.created_at,
   updatedAt: r.updated_at,
   permissionToEnter: r.permission_to_enter,
@@ -51,6 +52,7 @@ export const mapOpsTask = (t: any): OpsTask => ({
   status: t.status,
   priority: t.priority,
   assignedTo: t.assigned_to ?? null,
+  assignedToUserId: t.assigned_to_user_id ?? null,
   roomId: t.room_id ?? null,
   residentId: t.resident_id ?? null,
   requestId: t.request_id ?? null,
@@ -69,6 +71,7 @@ export const mapCleaning = (c: any): CleaningTask => ({
   scheduledFor: c.scheduled_for,
   status: c.status,
   assignedTo: c.assigned_to ?? null,
+  assignedToUserId: c.assigned_to_user_id ?? null,
   notes: c.notes ?? undefined,
   checklist: c.checklist ?? undefined,
 });
