@@ -148,17 +148,41 @@ const RequestNew = () => {
         </div>
 
         <div>
-          <Label htmlFor="location">{lang === "pt" ? "Localização" : "Location"}</Label>
+          <Label className="mb-2 block">{lang === "pt" ? "Quarto" : "Room"}</Label>
+          <div className={cn(
+            "flex items-center gap-2 px-3 py-2.5 rounded-lg border bg-muted/40",
+            hasRoom === false ? "border-amber-300/60" : "border-border/60",
+          )}>
+            <HomeIcon className="h-4 w-4 text-muted-foreground" />
+            <span className="text-sm">
+              {hasRoom === null
+                ? (lang === "pt" ? "A carregar…" : "Loading…")
+                : hasRoom
+                ? (lang === "pt" ? `Quarto ${roomNumber}` : `Room ${roomNumber}`)
+                : (lang === "pt" ? "Sem quarto atribuído" : "No room assigned")}
+            </span>
+          </div>
+          {hasRoom === false && (
+            <p className="text-[11px] text-amber-700/80 mt-1">
+              {lang === "pt"
+                ? "A equipa irá tratar disso — podes na mesma submeter o pedido."
+                : "Staff will sort this — you can still submit your request."}
+            </p>
+          )}
+        </div>
+
+        <div>
+          <Label htmlFor="location">{lang === "pt" ? "Onde?" : "Where?"}</Label>
           <Input
             id="location"
             value={location}
             onChange={(e) => setLocation(e.target.value)}
-            placeholder={lang === "pt" ? "Quarto, casa de banho, cozinha…" : "Room, bathroom, kitchen…"}
+            placeholder={lang === "pt" ? "Casa de banho, cozinha, lavandaria…" : "Bathroom, kitchen, laundry…"}
           />
           <p className="text-[11px] text-muted-foreground mt-1">
             {lang === "pt"
-              ? "Por defeito é o teu quarto. Indica outro local se aplicável."
-              : "Defaults to your room. Specify if elsewhere."}
+              ? "Opcional. Por defeito assumimos o teu quarto."
+              : "Optional. Defaults to your room."}
           </p>
         </div>
 
