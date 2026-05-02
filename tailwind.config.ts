@@ -12,8 +12,8 @@ export default {
     },
     extend: {
       fontFamily: {
-        display: ["Montserrat", "system-ui", "sans-serif"],
-        sans: ["Montserrat", "system-ui", "sans-serif"],
+        display: ["Source Sans 3", "Myriad Pro", "system-ui", "sans-serif"],
+        sans: ["Source Sans 3", "Myriad Pro", "system-ui", "sans-serif"],
       },
       colors: {
         border: "hsl(var(--border))",
@@ -45,6 +45,14 @@ export default {
         info: {
           DEFAULT: "hsl(var(--info))",
           foreground: "hsl(var(--info-foreground))",
+        },
+        brand: {
+          teal: "hsl(var(--brand-teal))",
+          lilac: "hsl(var(--brand-lilac))",
+          yellow: "hsl(var(--brand-yellow))",
+          coral: "hsl(var(--brand-coral))",
+          charcoal: "hsl(var(--brand-charcoal))",
+          grey: "hsl(var(--brand-grey))",
         },
         muted: {
           DEFAULT: "hsl(var(--muted))",

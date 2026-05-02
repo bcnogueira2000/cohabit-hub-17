@@ -1,108 +1,122 @@
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@100;200;300;400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@300;400;500;600;700;800&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Living Colours Ops — HJCC brand. Sage green + deep brown + cream. All HSL. */
+/* Living Colors Coliving — brand identity.
+   Primary: teal (Pantone 15-5218 TCX). Accents: lilac, yellow, coral.
+   Neutrals: deep charcoal (19-4015) + warm grey (18-5204). All HSL. */
 
 @layer base {
   :root {
-    /* Surfaces — warm cream (Pantone P 1-1 C) */
-    --background: 40 28% 95%;
-    --foreground: 25 30% 16%;
+    /* Surfaces — clean off-white, slightly warm */
+    --background: 0 0% 99%;
+    --foreground: 220 10% 14%;
 
-    --card: 40 35% 98%;
-    --card-foreground: 25 30% 16%;
+    --card: 0 0% 100%;
+    --card-foreground: 220 10% 14%;
 
-    --popover: 40 35% 98%;
-    --popover-foreground: 25 30% 16%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 10% 14%;
 
-    /* Brand — sage green (Pantone P 159-12 C ~ #9AAC83) */
-    --primary: 88 18% 53%;
-    --primary-foreground: 40 35% 98%;
-    --primary-glow: 88 22% 62%;
+    /* Brand — teal #3CC4A6 (Pantone 15-5218 TCX) */
+    --primary: 168 56% 50%;
+    --primary-foreground: 0 0% 100%;
+    --primary-glow: 168 60% 62%;
 
-    /* Deep brown secondary (Pantone P 44-16 C) */
-    --secondary: 28 25% 22%;
-    --secondary-foreground: 40 28% 95%;
+    /* Charcoal secondary (Pantone 19-4015) */
+    --secondary: 220 8% 22%;
+    --secondary-foreground: 0 0% 99%;
 
-    --muted: 38 18% 90%;
-    --muted-foreground: 25 12% 40%;
+    --muted: 220 12% 95%;
+    --muted-foreground: 220 8% 42%;
 
-    --accent: 88 18% 88%;
-    --accent-foreground: 88 25% 22%;
+    --accent: 168 50% 92%;
+    --accent-foreground: 168 56% 28%;
 
-    --destructive: 4 65% 48%;
-    --destructive-foreground: 40 35% 98%;
+    /* Coral (Pantone 16-1735) */
+    --destructive: 346 75% 62%;
+    --destructive-foreground: 0 0% 100%;
 
-    --success: 88 28% 38%;
-    --success-foreground: 40 35% 98%;
+    --success: 168 56% 42%;
+    --success-foreground: 0 0% 100%;
 
-    --warning: 32 75% 48%;
-    --warning-foreground: 25 30% 14%;
+    /* Yellow (Pantone 13-0755) */
+    --warning: 46 86% 62%;
+    --warning-foreground: 220 10% 14%;
 
-    --info: 200 35% 38%;
-    --info-foreground: 40 35% 98%;
+    /* Lilac (Pantone 17-3932) */
+    --info: 240 32% 66%;
+    --info-foreground: 0 0% 100%;
 
-    --border: 35 18% 84%;
-    --input: 35 18% 84%;
-    --ring: 88 18% 53%;
+    --border: 220 14% 90%;
+    --input: 220 14% 90%;
+    --ring: 168 56% 50%;
 
     --radius: 0.875rem;
 
+    /* Brand accent tokens — for charts, badges, illustrative use */
+    --brand-teal: 168 56% 50%;
+    --brand-lilac: 240 32% 66%;
+    --brand-yellow: 46 86% 62%;
+    --brand-coral: 346 75% 62%;
+    --brand-charcoal: 220 8% 22%;
+    --brand-grey: 220 6% 45%;
+
     /* Gradients */
-    --gradient-warm: linear-gradient(135deg, hsl(88 18% 53%) 0%, hsl(88 22% 62%) 100%);
-    --gradient-soft: linear-gradient(180deg, hsl(40 35% 98%) 0%, hsl(40 28% 95%) 100%);
-    --gradient-sage: linear-gradient(135deg, hsl(88 22% 42%) 0%, hsl(88 18% 58%) 100%);
-    --gradient-earth: linear-gradient(135deg, hsl(28 25% 22%) 0%, hsl(28 20% 32%) 100%);
+    --gradient-warm: linear-gradient(135deg, hsl(168 56% 50%) 0%, hsl(168 60% 62%) 100%);
+    --gradient-soft: linear-gradient(180deg, hsl(0 0% 100%) 0%, hsl(220 14% 97%) 100%);
+    --gradient-sage: linear-gradient(135deg, hsl(168 60% 42%) 0%, hsl(168 56% 56%) 100%);
+    --gradient-earth: linear-gradient(135deg, hsl(220 8% 22%) 0%, hsl(220 8% 32%) 100%);
+    --gradient-living: linear-gradient(135deg, hsl(240 32% 66%) 0%, hsl(168 56% 50%) 50%, hsl(46 86% 62%) 100%);
 
     /* Shadows */
-    --shadow-soft: 0 1px 2px hsl(28 25% 14% / 0.04), 0 4px 12px hsl(28 25% 14% / 0.04);
-    --shadow-elegant: 0 8px 24px -8px hsl(88 18% 35% / 0.22);
-    --shadow-card: 0 1px 3px hsl(28 25% 14% / 0.06);
+    --shadow-soft: 0 1px 2px hsl(220 10% 10% / 0.04), 0 4px 12px hsl(220 10% 10% / 0.04);
+    --shadow-elegant: 0 8px 24px -8px hsl(168 56% 35% / 0.22);
+    --shadow-card: 0 1px 3px hsl(220 10% 10% / 0.06);
 
     --transition-smooth: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 
     /* Sidebar */
-    --sidebar-background: 40 35% 98%;
-    --sidebar-foreground: 25 25% 22%;
-    --sidebar-primary: 88 18% 53%;
-    --sidebar-primary-foreground: 40 35% 98%;
-    --sidebar-accent: 88 18% 92%;
-    --sidebar-accent-foreground: 88 25% 28%;
-    --sidebar-border: 35 18% 88%;
-    --sidebar-ring: 88 18% 53%;
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 220 10% 24%;
+    --sidebar-primary: 168 56% 50%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 168 50% 94%;
+    --sidebar-accent-foreground: 168 56% 28%;
+    --sidebar-border: 220 14% 92%;
+    --sidebar-ring: 168 56% 50%;
   }
 
   .dark {
-    --background: 28 18% 10%;
-    --foreground: 40 28% 92%;
-    --card: 28 16% 13%;
-    --card-foreground: 40 28% 92%;
-    --popover: 28 16% 13%;
-    --popover-foreground: 40 28% 92%;
-    --primary: 88 22% 60%;
-    --primary-foreground: 28 18% 10%;
-    --secondary: 28 18% 22%;
-    --secondary-foreground: 40 28% 92%;
-    --muted: 28 14% 18%;
-    --muted-foreground: 35 14% 64%;
-    --accent: 88 14% 22%;
-    --accent-foreground: 40 28% 92%;
-    --destructive: 4 60% 52%;
-    --destructive-foreground: 40 28% 92%;
-    --border: 28 14% 22%;
-    --input: 28 14% 22%;
-    --ring: 88 22% 60%;
-    --sidebar-background: 28 16% 12%;
-    --sidebar-foreground: 40 28% 86%;
-    --sidebar-primary: 88 22% 60%;
-    --sidebar-primary-foreground: 28 18% 10%;
-    --sidebar-accent: 28 14% 18%;
-    --sidebar-accent-foreground: 88 22% 70%;
-    --sidebar-border: 28 14% 20%;
-    --sidebar-ring: 88 22% 60%;
+    --background: 220 12% 9%;
+    --foreground: 0 0% 96%;
+    --card: 220 10% 12%;
+    --card-foreground: 0 0% 96%;
+    --popover: 220 10% 12%;
+    --popover-foreground: 0 0% 96%;
+    --primary: 168 56% 56%;
+    --primary-foreground: 220 12% 9%;
+    --secondary: 220 8% 22%;
+    --secondary-foreground: 0 0% 96%;
+    --muted: 220 8% 18%;
+    --muted-foreground: 220 6% 64%;
+    --accent: 168 30% 22%;
+    --accent-foreground: 0 0% 96%;
+    --destructive: 346 70% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 220 8% 22%;
+    --input: 220 8% 22%;
+    --ring: 168 56% 56%;
+    --sidebar-background: 220 10% 11%;
+    --sidebar-foreground: 0 0% 90%;
+    --sidebar-primary: 168 56% 56%;
+    --sidebar-primary-foreground: 220 12% 9%;
+    --sidebar-accent: 220 8% 18%;
+    --sidebar-accent-foreground: 168 56% 70%;
+    --sidebar-border: 220 8% 20%;
+    --sidebar-ring: 168 56% 56%;
   }
 }
 
@@ -112,7 +126,7 @@
   }
 
   html {
-    font-family: 'Montserrat', system-ui, sans-serif;
+    font-family: 'Source Sans 3', 'Myriad Pro', system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
@@ -123,9 +137,9 @@
   }
 
   h1, h2, h3, h4, .font-display {
-    font-family: 'Montserrat', system-ui, sans-serif;
+    font-family: 'Source Sans 3', 'Myriad Pro', system-ui, sans-serif;
     font-weight: 700;
-    letter-spacing: -0.02em;
+    letter-spacing: -0.015em;
   }
 }
 
@@ -134,6 +148,7 @@
   .gradient-soft { background: var(--gradient-soft); }
   .gradient-sage { background: var(--gradient-sage); }
   .gradient-earth { background: var(--gradient-earth); }
+  .gradient-living { background: var(--gradient-living); }
   .shadow-soft { box-shadow: var(--shadow-soft); }
   .shadow-elegant { box-shadow: var(--shadow-elegant); }
   .shadow-card { box-shadow: var(--shadow-card); }
