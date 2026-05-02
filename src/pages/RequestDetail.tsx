@@ -20,11 +20,13 @@ const RequestDetail = () => {
   const { data: staff = [] } = useStaffUsers();
   const updateRequest = useUpdateRequest();
   const request = requests.find((r) => r.id === id);
-  const [assignee, setAssignee] = useState("");
+  const [assigneeUserId, setAssigneeUserId] = useState<string>("__none__");
 
   useEffect(() => {
-    if (request) setAssignee(request.assignedTo ?? "");
-  }, [request?.id, request?.assignedTo]);
+    if (request) {
+      setAssigneeUserId(request.assignedToUserId ?? "__none__");
+    }
+  }, [request?.id, request?.assignedToUserId]);
 
   if (!request) {
     return (
@@ -102,13 +104,15 @@ const RequestDetail = () => {
         </h3>
         <div className="flex flex-col sm:flex-row gap-2">
           <Select
-            value={assignee || "__none__"}
+            value={assigneeUserId}
             onValueChange={(value) => {
-              const next = value === "__none__" ? "" : value;
-              setAssignee(next);
+              setAssigneeUserId(value);
+              const selected = staff.find((s) => s.user_id === value);
+              const name = selected?.full_name || selected?.email || null;
+              const userId = value === "__none__" ? null : value;
               updateRequest.mutate(
-                { id: request.id, patch: { assignedTo: next || null } },
-                { onSuccess: () => toast.success(next ? "Tarefa atribuída" : "Atribuição removida") }
+                { id: request.id, patch: { assignedTo: name, assignedToUserId: userId } },
+                { onSuccess: () => toast.success(userId ? "Tarefa atribuída" : "Atribuição removida") }
               );
             }}
           >
@@ -120,7 +124,7 @@ const RequestDetail = () => {
               {staff.map((s) => {
                 const label = s.full_name || s.email || s.user_id.slice(0, 8);
                 return (
-                  <SelectItem key={s.user_id} value={label}>
+                  <SelectItem key={s.user_id} value={s.user_id}>
                     {label} <span className="text-xs text-muted-foreground ml-1">· {s.role}</span>
                   </SelectItem>
                 );
