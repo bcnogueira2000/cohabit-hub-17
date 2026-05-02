@@ -39,6 +39,7 @@ export const mapRequest = (r: any): Request => ({
   createdAt: r.created_at,
   updatedAt: r.updated_at,
   permissionToEnter: r.permission_to_enter,
+  photos: Array.isArray(r.photos) ? r.photos : [],
 });
 
 export const mapOpsTask = (t: any): OpsTask => ({
