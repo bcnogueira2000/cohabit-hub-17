@@ -163,14 +163,36 @@ const Tasks = () => {
               </SheetHeader>
               <p className="text-sm text-muted-foreground my-4 whitespace-pre-line">{selected.description}</p>
 
-              <div className="space-y-2 text-sm mb-5">
-                <div className="flex justify-between"><span className="text-muted-foreground">Estado</span><span>{taskStatusLabels[selected.status]}</span></div>
-                <div className="flex justify-between"><span className="text-muted-foreground">Atribuída a</span><span>{selected.assignedTo || "—"}</span></div>
-                {selected.dueDate && (
-                  <div className="flex justify-between"><span className="text-muted-foreground">Prazo</span>
-                    <span>{new Date(selected.dueDate).toLocaleDateString("pt-PT", { dateStyle: "medium" })}</span>
-                  </div>
-                )}
+              <div className="space-y-3 text-sm mb-5">
+                <div className="flex justify-between items-center">
+                  <span className="text-muted-foreground">Estado</span>
+                  <span>{taskStatusLabels[selected.status]}</span>
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label className="text-muted-foreground text-xs">Atribuída a</Label>
+                  <Select value={editAssignee} onValueChange={onAssigneeChange}>
+                    <SelectTrigger><SelectValue placeholder="Escolher…" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value={NONE}>Não atribuído</SelectItem>
+                      {staff.map((s) => (
+                        <SelectItem key={s.user_id} value={s.user_id}>
+                          {s.full_name || s.email || s.user_id.slice(0, 8)}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label className="text-muted-foreground text-xs">Prazo de conclusão</Label>
+                  <Input
+                    type="date"
+                    value={editDueDate}
+                    onChange={(e) => onDueDateChange(e.target.value)}
+                  />
+                </div>
+
                 {selected.roomId && (
                   <div className="flex justify-between"><span className="text-muted-foreground">Quarto</span>
                     <span>{rooms.find((r) => r.id === selected.roomId)?.number}</span>
@@ -197,6 +219,28 @@ const Tasks = () => {
                 {selected.status !== "blocked" && selected.status !== "done" && (
                   <Button onClick={() => setStatus(selected.id, "blocked")} variant="outline" className="rounded-full">Bloquear</Button>
                 )}
+
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="outline" className="rounded-full text-destructive border-destructive/30 hover:bg-destructive/10 hover:text-destructive ml-auto">
+                      <Trash2 className="h-4 w-4 mr-1.5" /> Eliminar
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Eliminar tarefa?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Esta ação não pode ser desfeita. A tarefa <b>{selected.code}</b> será permanentemente removida.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                      <AlertDialogAction onClick={onDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                        Eliminar
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
               </div>
             </>
           )}
