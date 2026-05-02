@@ -1,18 +1,27 @@
+import { useState, useEffect } from "react";
 import { Link, useParams } from "react-router-dom";
-import { ArrowLeft, Calendar, MapPin, User, Tag, ShieldCheck } from "lucide-react";
+import { ArrowLeft, Calendar, MapPin, User, Tag, ShieldCheck, DoorOpen, UserCog } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { useRequests, useResidents, useUpdateRequest } from "@/hooks/useData";
+import { Input } from "@/components/ui/input";
+import { useRequests, useResidents, useRooms, useUpdateRequest } from "@/hooks/useData";
 import { categoryLabels } from "@/lib/labels";
 import { StatusBadge, PriorityBadge } from "@/components/ui/StatusBadge";
+import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
 const RequestDetail = () => {
   const { id } = useParams();
   const { data: requests = [] } = useRequests();
   const { data: residents = [] } = useResidents();
+  const { data: rooms = [] } = useRooms();
   const updateRequest = useUpdateRequest();
   const request = requests.find((r) => r.id === id);
+  const [assignee, setAssignee] = useState("");
+
+  useEffect(() => {
+    if (request) setAssignee(request.assignedTo ?? "");
+  }, [request?.id, request?.assignedTo]);
 
   if (!request) {
     return (
@@ -26,12 +35,25 @@ const RequestDetail = () => {
   }
 
   const resident = residents.find((p) => p.id === request.residentId);
+  const room = rooms.find((r) => r.id === (request.roomId ?? resident?.roomId));
   const created = new Date(request.createdAt).toLocaleString("pt-PT", { dateStyle: "medium", timeStyle: "short" });
   const permissionLabel = { yes: "Sim", no: "Não", with_notice: "Apenas com aviso" }[request.permissionToEnter];
 
   const setStatus = (status: any) => {
     updateRequest.mutate({ id: request.id, patch: { status } }, { onSuccess: () => toast.success("Estado atualizado") });
   };
+
+  const saveAssignee = () => {
+    const value = assignee.trim() || null;
+    updateRequest.mutate({ id: request.id, patch: { assignedTo: value } }, { onSuccess: () => toast.success(value ? "Tarefa atribuída" : "Atribuição removida") });
+  };
+
+  const statusActions: { value: any; label: string; activeClass: string; idleClass: string }[] = [
+    { value: "in_progress", label: "Marcar em curso", activeClass: "gradient-warm border-0 text-white", idleClass: "border-border text-foreground" },
+    { value: "waiting_resident", label: "Aguarda residente", activeClass: "bg-primary text-primary-foreground border-primary", idleClass: "border-border text-foreground" },
+    { value: "waiting_supplier", label: "Aguarda fornecedor", activeClass: "bg-primary text-primary-foreground border-primary", idleClass: "border-border text-foreground" },
+    { value: "resolved", label: "Marcar resolvido", activeClass: "bg-success text-white border-success", idleClass: "border-success/40 text-success hover:bg-success/10" },
+  ];
 
   return (
     <div className="px-4 lg:px-10 py-6 lg:py-10 max-w-4xl mx-auto">
@@ -58,6 +80,7 @@ const RequestDetail = () => {
         {[
           { icon: Tag, label: "Categoria", value: categoryLabels[request.category] },
           { icon: User, label: "Residente", value: resident?.fullName || "—" },
+          { icon: DoorOpen, label: "Quarto", value: room ? `Quarto ${room.number}` : "—" },
           { icon: MapPin, label: "Local", value: request.location || "—" },
           { icon: Calendar, label: "Criado", value: created },
           { icon: User, label: "Atribuído a", value: request.assignedTo || "Não atribuído" },
@@ -73,15 +96,51 @@ const RequestDetail = () => {
         ))}
       </div>
 
+      <Card className="p-5 border-border/60 shadow-card mb-4">
+        <h3 className="font-display text-lg font-semibold mb-3 flex items-center gap-2">
+          <UserCog className="h-4 w-4" /> Atribuir tarefa
+        </h3>
+        <div className="flex flex-col sm:flex-row gap-2">
+          <Input
+            value={assignee}
+            onChange={(e) => setAssignee(e.target.value)}
+            placeholder="Nome do responsável (ex: Maria Silva)"
+            className="flex-1"
+          />
+          <Button onClick={saveAssignee} className="rounded-full gradient-warm border-0">
+            Guardar
+          </Button>
+          {request.assignedTo && (
+            <Button
+              variant="outline"
+              className="rounded-full"
+              onClick={() => { setAssignee(""); updateRequest.mutate({ id: request.id, patch: { assignedTo: null } }, { onSuccess: () => toast.success("Atribuição removida") }); }}
+            >
+              Remover
+            </Button>
+          )}
+        </div>
+      </Card>
+
       <Card className="p-5 border-border/60 shadow-card">
         <h3 className="font-display text-lg font-semibold mb-3">Ações rápidas</h3>
         <div className="flex flex-wrap gap-2">
-          <Button onClick={() => setStatus("in_progress")} className="rounded-full gradient-warm border-0">Marcar em curso</Button>
-          <Button onClick={() => setStatus("waiting_resident")} variant="outline" className="rounded-full">Aguarda residente</Button>
-          <Button onClick={() => setStatus("waiting_supplier")} variant="outline" className="rounded-full">Aguarda fornecedor</Button>
-          <Button onClick={() => setStatus("resolved")} variant="outline" className="rounded-full text-success border-success/40 hover:bg-success/10 hover:text-success">
-            Marcar resolvido
-          </Button>
+          {statusActions.map((a) => {
+            const isActive = request.status === a.value;
+            return (
+              <Button
+                key={a.value}
+                onClick={() => setStatus(a.value)}
+                variant="outline"
+                className={cn(
+                  "rounded-full border transition-smooth",
+                  isActive ? a.activeClass : a.idleClass,
+                )}
+              >
+                {a.label}
+              </Button>
+            );
+          })}
         </div>
       </Card>
     </div>
