@@ -164,7 +164,6 @@ const RequestDetail = () => {
         </div>
       </Card>
 
-      <RequestComments requestId={request.id} viewerRole="staff" />
     </div>
   );
 };
