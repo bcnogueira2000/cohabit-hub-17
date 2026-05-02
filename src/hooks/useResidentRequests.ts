@@ -1,0 +1,93 @@
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import type { Database } from "@/integrations/supabase/types";
+
+export type RequestRow = Database["public"]["Tables"]["requests"]["Row"];
+export type RequestCategory = Database["public"]["Enums"]["request_category"];
+export type RequestPriority = Database["public"]["Enums"]["request_priority"];
+export type RequestStatus = Database["public"]["Enums"]["request_status"];
+export type PermissionToEnter = Database["public"]["Enums"]["permission_to_enter"];
+
+const ACTIVE_STATUSES: RequestStatus[] = [
+  "open",
+  "in_progress",
+  "waiting_resident",
+  "waiting_supplier",
+];
+
+export const useMyRequests = () =>
+  useQuery({
+    queryKey: ["my_requests"],
+    queryFn: async (): Promise<RequestRow[]> => {
+      const { data, error } = await supabase
+        .from("requests")
+        .select("*")
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+export const useRequest = (id: string | undefined) =>
+  useQuery({
+    enabled: !!id,
+    queryKey: ["request", id],
+    queryFn: async (): Promise<RequestRow | null> => {
+      if (!id) return null;
+      const { data, error } = await supabase
+        .from("requests")
+        .select("*")
+        .eq("id", id)
+        .maybeSingle();
+      if (error) throw error;
+      return data ?? null;
+    },
+  });
+
+export interface CreateRequestInput {
+  title: string;
+  description?: string;
+  category: RequestCategory;
+  priority: RequestPriority;
+  location?: string;
+  permission_to_enter: PermissionToEnter;
+  room_id?: string | null;
+}
+
+export const useCreateRequest = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: CreateRequestInput) => {
+      // current_resident_id() is auto-applied by RLS; we still need to set it explicitly
+      const { data: residentRow } = await supabase
+        .from("residents")
+        .select("id, room_id")
+        .limit(1)
+        .maybeSingle();
+
+      const { data, error } = await supabase
+        .from("requests")
+        .insert({
+          title: input.title,
+          description: input.description ?? null,
+          category: input.category,
+          priority: input.priority,
+          location: input.location ?? null,
+          permission_to_enter: input.permission_to_enter,
+          room_id: input.room_id ?? residentRow?.room_id ?? null,
+          resident_id: residentRow?.id ?? null,
+          status: "open",
+          code: "",
+        })
+        .select("*")
+        .single();
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["my_requests"] });
+    },
+  });
+};
+
+export const isActiveRequest = (s: RequestStatus) => ACTIVE_STATUSES.includes(s);
