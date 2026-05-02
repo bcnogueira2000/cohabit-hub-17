@@ -7,6 +7,7 @@ import { useRequest, useCancelRequest, isActiveRequest, type RequestStatus } fro
 import { useLang } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 import { RequestPhotoGallery } from "@/components/RequestPhotoGallery";
+import { RequestComments } from "@/components/RequestComments";
 import { toast } from "sonner";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
@@ -212,6 +213,8 @@ const RequestDetail = () => {
           })}
         </div>
       </Card>
+
+      <RequestComments requestId={req.id} viewerRole="resident" />
     </div>
   );
 };
