@@ -1,18 +1,27 @@
+import { useState, useEffect } from "react";
 import { Link, useParams } from "react-router-dom";
-import { ArrowLeft, Calendar, MapPin, User, Tag, ShieldCheck } from "lucide-react";
+import { ArrowLeft, Calendar, MapPin, User, Tag, ShieldCheck, DoorOpen, UserCog } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { useRequests, useResidents, useUpdateRequest } from "@/hooks/useData";
+import { Input } from "@/components/ui/input";
+import { useRequests, useResidents, useRooms, useUpdateRequest } from "@/hooks/useData";
 import { categoryLabels } from "@/lib/labels";
 import { StatusBadge, PriorityBadge } from "@/components/ui/StatusBadge";
+import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
 const RequestDetail = () => {
   const { id } = useParams();
   const { data: requests = [] } = useRequests();
   const { data: residents = [] } = useResidents();
+  const { data: rooms = [] } = useRooms();
   const updateRequest = useUpdateRequest();
   const request = requests.find((r) => r.id === id);
+  const [assignee, setAssignee] = useState("");
+
+  useEffect(() => {
+    if (request) setAssignee(request.assignedTo ?? "");
+  }, [request?.id, request?.assignedTo]);
 
   if (!request) {
     return (
