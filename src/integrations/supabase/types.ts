@@ -66,6 +66,7 @@ export type Database = {
         Row: {
           area: string
           assigned_to: string | null
+          assigned_to_user_id: string | null
           checklist: Json | null
           created_at: string
           id: string
@@ -82,6 +83,7 @@ export type Database = {
         Insert: {
           area: string
           assigned_to?: string | null
+          assigned_to_user_id?: string | null
           checklist?: Json | null
           created_at?: string
           id?: string
@@ -98,6 +100,7 @@ export type Database = {
         Update: {
           area?: string
           assigned_to?: string | null
+          assigned_to_user_id?: string | null
           checklist?: Json | null
           created_at?: string
           id?: string
@@ -157,6 +160,7 @@ export type Database = {
       ops_tasks: {
         Row: {
           assigned_to: string | null
+          assigned_to_user_id: string | null
           category: Database["public"]["Enums"]["task_category"]
           code: string
           created_at: string
@@ -173,6 +177,7 @@ export type Database = {
         }
         Insert: {
           assigned_to?: string | null
+          assigned_to_user_id?: string | null
           category?: Database["public"]["Enums"]["task_category"]
           code: string
           created_at?: string
@@ -189,6 +194,7 @@ export type Database = {
         }
         Update: {
           assigned_to?: string | null
+          assigned_to_user_id?: string | null
           category?: Database["public"]["Enums"]["task_category"]
           code?: string
           created_at?: string
@@ -269,6 +275,7 @@ export type Database = {
       requests: {
         Row: {
           assigned_to: string | null
+          assigned_to_user_id: string | null
           category: Database["public"]["Enums"]["request_category"]
           code: string
           created_at: string
@@ -286,6 +293,7 @@ export type Database = {
         }
         Insert: {
           assigned_to?: string | null
+          assigned_to_user_id?: string | null
           category: Database["public"]["Enums"]["request_category"]
           code: string
           created_at?: string
@@ -303,6 +311,7 @@ export type Database = {
         }
         Update: {
           assigned_to?: string | null
+          assigned_to_user_id?: string | null
           category?: Database["public"]["Enums"]["request_category"]
           code?: string
           created_at?: string
