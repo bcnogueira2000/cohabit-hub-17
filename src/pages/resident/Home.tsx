@@ -5,6 +5,16 @@ import { useLang } from "@/lib/i18n";
 import { useProfile } from "@/hooks/useProfile";
 import { useMyRequests, isActiveRequest } from "@/hooks/useResidentRequests";
 import { useMyBookings } from "@/hooks/useResidentBookings";
+import { statusLabels } from "@/lib/labels";
+
+const statusLabelsEn: Record<string, string> = {
+  open: "Open",
+  in_progress: "In progress",
+  waiting_resident: "Waiting on you",
+  waiting_supplier: "Waiting on supplier",
+  resolved: "Resolved",
+  closed: "Closed",
+};
 
 const Home = () => {
   const { t, lang } = useLang();
@@ -68,7 +78,9 @@ const Home = () => {
               <Link key={r.id} to={`/app/requests/${r.id}`} className="block p-3 bg-muted/30 rounded-lg hover:bg-muted/50 transition-smooth">
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium truncate">{r.title}</span>
-                  <span className="text-[10px] uppercase tracking-wider text-muted-foreground ml-2">{r.status.replace(/_/g, " ")}</span>
+                  <span className="text-[10px] uppercase tracking-wider text-muted-foreground ml-2 shrink-0">
+                    {lang === "pt" ? (statusLabels[r.status] ?? r.status) : (statusLabelsEn[r.status] ?? r.status)}
+                  </span>
                 </div>
               </Link>
             ))}
