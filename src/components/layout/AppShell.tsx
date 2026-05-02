@@ -100,8 +100,19 @@ export const AppShell = () => {
 
       {/* Mobile top bar */}
       <header className="lg:hidden sticky top-0 z-30 bg-background/85 backdrop-blur border-b border-border">
-        <div className="flex items-center justify-between px-4 h-14">
-          <Brand />
+        <div className="flex items-center justify-between px-2 h-14">
+          <div className="flex items-center gap-1 min-w-0">
+            {location.pathname !== "/" && (
+              <button
+                onClick={() => navigate("/")}
+                aria-label="Voltar ao dashboard"
+                className="p-2 -ml-1 rounded-full hover:bg-muted/60 transition-smooth shrink-0"
+              >
+                <ArrowLeft className="h-5 w-5" />
+              </button>
+            )}
+            <div className="px-1"><Brand /></div>
+          </div>
           <NotificationBell />
         </div>
       </header>
