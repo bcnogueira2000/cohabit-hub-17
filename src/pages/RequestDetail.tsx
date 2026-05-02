@@ -4,7 +4,9 @@ import { ArrowLeft, Calendar, MapPin, User, Tag, ShieldCheck, DoorOpen, UserCog 
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useRequests, useResidents, useRooms, useUpdateRequest } from "@/hooks/useData";
+import { useStaffUsers } from "@/hooks/useStaffUsers";
 import { categoryLabels } from "@/lib/labels";
 import { StatusBadge, PriorityBadge } from "@/components/ui/StatusBadge";
 import { cn } from "@/lib/utils";
