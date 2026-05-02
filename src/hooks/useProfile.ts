@@ -36,6 +36,22 @@ export const useProfile = () => {
   });
 };
 
+export const useUpdateProfile = () => {
+  const qc = useQueryClient();
+  const { user } = useAuth();
+  return useMutation({
+    mutationFn: async (input: { full_name?: string; phone?: string | null }) => {
+      if (!user) throw new Error("Não autenticado");
+      const { error } = await supabase
+        .from("profiles" as any)
+        .update(input as any)
+        .eq("user_id", user.id);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["profile"] }),
+  });
+};
+
 export const useMyRoles = () => {
   const { user } = useAuth();
   return useQuery({
