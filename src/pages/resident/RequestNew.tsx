@@ -1,10 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { ArrowLeft, Wrench, Sparkles, Wifi, Search, Package, MessageSquare, Loader2 } from "lucide-react";
+import { ArrowLeft, Wrench, Sparkles, Wifi, Search, Package, MessageSquare, Loader2, Home as HomeIcon } from "lucide-react";
 import { toast } from "sonner";
 import {
   useCreateRequest,
@@ -14,6 +14,7 @@ import {
 } from "@/hooks/useResidentRequests";
 import { useLang } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
 
 const categoryOptions: {
   value: RequestCategory;
