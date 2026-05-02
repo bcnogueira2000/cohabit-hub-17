@@ -29,6 +29,7 @@ import Settings from "./pages/Settings";
 import MyDay from "./pages/MyDay";
 import Stays from "./pages/Stays";
 import Approvals from "./pages/Approvals";
+import Users from "./pages/Users";
 import ResidentHome from "./pages/resident/Home";
 import NotFound from "./pages/NotFound";
 
