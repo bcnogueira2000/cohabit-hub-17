@@ -72,6 +72,8 @@ const RequestDetail = () => {
       <h1 className="font-display text-3xl lg:text-4xl font-semibold mb-2">{request.title}</h1>
       <p className="text-muted-foreground mb-6">{request.description}</p>
 
+      <RequestComments requestId={request.id} viewerRole="staff" className="mb-6" />
+
       <Card className="p-4 mb-6 border-border/60 bg-accent/40">
         <p className="text-sm">
           ✨ Foi criada automaticamente uma tarefa relacionada com este pedido.
