@@ -1,5 +1,5 @@
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
-import { LayoutDashboard, Inbox, Sparkles, ListChecks, Users, DoorClosed, CalendarRange, BarChart3, Settings, MoreHorizontal, Sun, LogOut, LogIn, UserCheck, Shield } from "lucide-react";
+import { LayoutDashboard, Inbox, Sparkles, ListChecks, Users, DoorClosed, CalendarRange, BarChart3, Settings, MoreHorizontal, Sun, LogOut, LogIn, UserCheck, Shield, ArrowLeft } from "lucide-react";
 import { usePendingProfiles, useMyRoles } from "@/hooks/useProfile";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
@@ -100,8 +100,19 @@ export const AppShell = () => {
 
       {/* Mobile top bar */}
       <header className="lg:hidden sticky top-0 z-30 bg-background/85 backdrop-blur border-b border-border">
-        <div className="flex items-center justify-between px-4 h-14">
-          <Brand />
+        <div className="flex items-center justify-between px-2 h-14">
+          <div className="flex items-center gap-1 min-w-0">
+            {location.pathname !== "/" && (
+              <button
+                onClick={() => navigate("/")}
+                aria-label="Voltar ao dashboard"
+                className="p-2 -ml-1 rounded-full hover:bg-muted/60 transition-smooth shrink-0"
+              >
+                <ArrowLeft className="h-5 w-5" />
+              </button>
+            )}
+            <div className="px-1"><Brand /></div>
+          </div>
           <NotificationBell />
         </div>
       </header>

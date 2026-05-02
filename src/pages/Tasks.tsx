@@ -1,13 +1,22 @@
-import { useState } from "react";
-import { ListChecks, Calendar, Clock, AlertCircle, Plus } from "lucide-react";
+import { useEffect, useState } from "react";
+import { ListChecks, Calendar, Clock, AlertCircle, Plus, Trash2 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { useOpsTasks, useResidents, useRooms, useCreateOpsTask, useUpdateOpsTask } from "@/hooks/useData";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { useOpsTasks, useResidents, useRooms, useCreateOpsTask, useUpdateOpsTask, useDeleteOpsTask } from "@/hooks/useData";
+import { useStaffUsers } from "@/hooks/useStaffUsers";
 import { taskStatusLabels } from "@/lib/labels";
 import { OpsTask, TaskStatus } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { NewTaskDialog } from "@/components/NewTaskDialog";
+import { useToast } from "@/hooks/use-toast";
 
 const columns: { id: TaskStatus; label: string; tone: string }[] = [
   { id: "todo", label: "A fazer", tone: "bg-info/10 text-info border-info/30" },
@@ -20,16 +29,64 @@ const priorityDot: Record<string, string> = {
   low: "bg-muted-foreground/40", medium: "bg-info", high: "bg-destructive",
 };
 
+const NONE = "__none__";
+
 const Tasks = () => {
   const { data: tasks = [] } = useOpsTasks();
   const { data: residents = [] } = useResidents();
   const { data: rooms = [] } = useRooms();
+  const { data: staff = [] } = useStaffUsers();
   const createTask = useCreateOpsTask();
   const updateTask = useUpdateOpsTask();
+  const deleteTask = useDeleteOpsTask();
+  const { toast } = useToast();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const selected = tasks.find((t) => t.id === selectedId) || null;
 
+  // Local edit state for the sheet (assignee + due date)
+  const [editAssignee, setEditAssignee] = useState<string>(NONE);
+  const [editDueDate, setEditDueDate] = useState<string>("");
+
+  useEffect(() => {
+    if (!selected) return;
+    setEditAssignee(selected.assignedToUserId ?? NONE);
+    setEditDueDate(selected.dueDate ? selected.dueDate.slice(0, 10) : "");
+  }, [selected?.id, selected?.assignedToUserId, selected?.dueDate]);
+
   const setStatus = (id: string, status: TaskStatus) => updateTask.mutate({ id, patch: { status } });
+
+  const onAssigneeChange = (value: string) => {
+    if (!selected) return;
+    setEditAssignee(value);
+    const member = staff.find((s) => s.user_id === value);
+    updateTask.mutate({
+      id: selected.id,
+      patch: {
+        assignedToUserId: value === NONE ? null : value,
+        assignedTo: value === NONE ? null : (member?.full_name || member?.email || null),
+      },
+    });
+  };
+
+  const onDueDateChange = (value: string) => {
+    if (!selected) return;
+    setEditDueDate(value);
+    updateTask.mutate({
+      id: selected.id,
+      patch: { dueDate: value ? new Date(value).toISOString() : null },
+    });
+  };
+
+  const onDelete = () => {
+    if (!selected) return;
+    deleteTask.mutate(selected.id, {
+      onSuccess: () => {
+        toast({ title: "Tarefa eliminada", description: selected.code });
+        setSelectedId(null);
+      },
+      onError: (e: any) => toast({ title: "Erro a eliminar", description: e?.message, variant: "destructive" }),
+    });
+  };
 
   return (
     <div className="px-4 lg:px-10 py-6 lg:py-10 max-w-7xl mx-auto">
@@ -106,14 +163,36 @@ const Tasks = () => {
               </SheetHeader>
               <p className="text-sm text-muted-foreground my-4 whitespace-pre-line">{selected.description}</p>
 
-              <div className="space-y-2 text-sm mb-5">
-                <div className="flex justify-between"><span className="text-muted-foreground">Estado</span><span>{taskStatusLabels[selected.status]}</span></div>
-                <div className="flex justify-between"><span className="text-muted-foreground">Atribuída a</span><span>{selected.assignedTo || "—"}</span></div>
-                {selected.dueDate && (
-                  <div className="flex justify-between"><span className="text-muted-foreground">Prazo</span>
-                    <span>{new Date(selected.dueDate).toLocaleDateString("pt-PT", { dateStyle: "medium" })}</span>
-                  </div>
-                )}
+              <div className="space-y-3 text-sm mb-5">
+                <div className="flex justify-between items-center">
+                  <span className="text-muted-foreground">Estado</span>
+                  <span>{taskStatusLabels[selected.status]}</span>
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label className="text-muted-foreground text-xs">Atribuída a</Label>
+                  <Select value={editAssignee} onValueChange={onAssigneeChange}>
+                    <SelectTrigger><SelectValue placeholder="Escolher…" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value={NONE}>Não atribuído</SelectItem>
+                      {staff.map((s) => (
+                        <SelectItem key={s.user_id} value={s.user_id}>
+                          {s.full_name || s.email || s.user_id.slice(0, 8)}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label className="text-muted-foreground text-xs">Prazo de conclusão</Label>
+                  <Input
+                    type="date"
+                    value={editDueDate}
+                    onChange={(e) => onDueDateChange(e.target.value)}
+                  />
+                </div>
+
                 {selected.roomId && (
                   <div className="flex justify-between"><span className="text-muted-foreground">Quarto</span>
                     <span>{rooms.find((r) => r.id === selected.roomId)?.number}</span>
@@ -140,6 +219,28 @@ const Tasks = () => {
                 {selected.status !== "blocked" && selected.status !== "done" && (
                   <Button onClick={() => setStatus(selected.id, "blocked")} variant="outline" className="rounded-full">Bloquear</Button>
                 )}
+
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="outline" className="rounded-full text-destructive border-destructive/30 hover:bg-destructive/10 hover:text-destructive ml-auto">
+                      <Trash2 className="h-4 w-4 mr-1.5" /> Eliminar
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Eliminar tarefa?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Esta ação não pode ser desfeita. A tarefa <b>{selected.code}</b> será permanentemente removida.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                      <AlertDialogAction onClick={onDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                        Eliminar
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
               </div>
             </>
           )}

@@ -164,7 +164,19 @@ export const useUpdateOpsTask = () => {
       if (patch.priority) dbPatch.priority = patch.priority;
       if (patch.title) dbPatch.title = patch.title;
       if (patch.description !== undefined) dbPatch.description = patch.description;
+      if (patch.dueDate !== undefined) dbPatch.due_date = patch.dueDate;
       const { error } = await supabase.from("ops_tasks").update(dbPatch).eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["ops_tasks"] }),
+  });
+};
+
+export const useDeleteOpsTask = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("ops_tasks").delete().eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["ops_tasks"] }),

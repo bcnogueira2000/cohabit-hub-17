@@ -31,11 +31,23 @@ const MyDay = () => {
     const isMine = (assignedUserId: string | null) =>
       !!user && assignedUserId === user.id;
 
+    // For "mine" scope, also include items completed in the last 7 days so the user
+    // gets visual feedback after marking a task done.
+    const SEVEN_DAYS = 7 * 24 * 60 * 60 * 1000;
+    const recentlyDone = (updatedAt: string | undefined) => {
+      if (!updatedAt) return false;
+      return Date.now() - new Date(updatedAt).getTime() < SEVEN_DAYS;
+    };
+
     const cleaningItems: Item[] = cleanings
       .filter((c) => {
-        if (c.status === "completed") return false;
-        if (scope === "mine") return isMine(c.assignedToUserId);
+        if (scope === "mine") {
+          if (!isMine(c.assignedToUserId)) return false;
+          if (c.status === "completed") return recentlyDone((c as any).updatedAt);
+          return true;
+        }
         // today scope
+        if (c.status === "completed") return false;
         return isToday(new Date(c.scheduledFor));
       })
       .map((c) => ({
@@ -50,9 +62,13 @@ const MyDay = () => {
 
     const taskItems: Item[] = tasks
       .filter((t) => {
+        if (scope === "mine") {
+          if (!isMine(t.assignedToUserId)) return false;
+          if (t.status === "done") return recentlyDone((t as any).updatedAt);
+          return true;
+        }
+        // today scope
         if (t.status === "done") return false;
-        if (scope === "mine") return isMine(t.assignedToUserId);
-        // today scope: only those due today
         return t.dueDate && isToday(new Date(t.dueDate));
       })
       .map((t) => ({

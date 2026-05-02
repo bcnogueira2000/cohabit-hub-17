@@ -58,6 +58,7 @@ export const mapOpsTask = (t: any): OpsTask => ({
   requestId: t.request_id ?? null,
   dueDate: t.due_date ?? null,
   createdAt: t.created_at,
+  updatedAt: t.updated_at ?? t.created_at,
 });
 
 export const mapCleaning = (c: any): CleaningTask => ({
@@ -74,6 +75,7 @@ export const mapCleaning = (c: any): CleaningTask => ({
   assignedToUserId: c.assigned_to_user_id ?? null,
   notes: c.notes ?? undefined,
   checklist: c.checklist ?? undefined,
+  updatedAt: c.updated_at ?? c.scheduled_for,
 });
 
 export const mapSpace = (s: any): Space => ({
