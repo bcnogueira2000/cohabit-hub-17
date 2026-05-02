@@ -1,4 +1,4 @@
-import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
+import { NavLink, Outlet, useLocation, useNavigate, Link } from "react-router-dom";
 import {
   LayoutDashboard, Inbox, Sparkles, ListChecks, Users, DoorClosed,
   CalendarRange, BarChart3, Settings, MoreHorizontal, Sun, LogOut, LogIn,

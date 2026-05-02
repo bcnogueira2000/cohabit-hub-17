@@ -1,4 +1,4 @@
-import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
+import { NavLink, Outlet, useLocation, useNavigate, Link } from "react-router-dom";
 import { Home, Inbox, CalendarRange, PartyPopper, MoreHorizontal, Bell, Sparkles, BookOpen, HelpCircle, User, LogOut, Globe, BedDouble } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
