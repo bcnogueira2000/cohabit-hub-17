@@ -39,8 +39,10 @@ const TIMELINE: { key: RequestStatus; pt: string; en: string }[] = [
 
 const RequestDetail = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
   const { data: req, isLoading } = useRequest(id);
   const { t, lang } = useLang();
+  const cancelMut = useCancelRequest();
 
   if (isLoading) {
     return (
@@ -63,6 +65,17 @@ const RequestDetail = () => {
   const currentStepIndex = TIMELINE.findIndex((s) => s.key === req.status);
   const isResolved = req.status === "resolved" || req.status === "closed";
   const stepReached = (i: number) => isResolved || (currentStepIndex >= 0 && i <= currentStepIndex);
+  const canCancel = isActiveRequest(req.status);
+
+  const handleCancel = async () => {
+    try {
+      await cancelMut.mutateAsync(req.id);
+      toast.success(lang === "pt" ? "Pedido cancelado" : "Request cancelled");
+      navigate("/app/requests");
+    } catch (e: any) {
+      toast.error(e.message);
+    }
+  };
 
   return (
     <div className="px-4 py-6 space-y-5">
@@ -74,7 +87,7 @@ const RequestDetail = () => {
         <div className="flex items-center gap-2 mb-2">
           <span className="text-xs font-mono text-muted-foreground">{req.code}</span>
           <Badge variant="outline" className={cn("text-[10px]", statusColor[req.status])}>
-            {req.status.replace(/_/g, " ")}
+            {statusLabelMap[req.status][lang === "pt" ? "pt" : "en"]}
           </Badge>
         </div>
         <h1 className="font-display text-2xl font-semibold leading-tight">{req.title}</h1>
@@ -84,6 +97,35 @@ const RequestDetail = () => {
             timeStyle: "short",
           })}
         </p>
+
+        {canCancel && (
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="outline" size="sm" className="mt-3 text-destructive border-destructive/30 hover:bg-destructive/10 hover:text-destructive">
+                <X className="h-3.5 w-3.5 mr-1.5" />
+                {lang === "pt" ? "Cancelar pedido" : "Cancel request"}
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>
+                  {lang === "pt" ? "Cancelar este pedido?" : "Cancel this request?"}
+                </AlertDialogTitle>
+                <AlertDialogDescription>
+                  {lang === "pt"
+                    ? "O pedido será fechado e a equipa será notificada. Esta ação não pode ser desfeita."
+                    : "The request will be closed and the team notified. This cannot be undone."}
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>{lang === "pt" ? "Voltar" : "Back"}</AlertDialogCancel>
+                <AlertDialogAction onClick={handleCancel} className="bg-destructive hover:bg-destructive/90">
+                  {lang === "pt" ? "Sim, cancelar" : "Yes, cancel"}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        )}
       </div>
 
       <Card className="p-4 border-border/60 space-y-3">
