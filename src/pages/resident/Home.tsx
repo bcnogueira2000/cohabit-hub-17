@@ -3,20 +3,19 @@ import { Link } from "react-router-dom";
 import { Inbox, CalendarRange, Sparkles, PartyPopper, ArrowRight, Plus } from "lucide-react";
 import { useLang } from "@/lib/i18n";
 import { useProfile } from "@/hooks/useProfile";
-import { useRequests, useBookings } from "@/hooks/useData";
+import { useMyRequests, isActiveRequest } from "@/hooks/useResidentRequests";
+import { useMyBookings } from "@/hooks/useResidentBookings";
 
 const Home = () => {
   const { t, lang } = useLang();
   const { data: profile } = useProfile();
-  const { data: requests = [] } = useRequests();
-  const { data: bookings = [] } = useBookings();
+  const { data: requests = [] } = useMyRequests();
+  const { data: bookings = [] } = useMyBookings();
 
-  const myActiveRequests = requests.filter(
-    (r) => r.residentId === profile?.resident_id && r.status !== "resolved" && r.status !== "closed"
-  );
+  const myActiveRequests = requests.filter((r) => isActiveRequest(r.status));
   const myUpcomingBooking = bookings
-    .filter((b) => b.residentId === profile?.resident_id && new Date(b.start) > new Date())
-    .sort((a, b) => +new Date(a.start) - +new Date(b.start))[0];
+    .filter((b) => new Date(b.start_at) > new Date())
+    .sort((a, b) => +new Date(a.start_at) - +new Date(b.start_at))[0];
 
   const firstName = profile?.full_name?.split(" ")[0] || "";
 
@@ -69,7 +68,7 @@ const Home = () => {
               <Link key={r.id} to={`/app/requests/${r.id}`} className="block p-3 bg-muted/30 rounded-lg hover:bg-muted/50 transition-smooth">
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium truncate">{r.title}</span>
-                  <span className="text-[10px] uppercase tracking-wider text-muted-foreground ml-2">{r.status}</span>
+                  <span className="text-[10px] uppercase tracking-wider text-muted-foreground ml-2">{r.status.replace(/_/g, " ")}</span>
                 </div>
               </Link>
             ))}
@@ -92,7 +91,7 @@ const Home = () => {
           <div className="p-3 bg-muted/30 rounded-lg">
             <div className="text-sm font-medium">{myUpcomingBooking.title}</div>
             <div className="text-xs text-muted-foreground mt-0.5">
-              {new Date(myUpcomingBooking.start).toLocaleString("pt-PT", { dateStyle: "medium", timeStyle: "short" })}
+              {new Date(myUpcomingBooking.start_at).toLocaleString(lang === "pt" ? "pt-PT" : "en-GB", { dateStyle: "medium", timeStyle: "short" })}
             </div>
           </div>
         )}
