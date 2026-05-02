@@ -4,7 +4,7 @@ import { Plus, Search, Filter } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { useRequests, useResidents } from "@/hooks/useData";
+import { useRequests, useResidents, useRooms } from "@/hooks/useData";
 import { categoryLabels } from "@/lib/labels";
 import { StatusBadge, PriorityBadge } from "@/components/ui/StatusBadge";
 import { RequestStatus } from "@/lib/types";
