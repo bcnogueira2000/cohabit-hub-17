@@ -85,8 +85,11 @@ export const AppShell = () => {
         </nav>
         <div className="p-3 border-t border-sidebar-border space-y-2">
           {user && (
-            <div className="px-2 py-1 text-[11px] text-muted-foreground truncate" title={user.email ?? ""}>
-              {user.email}
+            <div className="flex items-center justify-between gap-2 px-2 py-1">
+              <span className="text-[11px] text-muted-foreground truncate" title={user.email ?? ""}>
+                {user.email}
+              </span>
+              <NotificationBell />
             </div>
           )}
           <button onClick={handleSignOut} className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-sidebar-foreground hover:bg-sidebar-accent/60 transition-smooth">
