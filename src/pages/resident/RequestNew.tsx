@@ -41,6 +41,27 @@ const RequestNew = () => {
   const [location, setLocation] = useState("");
   const [priority, setPriority] = useState<RequestPriority>("medium");
   const [permission, setPermission] = useState<PermissionToEnter>("yes");
+  const [roomNumber, setRoomNumber] = useState<string | null>(null);
+  const [hasRoom, setHasRoom] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    (async () => {
+      const { data: auth } = await supabase.auth.getUser();
+      if (!auth.user) return;
+      const { data: resident } = await supabase
+        .from("residents")
+        .select("room_id, rooms:room_id(number)")
+        .eq("user_id", auth.user.id)
+        .maybeSingle();
+      const room = (resident as any)?.rooms;
+      if (room?.number) {
+        setRoomNumber(room.number);
+        setHasRoom(true);
+      } else {
+        setHasRoom(false);
+      }
+    })();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
