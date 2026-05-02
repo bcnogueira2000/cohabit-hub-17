@@ -22,7 +22,7 @@ const baseNavItems = [
   { to: "/settings", label: "Settings", icon: Settings },
 ];
 
-const adminOnlyItem = { to: "/users", label: "Utilizadores", icon: Shield };
+const adminOnlyItem = { to: "/users", label: "Utilizadores", icon: Shield, end: false };
 
 const mobileBottom = [
   { to: "/my-day", label: "Hoje", icon: Sun, end: false },
