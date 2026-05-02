@@ -80,6 +80,7 @@ const RequestDetail = () => {
         {[
           { icon: Tag, label: "Categoria", value: categoryLabels[request.category] },
           { icon: User, label: "Residente", value: resident?.fullName || "—" },
+          { icon: DoorOpen, label: "Quarto", value: room ? `Quarto ${room.number}` : "—" },
           { icon: MapPin, label: "Local", value: request.location || "—" },
           { icon: Calendar, label: "Criado", value: created },
           { icon: User, label: "Atribuído a", value: request.assignedTo || "Não atribuído" },
@@ -95,15 +96,51 @@ const RequestDetail = () => {
         ))}
       </div>
 
+      <Card className="p-5 border-border/60 shadow-card mb-4">
+        <h3 className="font-display text-lg font-semibold mb-3 flex items-center gap-2">
+          <UserCog className="h-4 w-4" /> Atribuir tarefa
+        </h3>
+        <div className="flex flex-col sm:flex-row gap-2">
+          <Input
+            value={assignee}
+            onChange={(e) => setAssignee(e.target.value)}
+            placeholder="Nome do responsável (ex: Maria Silva)"
+            className="flex-1"
+          />
+          <Button onClick={saveAssignee} className="rounded-full gradient-warm border-0">
+            Guardar
+          </Button>
+          {request.assignedTo && (
+            <Button
+              variant="outline"
+              className="rounded-full"
+              onClick={() => { setAssignee(""); updateRequest.mutate({ id: request.id, patch: { assignedTo: null } }, { onSuccess: () => toast.success("Atribuição removida") }); }}
+            >
+              Remover
+            </Button>
+          )}
+        </div>
+      </Card>
+
       <Card className="p-5 border-border/60 shadow-card">
         <h3 className="font-display text-lg font-semibold mb-3">Ações rápidas</h3>
         <div className="flex flex-wrap gap-2">
-          <Button onClick={() => setStatus("in_progress")} className="rounded-full gradient-warm border-0">Marcar em curso</Button>
-          <Button onClick={() => setStatus("waiting_resident")} variant="outline" className="rounded-full">Aguarda residente</Button>
-          <Button onClick={() => setStatus("waiting_supplier")} variant="outline" className="rounded-full">Aguarda fornecedor</Button>
-          <Button onClick={() => setStatus("resolved")} variant="outline" className="rounded-full text-success border-success/40 hover:bg-success/10 hover:text-success">
-            Marcar resolvido
-          </Button>
+          {statusActions.map((a) => {
+            const isActive = request.status === a.value;
+            return (
+              <Button
+                key={a.value}
+                onClick={() => setStatus(a.value)}
+                variant="outline"
+                className={cn(
+                  "rounded-full border transition-smooth",
+                  isActive ? a.activeClass : a.idleClass,
+                )}
+              >
+                {a.label}
+              </Button>
+            );
+          })}
         </div>
       </Card>
     </div>
