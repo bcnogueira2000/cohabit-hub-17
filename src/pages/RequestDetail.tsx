@@ -46,10 +46,7 @@ const RequestDetail = () => {
     updateRequest.mutate({ id: request.id, patch: { status } }, { onSuccess: () => toast.success("Estado atualizado") });
   };
 
-  const saveAssignee = () => {
-    const value = assignee.trim() || null;
-    updateRequest.mutate({ id: request.id, patch: { assignedTo: value } }, { onSuccess: () => toast.success(value ? "Tarefa atribuída" : "Atribuição removida") });
-  };
+
 
   const statusActions: { value: any; label: string; activeClass: string; idleClass: string }[] = [
     { value: "in_progress", label: "Marcar em curso", activeClass: "gradient-warm border-0 text-white", idleClass: "border-border text-foreground" },
