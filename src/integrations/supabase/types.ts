@@ -272,6 +272,36 @@ export type Database = {
         }
         Relationships: []
       }
+      request_comments: {
+        Row: {
+          author_name: string
+          author_role: string
+          author_user_id: string
+          body: string
+          created_at: string
+          id: string
+          request_id: string
+        }
+        Insert: {
+          author_name: string
+          author_role: string
+          author_user_id: string
+          body: string
+          created_at?: string
+          id?: string
+          request_id: string
+        }
+        Update: {
+          author_name?: string
+          author_role?: string
+          author_user_id?: string
+          body?: string
+          created_at?: string
+          id?: string
+          request_id?: string
+        }
+        Relationships: []
+      }
       requests: {
         Row: {
           assigned_to: string | null
