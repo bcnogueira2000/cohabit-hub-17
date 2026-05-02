@@ -41,7 +41,8 @@ const Tasks = () => {
         <NewTaskDialog
           onCreate={(t) => createTask.mutate({
             title: t.title, description: t.description, category: t.category,
-            priority: t.priority, assignedTo: t.assignedTo, dueDate: t.dueDate,
+            priority: t.priority, assignedTo: t.assignedTo,
+            assignedToUserId: t.assignedToUserId, dueDate: t.dueDate,
           })}
           trigger={
             <Button className="rounded-full gradient-warm border-0 shadow-elegant">
