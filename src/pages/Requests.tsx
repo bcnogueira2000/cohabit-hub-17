@@ -71,6 +71,7 @@ const Requests = () => {
         )}
         {filtered.map((r) => {
           const resident = residents.find((p) => p.id === r.residentId);
+          const room = rooms.find((rm) => rm.id === (r.roomId ?? resident?.roomId));
           return (
             <Link key={r.id} to={`/requests/${r.id}`}>
               <Card className="p-4 lg:p-5 hover:shadow-elegant transition-smooth border-border/60 cursor-pointer">
@@ -82,9 +83,12 @@ const Requests = () => {
                       <span className="text-xs font-medium text-accent-foreground bg-accent px-2 py-0.5 rounded-full">{categoryLabels[r.category]}</span>
                       <PriorityBadge priority={r.priority} />
                     </div>
-                    <div className="font-medium text-base mb-1">{r.title}</div>
+                    <div className="font-medium text-base mb-1">
+                      {r.title}
+                      {room && <span className="ml-2 text-xs font-normal text-muted-foreground">· Quarto {room.number}</span>}
+                    </div>
                     <div className="text-xs text-muted-foreground">
-                      {resident?.fullName || "—"} · {r.location}
+                      {resident?.fullName || "—"}{r.location ? ` · ${r.location}` : ""}
                       {r.assignedTo && <> · <span className="text-foreground/70">{r.assignedTo}</span></>}
                     </div>
                   </div>
