@@ -1,11 +1,26 @@
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams, useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Loader2, MapPin, Tag, AlertCircle, KeyRound, Check, Circle, Image as ImageIcon } from "lucide-react";
-import { useRequest, type RequestStatus } from "@/hooks/useResidentRequests";
+import { Button } from "@/components/ui/button";
+import { ArrowLeft, Loader2, MapPin, Tag, AlertCircle, KeyRound, Check, Circle, Image as ImageIcon, X } from "lucide-react";
+import { useRequest, useCancelRequest, isActiveRequest, type RequestStatus } from "@/hooks/useResidentRequests";
 import { useLang } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 import { RequestPhotoGallery } from "@/components/RequestPhotoGallery";
+import { toast } from "sonner";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+
+const statusLabelMap: Record<RequestStatus, { pt: string; en: string }> = {
+  open: { pt: "Aberto", en: "Open" },
+  in_progress: { pt: "Em curso", en: "In progress" },
+  waiting_resident: { pt: "Aguarda-te", en: "Waiting on you" },
+  waiting_supplier: { pt: "Aguarda fornecedor", en: "Waiting on supplier" },
+  resolved: { pt: "Resolvido", en: "Resolved" },
+  closed: { pt: "Fechado", en: "Closed" },
+};
 
 const statusColor: Record<RequestStatus, string> = {
   open: "bg-blue-500/10 text-blue-700 dark:text-blue-300 border-blue-500/30",
