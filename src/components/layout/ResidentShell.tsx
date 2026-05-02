@@ -1,5 +1,5 @@
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
-import { Home, Inbox, CalendarRange, PartyPopper, MoreHorizontal, Bell, Sparkles, BookOpen, HelpCircle, User, LogOut, Globe } from "lucide-react";
+import { Home, Inbox, CalendarRange, PartyPopper, MoreHorizontal, Bell, Sparkles, BookOpen, HelpCircle, User, LogOut, Globe, BedDouble } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -25,11 +25,12 @@ export const ResidentShell = () => {
   ];
 
   const more = [
+    { to: "/app/my-stay", label: lang === "pt" ? "A minha estadia" : "My stay", icon: BedDouble },
+    { to: "/app/profile", label: lang === "pt" ? "O meu perfil" : "My profile", icon: User },
     { to: "/app/services", label: lang === "pt" ? "Serviços" : "Services", icon: Sparkles },
     { to: "/app/notifications", label: lang === "pt" ? "Notificações" : "Notifications", icon: Bell },
     { to: "/app/onboarding", label: "Onboarding", icon: BookOpen },
     { to: "/app/faqs", label: "FAQs", icon: HelpCircle },
-    { to: "/app/profile", label: lang === "pt" ? "O meu perfil" : "My profile", icon: User },
   ];
 
   return (
