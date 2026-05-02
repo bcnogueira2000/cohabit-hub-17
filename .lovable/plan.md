@@ -1,80 +1,46 @@
-## Fase 2 — Pedidos e Reservas no portal do residente
+## Problemas identificados
 
-A Fase 1 só montou as fundações (auth, roles, shell mobile, home). Agora ligamos as duas funcionalidades core que os residentes vão usar todos os dias.
+### 1. Erro `duplicate key requests_code_key` ao submeter pedido
+A tabela `requests` tem **triggers duplicados**:
+- `trg_requests_code` + `trg_requests_gen_code` → ambos chamam `gen_request_code()`
+- `trg_request_automation` + `trg_requests_auto_create` → ambos chamam `auto_create_from_request()` (cria tarefas duplicadas em `ops_tasks` / `cleaning_tasks`)
 
-### 1. Pedidos (Requests)
+Além disso, a função `gen_request_code()` usa `MAX(...)+1` numa subquery, que é vulnerável a race conditions e a estados inconsistentes. Solução: substituir por uma **sequência Postgres dedicada** (`requests_code_seq`), que garante unicidade atómica.
 
-**`/app/requests` — Lista**
-- Lista todos os pedidos do residente atual (RLS já filtra por `current_resident_id()`).
-- Cards com código (REQ-001), título, categoria, prioridade, status com cor.
-- Tabs: "Ativos" / "Arquivados" (resolvidos + cancelados).
-- Empty state com CTA "Criar pedido".
-- Pull-to-refresh / loading skeleton.
+### 2. Seleção de quarto no formulário de pedido
+Sim — o sistema **já associa automaticamente** o quarto do residente autenticado (lê `residents.room_id` via `current_resident_id()`). O campo "Localização" é texto livre apenas para detalhar onde (casa de banho, cozinha comum, lavandaria, etc).
 
-**`/app/requests/new` — Criar**
-Formulário mobile-friendly com:
-- **Categoria** (cards visuais): Manutenção, Limpeza, Wi-Fi/Tech, Lost & Found, Consumíveis, Outro.
-- **Título** (obrigatório).
-- **Descrição** (textarea).
-- **Localização** (default: o quarto do residente; opção "Áreas comuns" + texto livre).
-- **Prioridade** (low/medium/high — sem "urgent" para residentes; só staff define urgent).
-- **Permissão para entrar no quarto** (yes/no/scheduled).
-- Submit insere com `resident_id = current_resident_id()` e `status='open'`.
-- Os triggers existentes (`auto_create_from_request`) criam automaticamente a tarefa de ops/cleaning.
+Problemas atuais:
+- O texto auxiliar "Por defeito é o teu quarto" é ambíguo — parece sugerir que a localização **é** o quarto, quando na verdade só serve para indicar áreas comuns ou específicas.
+- Se o residente ainda **não tiver `room_id`** associado (conta nova, sem aprovação), o pedido é criado sem quarto, o que pode dificultar o trabalho da equipa.
 
-**`/app/requests/:id` — Detalhe**
-- Header com código, título, status (badge colorido) e data.
-- Bloco com categoria, prioridade, localização, descrição.
-- Timeline simples (created → in_progress → resolved) com base no status atual.
-- Para já sem comentários (deixar para Fase 3).
+---
 
-### 2. Reservas de espaços (Bookings)
+## Plano de correção
 
-**`/app/bookings` — Lista**
-- Próximas reservas + histórico (tabs).
-- Cards com nome do espaço, dia, hora, duração.
-- Botão "Cancelar" para reservas futuras (RLS já permite delete próprias).
+### A. Migração SQL
+1. **Eliminar triggers duplicados** em `requests`:
+   - `DROP TRIGGER IF EXISTS trg_requests_gen_code` (manter `trg_requests_code`)
+   - `DROP TRIGGER IF EXISTS trg_requests_auto_create` (manter `trg_request_automation`)
+   - Mesma limpeza para `trg_requests_updated_at` (duplicado de `trg_requests_upd`)
+2. **Limpar tarefas órfãs** geradas em duplicado por `auto_create_from_request` (one-shot DELETE de duplicados em `ops_tasks` e `cleaning_tasks` cujo `request_id`/`source_ref` aponta para o mesmo pedido).
+3. **Substituir `gen_request_code()`** por versão baseada em `CREATE SEQUENCE requests_code_seq` com `setval` ao valor atual máximo + 1, e gerar `REQ-` || `lpad(nextval(...), 3, '0')`. Aplicar o mesmo padrão a `gen_ops_task_code()` (verificar duplicação também).
 
-**`/app/bookings/new` — Criar reserva**
-- **Selecionar espaço**: lista visual de `spaces` (Sala de cinema, Coworking, Cozinha, etc.) com capacidade.
-- **Data**: date picker.
-- **Início e fim**: time pickers (slots de 30min).
-- **Título** opcional + notas.
-- Validação client-side: end > start, sem sobreposição com reservas existentes do mesmo espaço (query rápida ao supabase).
-- Submit insere com `resident_id = current_resident_id()`.
+### B. Pequenas melhorias no formulário (`RequestNew.tsx`)
+1. Renomear o campo "Localização" para algo como **"Onde?"** com placeholder claro: *"Casa de banho, cozinha, lavandaria…"*.
+2. Mostrar o quarto associado em modo leitura (chip pequeno: "Quarto 203" ou "Sem quarto atribuído"), para o residente perceber o que está a acontecer.
+3. Se o residente não tiver `room_id`, deixar passar mas avisar discretamente: *"Ainda não tens quarto atribuído — a equipa irá tratar disso."*
 
-### 3. Home — atualizar quick actions
-- Os botões de "Novo pedido" e "Reservar espaço" na home passam a navegar para os ecrãs reais (já estão lá os links, vão começar a funcionar).
-- Secção "Pedidos ativos" passa a mostrar dados reais (já usa `useResidentRequests`, basta confirmar).
-- Secção "Próximas reservas" idem.
+### C. Hook `useResidentRequests.ts`
+- Em vez de mandar `code: ""`, **omitir `code`** do payload (deixar o trigger gerar). Isto evita ambiguidade.
+- Buscar o `resident` filtrado pelo utilizador autenticado (`user_id = auth.uid()`) em vez de `.limit(1)`, para garantir robustez.
 
-### 4. Hooks novos
-- `useMyRequests()` — lista pedidos do residente
-- `useCreateRequest()` — insert
-- `useRequest(id)` — detalhe
-- `useMyBookings()` — lista reservas
-- `useSpaces()` — lista espaços disponíveis (já existe `read` para `authenticated`)
-- `useCreateBooking()` / `useCancelBooking()`
+### Arquivos afetados
+- nova migração SQL (sequência + drop dos triggers duplicados + limpeza de duplicados)
+- `src/hooks/useResidentRequests.ts`
+- `src/pages/resident/RequestNew.tsx`
 
-### 5. i18n
-- Adicionar strings PT+EN para todos os novos ecrãs em `src/lib/i18n.ts`.
-
-### Não-incluído nesta fase (fica para Fase 3+)
-- Comentários/chat nos pedidos
-- Anexos/fotos nos pedidos
-- Push notifications
-- Eventos, FAQs, Onboarding, Perfil, Serviços extra
-
-### Ficheiros
-- **Criar:**
-  - `src/hooks/useResidentRequests.ts`
-  - `src/hooks/useResidentBookings.ts`
-  - `src/pages/resident/Requests.tsx`
-  - `src/pages/resident/RequestNew.tsx`
-  - `src/pages/resident/RequestDetail.tsx`
-  - `src/pages/resident/Bookings.tsx`
-  - `src/pages/resident/BookingNew.tsx`
-- **Editar:**
-  - `src/App.tsx` (substituir `ComingSoon` por componentes reais nas rotas de pedidos e reservas)
-  - `src/pages/resident/Home.tsx` (ligar dados reais se ainda não tiver)
-  - `src/lib/i18n.ts`
+### Resultado esperado
+- Submeter pedido funciona sem erro.
+- Cada pedido gera **uma única** tarefa para a equipa (não duas).
+- O residente vê claramente que o quarto está auto-associado, e o que significa o campo "Onde?".
