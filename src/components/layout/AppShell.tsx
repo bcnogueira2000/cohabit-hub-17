@@ -7,7 +7,7 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useAuth } from "@/hooks/useAuth";
 import logo from "@/assets/logo.png";
 
-const navItems = [
+const baseNavItems = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard, end: true },
   { to: "/my-day", label: "O meu dia", icon: Sun },
   { to: "/requests", label: "Requests", icon: Inbox },
@@ -21,6 +21,8 @@ const navItems = [
   { to: "/insights", label: "Insights", icon: BarChart3 },
   { to: "/settings", label: "Settings", icon: Settings },
 ];
+
+const adminOnlyItem = { to: "/users", label: "Utilizadores", icon: Shield };
 
 const mobileBottom = [
   { to: "/my-day", label: "Hoje", icon: Sun, end: false },
