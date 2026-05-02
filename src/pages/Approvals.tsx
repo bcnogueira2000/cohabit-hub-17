@@ -3,7 +3,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { UserPlus, UserCheck, UserX, Mail, Phone, Home, Calendar } from "lucide-react";
+import { UserPlus, UserCheck, UserX, Mail, Phone, Home, Calendar, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { usePendingProfiles, useApproveProfile, useRejectProfile, type Profile } from "@/hooks/useProfile";
 import { useResidents, useRooms } from "@/hooks/useData";
@@ -20,12 +20,40 @@ const Approvals = () => {
   const approve = useApproveProfile();
   const reject = useRejectProfile();
   const qc = useQueryClient();
+  const [seeding, setSeeding] = useState(false);
+
+  const handleSeedDemo = async () => {
+    setSeeding(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("seed-demo-resident");
+      if (error) throw error;
+      toast.success("Conta demo pronta", {
+        description: `${data.email} / ${data.password}`,
+        duration: 10000,
+      });
+    } catch (e: any) {
+      toast.error("Erro a criar conta demo", { description: e.message });
+    } finally {
+      setSeeding(false);
+    }
+  };
 
   return (
     <div className="px-4 lg:px-10 py-6 lg:py-10 max-w-4xl mx-auto">
-      <div className="mb-6">
-        <h1 className="font-display text-3xl lg:text-4xl font-semibold">Aprovações</h1>
-        <p className="text-muted-foreground mt-1">Contas de residentes pendentes</p>
+      <div className="mb-6 flex items-start justify-between gap-4 flex-wrap">
+        <div>
+          <h1 className="font-display text-3xl lg:text-4xl font-semibold">Aprovações</h1>
+          <p className="text-muted-foreground mt-1">Contas de residentes pendentes</p>
+        </div>
+        <Button
+          variant="outline"
+          onClick={handleSeedDemo}
+          disabled={seeding}
+          className="gap-2"
+        >
+          <Sparkles className="h-4 w-4" />
+          {seeding ? "A preparar…" : "Repor conta demo"}
+        </Button>
       </div>
 
       {isLoading ? (
