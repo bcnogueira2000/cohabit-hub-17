@@ -9,6 +9,7 @@ import { useRequests, useResidents, useRooms, useUpdateRequest } from "@/hooks/u
 import { useStaffUsers } from "@/hooks/useStaffUsers";
 import { categoryLabels } from "@/lib/labels";
 import { StatusBadge, PriorityBadge } from "@/components/ui/StatusBadge";
+import { RequestComments } from "@/components/RequestComments";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
@@ -139,7 +140,7 @@ const RequestDetail = () => {
         )}
       </Card>
 
-      <Card className="p-5 border-border/60 shadow-card">
+      <Card className="p-5 border-border/60 shadow-card mb-4">
         <h3 className="font-display text-lg font-semibold mb-3">Ações rápidas</h3>
         <div className="flex flex-wrap gap-2">
           {statusActions.map((a) => {
@@ -160,6 +161,8 @@ const RequestDetail = () => {
           })}
         </div>
       </Card>
+
+      <RequestComments requestId={request.id} viewerRole="staff" />
     </div>
   );
 };

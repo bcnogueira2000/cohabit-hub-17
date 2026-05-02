@@ -62,6 +62,74 @@ export type Database = {
           },
         ]
       }
+      cleaning_schedules: {
+        Row: {
+          active: boolean
+          area: string
+          assigned_to: string | null
+          assigned_to_user_id: string | null
+          created_at: string
+          day_of_week: number
+          hour: number
+          id: string
+          last_generated_until: string | null
+          minute: number
+          name: string
+          notes: string | null
+          recurrence: Database["public"]["Enums"]["cleaning_recurrence"]
+          room_id: string | null
+          service: Database["public"]["Enums"]["cleaning_service"]
+          type: Database["public"]["Enums"]["cleaning_type"]
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          area: string
+          assigned_to?: string | null
+          assigned_to_user_id?: string | null
+          created_at?: string
+          day_of_week: number
+          hour?: number
+          id?: string
+          last_generated_until?: string | null
+          minute?: number
+          name: string
+          notes?: string | null
+          recurrence?: Database["public"]["Enums"]["cleaning_recurrence"]
+          room_id?: string | null
+          service?: Database["public"]["Enums"]["cleaning_service"]
+          type: Database["public"]["Enums"]["cleaning_type"]
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          area?: string
+          assigned_to?: string | null
+          assigned_to_user_id?: string | null
+          created_at?: string
+          day_of_week?: number
+          hour?: number
+          id?: string
+          last_generated_until?: string | null
+          minute?: number
+          name?: string
+          notes?: string | null
+          recurrence?: Database["public"]["Enums"]["cleaning_recurrence"]
+          room_id?: string | null
+          service?: Database["public"]["Enums"]["cleaning_service"]
+          type?: Database["public"]["Enums"]["cleaning_type"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cleaning_schedules_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "rooms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cleaning_tasks: {
         Row: {
           area: string
@@ -269,6 +337,36 @@ export type Database = {
           resident_id?: string | null
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      request_comments: {
+        Row: {
+          author_name: string
+          author_role: string
+          author_user_id: string
+          body: string
+          created_at: string
+          id: string
+          request_id: string
+        }
+        Insert: {
+          author_name: string
+          author_role: string
+          author_user_id: string
+          body: string
+          created_at?: string
+          id?: string
+          request_id: string
+        }
+        Update: {
+          author_name?: string
+          author_role?: string
+          author_user_id?: string
+          body?: string
+          created_at?: string
+          id?: string
+          request_id?: string
         }
         Relationships: []
       }
@@ -537,6 +635,10 @@ export type Database = {
     }
     Functions: {
       current_resident_id: { Args: never; Returns: string }
+      generate_cleaning_instances: {
+        Args: { p_count?: number; p_schedule_id: string }
+        Returns: number
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -558,6 +660,7 @@ export type Database = {
     Enums: {
       account_status: "pending_approval" | "active" | "rejected" | "disabled"
       app_role: "resident" | "staff" | "manager" | "admin"
+      cleaning_recurrence: "weekly" | "biweekly" | "monthly"
       cleaning_service: "normal" | "simple"
       cleaning_source: "scheduled" | "checkout" | "request" | "manual"
       cleaning_status: "scheduled" | "in_progress" | "completed" | "skipped"
@@ -739,6 +842,7 @@ export const Constants = {
     Enums: {
       account_status: ["pending_approval", "active", "rejected", "disabled"],
       app_role: ["resident", "staff", "manager", "admin"],
+      cleaning_recurrence: ["weekly", "biweekly", "monthly"],
       cleaning_service: ["normal", "simple"],
       cleaning_source: ["scheduled", "checkout", "request", "manual"],
       cleaning_status: ["scheduled", "in_progress", "completed", "skipped"],

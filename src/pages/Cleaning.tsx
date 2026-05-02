@@ -1,14 +1,18 @@
 import { useState } from "react";
-import { Sparkles, Check, Clock, User } from "lucide-react";
+import { Sparkles, Check, Clock, User, Plus, Repeat, Pencil, Trash2, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Switch } from "@/components/ui/switch";
 import { useCleaningTasks, useUpdateCleaningTask } from "@/hooks/useData";
+import { useCleaningSchedules, useUpsertCleaningSchedule, useDeleteCleaningSchedule, useGenerateCleaningInstances, type CleaningSchedule } from "@/hooks/useCleaningSchedules";
+import { CleaningScheduleDialog } from "@/components/CleaningScheduleDialog";
 import { cleaningTypeLabels, cleaningServiceLabels, cleaningServiceDescriptions, cleaningSourceLabels } from "@/lib/labels";
 import { CleaningTask } from "@/lib/types";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 const isToday = (iso: string) => new Date(iso).toDateString() === new Date().toDateString();
 const isFuture = (iso: string) => new Date(iso) > new Date() && !isToday(iso);
@@ -26,14 +30,39 @@ const statusLabel: Record<string, string> = {
 const Cleaning = () => {
   const { data: tasks = [] } = useCleaningTasks();
   const updateCleaning = useUpdateCleaningTask();
+  const { data: schedules = [] } = useCleaningSchedules();
+  const upsertSchedule = useUpsertCleaningSchedule();
+  const deleteSchedule = useDeleteCleaningSchedule();
+  const generate = useGenerateCleaningInstances();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const selected = tasks.find((t) => t.id === selectedId) || null;
+  const [scheduleDialogOpen, setScheduleDialogOpen] = useState(false);
+  const [editingSchedule, setEditingSchedule] = useState<CleaningSchedule | null>(null);
 
   const today = tasks.filter((t) => isToday(t.scheduledFor) && t.status !== "completed");
   const upcoming = tasks.filter((t) => isFuture(t.scheduledFor));
   const completed = tasks.filter((t) => t.status === "completed");
 
   const updateTask = (id: string, patch: Partial<CleaningTask>) => updateCleaning.mutate({ id, patch });
+
+  const DAY_LABEL = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
+  const RECURRENCE_LABEL: Record<string, string> = { weekly: "Semanal", biweekly: "Quinzenal", monthly: "Mensal" };
+
+  const openNewSchedule = () => { setEditingSchedule(null); setScheduleDialogOpen(true); };
+  const openEditSchedule = (s: CleaningSchedule) => { setEditingSchedule(s); setScheduleDialogOpen(true); };
+  const handleGenerate = async (s: CleaningSchedule) => {
+    try {
+      const n = await generate.mutateAsync({ scheduleId: s.id, count: 8 });
+      toast.success(`${n} limpeza${n === 1 ? "" : "s"} geradas a partir de "${s.name}"`);
+    } catch (e: any) {
+      toast.error(e.message);
+    }
+  };
+  const handleDelete = async (s: CleaningSchedule) => {
+    if (!confirm(`Apagar agendamento "${s.name}"? As limpezas já criadas mantêm-se.`)) return;
+    try { await deleteSchedule.mutateAsync(s.id); toast.success("Agendamento removido"); }
+    catch (e: any) { toast.error(e.message); }
+  };
 
   const TaskCard = ({ t }: { t: CleaningTask }) => (
     <Card onClick={() => setSelectedId(t.id)} className="p-4 cursor-pointer hover:shadow-elegant transition-smooth border-border/60">
@@ -65,16 +94,21 @@ const Cleaning = () => {
 
   return (
     <div className="px-4 lg:px-10 py-6 lg:py-10 max-w-7xl mx-auto">
-      <div className="mb-6">
-        <h1 className="font-display text-3xl lg:text-4xl font-semibold">Cleaning</h1>
-        <p className="text-muted-foreground mt-1">Planeamento de limpezas, checklists e estado por área</p>
+      <div className="mb-6 flex items-start justify-between gap-3 flex-wrap">
+        <div>
+          <h1 className="font-display text-2xl lg:text-3xl font-semibold">Limpezas</h1>
+          <p className="text-muted-foreground mt-1 text-sm">Planeamento, checklists e agendamentos recorrentes</p>
+        </div>
       </div>
 
       <Tabs defaultValue="today">
-        <TabsList className="bg-muted/60 rounded-full p-1 mb-5">
-          <TabsTrigger value="today" className="rounded-full data-[state=active]:bg-card">Hoje · {today.length}</TabsTrigger>
-          <TabsTrigger value="upcoming" className="rounded-full data-[state=active]:bg-card">Próximas · {upcoming.length}</TabsTrigger>
-          <TabsTrigger value="completed" className="rounded-full data-[state=active]:bg-card">Concluídas · {completed.length}</TabsTrigger>
+        <TabsList className="bg-muted/60 rounded-lg p-1 mb-5 flex-wrap h-auto">
+          <TabsTrigger value="today" className="rounded-md data-[state=active]:bg-card">Hoje · {today.length}</TabsTrigger>
+          <TabsTrigger value="upcoming" className="rounded-md data-[state=active]:bg-card">Próximas · {upcoming.length}</TabsTrigger>
+          <TabsTrigger value="completed" className="rounded-md data-[state=active]:bg-card">Concluídas · {completed.length}</TabsTrigger>
+          <TabsTrigger value="schedules" className="rounded-md data-[state=active]:bg-card">
+            <Repeat className="h-3.5 w-3.5 mr-1.5" /> Recorrentes · {schedules.length}
+          </TabsTrigger>
         </TabsList>
         <TabsContent value="today" className="space-y-2">
           {today.length === 0 && <Card className="p-10 text-center text-muted-foreground border-dashed">Nada agendado para hoje.</Card>}
@@ -87,7 +121,60 @@ const Cleaning = () => {
         <TabsContent value="completed" className="space-y-2">
           {completed.map((t) => <TaskCard key={t.id} t={t} />)}
         </TabsContent>
+        <TabsContent value="schedules" className="space-y-3">
+          <div className="flex justify-end">
+            <Button onClick={openNewSchedule} size="sm">
+              <Plus className="h-4 w-4 mr-1.5" /> Novo agendamento
+            </Button>
+          </div>
+          {schedules.length === 0 && (
+            <Card className="p-10 text-center border-dashed">
+              <Repeat className="h-8 w-8 text-muted-foreground/50 mx-auto mb-3" />
+              <p className="text-sm text-muted-foreground mb-1">Sem agendamentos recorrentes.</p>
+              <p className="text-xs text-muted-foreground">Cria um para gerar limpezas automaticamente todas as semanas, quinzenas ou meses.</p>
+            </Card>
+          )}
+          {schedules.map((s) => (
+            <Card key={s.id} className="p-4 border-border/60 shadow-card">
+              <div className="flex items-start gap-3 flex-wrap">
+                <div className="h-10 w-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                  <Repeat className="h-5 w-5" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap mb-1">
+                    <span className="font-medium">{s.name}</span>
+                    {!s.active && <span className="text-[10px] uppercase tracking-wide bg-muted text-muted-foreground px-1.5 py-0.5 rounded">Inativo</span>}
+                  </div>
+                  <div className="text-xs text-muted-foreground flex flex-wrap gap-x-3 gap-y-1">
+                    <span>{cleaningTypeLabels[s.type] ?? s.type}</span>
+                    <span>· {cleaningServiceLabels[s.service]}</span>
+                    <span>· {RECURRENCE_LABEL[s.recurrence]}, {DAY_LABEL[s.day_of_week]} {String(s.hour).padStart(2,"0")}:{String(s.minute).padStart(2,"0")}</span>
+                    <span>· Área: {s.area}</span>
+                    {s.assigned_to && <span>· {s.assigned_to}</span>}
+                  </div>
+                </div>
+                <div className="flex items-center gap-1 ml-auto">
+                  <Switch
+                    checked={s.active}
+                    onCheckedChange={(v) => upsertSchedule.mutate({ id: s.id, active: v })}
+                  />
+                  <Button size="sm" variant="outline" onClick={() => handleGenerate(s)} disabled={generate.isPending || !s.active}>
+                    <Zap className="h-3.5 w-3.5 mr-1.5" /> Gerar próximas
+                  </Button>
+                  <Button size="icon" variant="ghost" onClick={() => openEditSchedule(s)}><Pencil className="h-3.5 w-3.5" /></Button>
+                  <Button size="icon" variant="ghost" onClick={() => handleDelete(s)}><Trash2 className="h-3.5 w-3.5 text-destructive" /></Button>
+                </div>
+              </div>
+            </Card>
+          ))}
+        </TabsContent>
       </Tabs>
+
+      <CleaningScheduleDialog
+        open={scheduleDialogOpen}
+        onOpenChange={setScheduleDialogOpen}
+        schedule={editingSchedule}
+      />
 
       <Sheet open={!!selected} onOpenChange={(o) => !o && setSelectedId(null)}>
         <SheetContent className="w-full sm:max-w-lg overflow-y-auto">
