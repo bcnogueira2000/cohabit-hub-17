@@ -121,6 +121,39 @@ export type Database = {
           },
         ]
       }
+      notifications: {
+        Row: {
+          body: string | null
+          created_at: string
+          id: string
+          link: string | null
+          read_at: string | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          body?: string | null
+          created_at?: string
+          id?: string
+          link?: string | null
+          read_at?: string | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          body?: string | null
+          created_at?: string
+          id?: string
+          link?: string | null
+          read_at?: string | null
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       ops_tasks: {
         Row: {
           assigned_to: string | null
@@ -243,6 +276,7 @@ export type Database = {
           id: string
           location: string | null
           permission_to_enter: Database["public"]["Enums"]["permission_to_enter"]
+          photos: string[]
           priority: Database["public"]["Enums"]["request_priority"]
           resident_id: string | null
           room_id: string | null
@@ -259,6 +293,7 @@ export type Database = {
           id?: string
           location?: string | null
           permission_to_enter?: Database["public"]["Enums"]["permission_to_enter"]
+          photos?: string[]
           priority?: Database["public"]["Enums"]["request_priority"]
           resident_id?: string | null
           room_id?: string | null
@@ -275,6 +310,7 @@ export type Database = {
           id?: string
           location?: string | null
           permission_to_enter?: Database["public"]["Enums"]["permission_to_enter"]
+          photos?: string[]
           priority?: Database["public"]["Enums"]["request_priority"]
           resident_id?: string | null
           room_id?: string | null
@@ -500,6 +536,15 @@ export type Database = {
         Returns: boolean
       }
       is_staff: { Args: { _user_id: string }; Returns: boolean }
+      list_staff_users: {
+        Args: never
+        Returns: {
+          email: string
+          full_name: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }[]
+      }
     }
     Enums: {
       account_status: "pending_approval" | "active" | "rejected" | "disabled"
