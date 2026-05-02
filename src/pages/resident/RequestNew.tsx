@@ -190,6 +190,11 @@ const RequestNew = () => {
         </div>
 
         <div>
+          <Label className="mb-2 block">{lang === "pt" ? "Fotos" : "Photos"}</Label>
+          <RequestPhotoUpload paths={photos} onChange={setPhotos} max={3} />
+        </div>
+
+        <div>
           <Label className="mb-2 block">{lang === "pt" ? "Prioridade" : "Priority"}</Label>
           <div className="grid grid-cols-3 gap-2">
             {(["low", "medium", "high"] as RequestPriority[]).map((p) => (
