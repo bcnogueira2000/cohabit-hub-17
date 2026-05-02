@@ -1,35 +1,38 @@
-## Conta demo de residente
+## Promover utilizadores existentes a admin
 
-Criar uma conta demo permanente para testares o portal do residente sem precisares de passar pelo fluxo de aprovação.
+### Diagnóstico
+A tua conta `bcnogueira2000@gmail.com` foi criada antes da Fase 1. Não tem entrada em `profiles` nem em `user_roles`, por isso o sistema considera-te "não-staff" e bloqueia tudo.
 
-### Credenciais
-- **Email:** `maria.demo@livingcolours.test`
-- **Password:** `demo1234`
-- **Quarto:** será associada a um quarto existente (ou criado se necessário)
+Soluções a aplicar em conjunto:
 
-### Implementação
+### 1. Migração de backfill + promoção a admin
+Uma única migração SQL que:
 
-1. **Edge function `seed-demo-resident`** (`supabase/functions/seed-demo-resident/index.ts`)
-   - Usa o `SUPABASE_SERVICE_ROLE_KEY` para contornar RLS e criar/repor o utilizador.
-   - Lógica idempotente:
-     1. Procura o user `maria.demo@livingcolours.test` em `auth.users`. Se não existir, cria-o com `email_confirm: true` e a password `demo1234`.
-     2. Garante um registo em `residents` com esse email, ligado ao `user_id` e com `status = 'active'`, `move_in` há 30 dias, `move_out` daqui a 6 meses, e um `room_id` (escolhe o primeiro quarto disponível ou mantém o atual).
-     3. Garante o registo em `profiles` com `account_status = 'active'` e `resident_id` correto.
-     4. Garante a role `resident` em `user_roles`.
-   - Restrição de acesso: só executa se quem chama for staff (`is_staff(auth.uid())`) — para evitar abuso.
+- **Cria profiles em falta** para todos os utilizadores existentes em `auth.users` (com `account_status = 'active'` para não te enviar para o ecrã de "pending approval").
+- **Promove `bcnogueira2000@gmail.com` a `admin`** inserindo em `user_roles`.
+- (Opcional) Backfill: se algum desses utilizadores tiver email correspondente a um `residents`, faz o auto-link e dá role `resident`.
 
-2. **Botão "Repor conta demo" na página `/approvals`**
-   - Adicionar um botão no topo da página Approvals que invoca a edge function.
-   - Ao concluir, mostra toast com as credenciais (email + password) para copiares.
+### 2. Página de gestão de utilizadores e roles (`/users`)
+Para que no futuro consigas promover/despromover sem mexer em SQL:
 
-3. **Config**
-   - `supabase/functions/seed-demo-resident/.config.toml` não é necessário — `verify_jwt = false` por defeito; validamos o JWT no código com `getClaims()` para garantir que só staff repõe.
+- Nova rota `/users` (acessível só a `admin`).
+- Lista todos os profiles com email, nome, status, roles atribuídas.
+- Botões para atribuir/remover roles: `resident`, `staff`, `manager`, `admin`.
+- Item "Utilizadores" no sidebar (só visível para admins).
 
-### Como testar depois
-1. Login como admin → ir a `/approvals` → clicar **"Repor conta demo"**.
-2. Logout → login com `maria.demo@livingcolours.test` / `demo1234` → és redirecionada para `/app/home` (portal mobile do residente).
-3. Podes voltar a clicar no botão a qualquer momento para repor o estado da conta.
+### 3. Edge function `set-user-role`
+Para alterar roles de forma segura:
+- Verifica via `getClaims` que o caller tem role `admin`.
+- Usa service role para inserir/remover em `user_roles`.
+- Evita que um admin se remova a si próprio (impede ficar sem admins).
+
+### Como vai correr
+1. Migração roda → ficas imediatamente com role `admin`, profile activo.
+2. Recarregas a app, fazes login → entras no dashboard de staff normal.
+3. Vais a `/users` para gerir roles dos restantes utilizadores (incluindo a tua conta demo `maria.demo` que continua como `resident`).
 
 ### Ficheiros
-- **Criar:** `supabase/functions/seed-demo-resident/index.ts`
-- **Editar:** `src/pages/Approvals.tsx` (adicionar botão + handler)
+- **Migração SQL** (backfill profiles + promoção a admin)
+- **Criar:** `supabase/functions/set-user-role/index.ts`
+- **Criar:** `src/pages/Users.tsx`, `src/hooks/useUsers.ts`
+- **Editar:** `src/App.tsx` (rota), `src/components/layout/AppShell.tsx` (item sidebar para admins)
