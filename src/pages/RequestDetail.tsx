@@ -4,7 +4,6 @@ import { ArrowLeft, Calendar, MapPin, User, Tag, ShieldCheck, DoorOpen, UserCog 
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RequestPhotoGallery } from "@/components/RequestPhotoGallery";
 import { useRequests, useResidents, useRooms, useUpdateRequest } from "@/hooks/useData";
 import { useStaffUsers } from "@/hooks/useStaffUsers";
