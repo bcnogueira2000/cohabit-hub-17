@@ -21,13 +21,14 @@ const Approvals = () => {
   const reject = useRejectProfile();
   const qc = useQueryClient();
   const [seeding, setSeeding] = useState(false);
+  const [seedingAdmin, setSeedingAdmin] = useState(false);
 
   const handleSeedDemo = async () => {
     setSeeding(true);
     try {
       const { data, error } = await supabase.functions.invoke("seed-demo-resident");
       if (error) throw error;
-      toast.success("Conta demo pronta", {
+      toast.success("Conta demo residente pronta", {
         description: `${data.email} / ${data.password}`,
         duration: 10000,
       });
@@ -38,6 +39,22 @@ const Approvals = () => {
     }
   };
 
+  const handleSeedAdmin = async () => {
+    setSeedingAdmin(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("seed-demo-admin");
+      if (error) throw error;
+      toast.success("Conta demo admin pronta", {
+        description: `${data.email} / ${data.password}`,
+        duration: 15000,
+      });
+    } catch (e: any) {
+      toast.error("Erro a criar conta admin demo", { description: e.message });
+    } finally {
+      setSeedingAdmin(false);
+    }
+  };
+
   return (
     <div className="px-4 lg:px-10 py-6 lg:py-10 max-w-4xl mx-auto">
       <div className="mb-6 flex items-start justify-between gap-4 flex-wrap">
@@ -45,15 +62,26 @@ const Approvals = () => {
           <h1 className="font-display text-3xl lg:text-4xl font-semibold">Aprovações</h1>
           <p className="text-muted-foreground mt-1">Contas de residentes pendentes</p>
         </div>
-        <Button
-          variant="outline"
-          onClick={handleSeedDemo}
-          disabled={seeding}
-          className="gap-2"
-        >
-          <Sparkles className="h-4 w-4" />
-          {seeding ? "A preparar…" : "Repor conta demo"}
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <Button
+            variant="outline"
+            onClick={handleSeedDemo}
+            disabled={seeding}
+            className="gap-2"
+          >
+            <Sparkles className="h-4 w-4" />
+            {seeding ? "A preparar…" : "Repor demo residente"}
+          </Button>
+          <Button
+            variant="outline"
+            onClick={handleSeedAdmin}
+            disabled={seedingAdmin}
+            className="gap-2"
+          >
+            <Sparkles className="h-4 w-4" />
+            {seedingAdmin ? "A preparar…" : "Repor demo admin (Sandra)"}
+          </Button>
+        </div>
       </div>
 
       {isLoading ? (
