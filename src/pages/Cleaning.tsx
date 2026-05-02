@@ -1,14 +1,18 @@
 import { useState } from "react";
-import { Sparkles, Check, Clock, User } from "lucide-react";
+import { Sparkles, Check, Clock, User, Plus, Repeat, Pencil, Trash2, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Switch } from "@/components/ui/switch";
 import { useCleaningTasks, useUpdateCleaningTask } from "@/hooks/useData";
+import { useCleaningSchedules, useUpsertCleaningSchedule, useDeleteCleaningSchedule, useGenerateCleaningInstances, type CleaningSchedule } from "@/hooks/useCleaningSchedules";
+import { CleaningScheduleDialog } from "@/components/CleaningScheduleDialog";
 import { cleaningTypeLabels, cleaningServiceLabels, cleaningServiceDescriptions, cleaningSourceLabels } from "@/lib/labels";
 import { CleaningTask } from "@/lib/types";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 const isToday = (iso: string) => new Date(iso).toDateString() === new Date().toDateString();
 const isFuture = (iso: string) => new Date(iso) > new Date() && !isToday(iso);
@@ -26,14 +30,39 @@ const statusLabel: Record<string, string> = {
 const Cleaning = () => {
   const { data: tasks = [] } = useCleaningTasks();
   const updateCleaning = useUpdateCleaningTask();
+  const { data: schedules = [] } = useCleaningSchedules();
+  const upsertSchedule = useUpsertCleaningSchedule();
+  const deleteSchedule = useDeleteCleaningSchedule();
+  const generate = useGenerateCleaningInstances();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const selected = tasks.find((t) => t.id === selectedId) || null;
+  const [scheduleDialogOpen, setScheduleDialogOpen] = useState(false);
+  const [editingSchedule, setEditingSchedule] = useState<CleaningSchedule | null>(null);
 
   const today = tasks.filter((t) => isToday(t.scheduledFor) && t.status !== "completed");
   const upcoming = tasks.filter((t) => isFuture(t.scheduledFor));
   const completed = tasks.filter((t) => t.status === "completed");
 
   const updateTask = (id: string, patch: Partial<CleaningTask>) => updateCleaning.mutate({ id, patch });
+
+  const DAY_LABEL = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
+  const RECURRENCE_LABEL: Record<string, string> = { weekly: "Semanal", biweekly: "Quinzenal", monthly: "Mensal" };
+
+  const openNewSchedule = () => { setEditingSchedule(null); setScheduleDialogOpen(true); };
+  const openEditSchedule = (s: CleaningSchedule) => { setEditingSchedule(s); setScheduleDialogOpen(true); };
+  const handleGenerate = async (s: CleaningSchedule) => {
+    try {
+      const n = await generate.mutateAsync({ scheduleId: s.id, count: 8 });
+      toast.success(`${n} limpeza${n === 1 ? "" : "s"} geradas a partir de "${s.name}"`);
+    } catch (e: any) {
+      toast.error(e.message);
+    }
+  };
+  const handleDelete = async (s: CleaningSchedule) => {
+    if (!confirm(`Apagar agendamento "${s.name}"? As limpezas já criadas mantêm-se.`)) return;
+    try { await deleteSchedule.mutateAsync(s.id); toast.success("Agendamento removido"); }
+    catch (e: any) { toast.error(e.message); }
+  };
 
   const TaskCard = ({ t }: { t: CleaningTask }) => (
     <Card onClick={() => setSelectedId(t.id)} className="p-4 cursor-pointer hover:shadow-elegant transition-smooth border-border/60">
