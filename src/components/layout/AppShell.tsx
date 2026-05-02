@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useAuth } from "@/hooks/useAuth";
+import { NotificationBell } from "@/components/NotificationBell";
 import logo from "@/assets/logo.png";
 
 const baseNavItems = [
@@ -84,8 +85,11 @@ export const AppShell = () => {
         </nav>
         <div className="p-3 border-t border-sidebar-border space-y-2">
           {user && (
-            <div className="px-2 py-1 text-[11px] text-muted-foreground truncate" title={user.email ?? ""}>
-              {user.email}
+            <div className="flex items-center justify-between gap-2 px-2 py-1">
+              <span className="text-[11px] text-muted-foreground truncate" title={user.email ?? ""}>
+                {user.email}
+              </span>
+              <NotificationBell />
             </div>
           )}
           <button onClick={handleSignOut} className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-sidebar-foreground hover:bg-sidebar-accent/60 transition-smooth">
@@ -98,6 +102,7 @@ export const AppShell = () => {
       <header className="lg:hidden sticky top-0 z-30 bg-background/85 backdrop-blur border-b border-border">
         <div className="flex items-center justify-between px-4 h-14">
           <Brand />
+          <NotificationBell />
         </div>
       </header>
 

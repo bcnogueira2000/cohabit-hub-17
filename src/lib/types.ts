@@ -49,6 +49,7 @@ export interface Request {
   createdAt: string;
   updatedAt: string;
   permissionToEnter: "yes" | "no" | "with_notice";
+  photos: string[];
 }
 
 export type CleaningType = "room_regular" | "room_deep" | "bathroom" | "kitchen" | "common" | "checkout_inspection";

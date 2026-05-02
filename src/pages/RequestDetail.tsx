@@ -3,8 +3,10 @@ import { Link, useParams } from "react-router-dom";
 import { ArrowLeft, Calendar, MapPin, User, Tag, ShieldCheck, DoorOpen, UserCog } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { RequestPhotoGallery } from "@/components/RequestPhotoGallery";
 import { useRequests, useResidents, useRooms, useUpdateRequest } from "@/hooks/useData";
+import { useStaffUsers } from "@/hooks/useStaffUsers";
 import { categoryLabels } from "@/lib/labels";
 import { StatusBadge, PriorityBadge } from "@/components/ui/StatusBadge";
 import { cn } from "@/lib/utils";
@@ -15,6 +17,7 @@ const RequestDetail = () => {
   const { data: requests = [] } = useRequests();
   const { data: residents = [] } = useResidents();
   const { data: rooms = [] } = useRooms();
+  const { data: staff = [] } = useStaffUsers();
   const updateRequest = useUpdateRequest();
   const request = requests.find((r) => r.id === id);
   const [assignee, setAssignee] = useState("");
@@ -43,10 +46,7 @@ const RequestDetail = () => {
     updateRequest.mutate({ id: request.id, patch: { status } }, { onSuccess: () => toast.success("Estado atualizado") });
   };
 
-  const saveAssignee = () => {
-    const value = assignee.trim() || null;
-    updateRequest.mutate({ id: request.id, patch: { assignedTo: value } }, { onSuccess: () => toast.success(value ? "Tarefa atribuída" : "Atribuição removida") });
-  };
+
 
   const statusActions: { value: any; label: string; activeClass: string; idleClass: string }[] = [
     { value: "in_progress", label: "Marcar em curso", activeClass: "gradient-warm border-0 text-white", idleClass: "border-border text-foreground" },
@@ -101,25 +101,38 @@ const RequestDetail = () => {
           <UserCog className="h-4 w-4" /> Atribuir tarefa
         </h3>
         <div className="flex flex-col sm:flex-row gap-2">
-          <Input
-            value={assignee}
-            onChange={(e) => setAssignee(e.target.value)}
-            placeholder="Nome do responsável (ex: Maria Silva)"
-            className="flex-1"
-          />
-          <Button onClick={saveAssignee} className="rounded-full gradient-warm border-0">
-            Guardar
-          </Button>
-          {request.assignedTo && (
-            <Button
-              variant="outline"
-              className="rounded-full"
-              onClick={() => { setAssignee(""); updateRequest.mutate({ id: request.id, patch: { assignedTo: null } }, { onSuccess: () => toast.success("Atribuição removida") }); }}
-            >
-              Remover
-            </Button>
-          )}
+          <Select
+            value={assignee || "__none__"}
+            onValueChange={(value) => {
+              const next = value === "__none__" ? "" : value;
+              setAssignee(next);
+              updateRequest.mutate(
+                { id: request.id, patch: { assignedTo: next || null } },
+                { onSuccess: () => toast.success(next ? "Tarefa atribuída" : "Atribuição removida") }
+              );
+            }}
+          >
+            <SelectTrigger className="flex-1">
+              <SelectValue placeholder="Escolher responsável…" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="__none__">Não atribuído</SelectItem>
+              {staff.map((s) => {
+                const label = s.full_name || s.email || s.user_id.slice(0, 8);
+                return (
+                  <SelectItem key={s.user_id} value={label}>
+                    {label} <span className="text-xs text-muted-foreground ml-1">· {s.role}</span>
+                  </SelectItem>
+                );
+              })}
+            </SelectContent>
+          </Select>
         </div>
+        {staff.length === 0 && (
+          <p className="text-xs text-muted-foreground mt-2">
+            Ainda não há membros da equipa registados. Adiciona-os em Utilizadores.
+          </p>
+        )}
       </Card>
 
       <Card className="p-5 border-border/60 shadow-card">

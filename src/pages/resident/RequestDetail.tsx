@@ -1,10 +1,11 @@
 import { Link, useParams } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Loader2, MapPin, Tag, AlertCircle, KeyRound, Check, Circle } from "lucide-react";
+import { ArrowLeft, Loader2, MapPin, Tag, AlertCircle, KeyRound, Check, Circle, Image as ImageIcon } from "lucide-react";
 import { useRequest, type RequestStatus } from "@/hooks/useResidentRequests";
 import { useLang } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
+import { RequestPhotoGallery } from "@/components/RequestPhotoGallery";
 
 const statusColor: Record<RequestStatus, string> = {
   open: "bg-blue-500/10 text-blue-700 dark:text-blue-300 border-blue-500/30",
@@ -117,6 +118,15 @@ const RequestDetail = () => {
             {lang === "pt" ? "Descrição" : "Description"}
           </p>
           <p className="text-sm whitespace-pre-wrap">{req.description}</p>
+        </Card>
+      )}
+
+      {(req as any).photos && (req as any).photos.length > 0 && (
+        <Card className="p-4 border-border/60">
+          <p className="text-[11px] uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-1.5">
+            <ImageIcon className="h-3.5 w-3.5" /> {lang === "pt" ? "Fotos" : "Photos"}
+          </p>
+          <RequestPhotoGallery paths={(req as any).photos} />
         </Card>
       )}
 

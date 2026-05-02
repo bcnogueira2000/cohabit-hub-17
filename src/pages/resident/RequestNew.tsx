@@ -15,6 +15,7 @@ import {
 import { useLang } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
+import { RequestPhotoUpload } from "@/components/RequestPhotoUpload";
 
 const categoryOptions: {
   value: RequestCategory;
@@ -43,6 +44,7 @@ const RequestNew = () => {
   const [permission, setPermission] = useState<PermissionToEnter>("yes");
   const [roomNumber, setRoomNumber] = useState<string | null>(null);
   const [hasRoom, setHasRoom] = useState<boolean | null>(null);
+  const [photos, setPhotos] = useState<string[]>([]);
 
   useEffect(() => {
     (async () => {
@@ -81,6 +83,7 @@ const RequestNew = () => {
         priority,
         location: location.trim() || undefined,
         permission_to_enter: permission,
+        photos,
       });
       toast.success(lang === "pt" ? "Pedido enviado!" : "Request sent!");
       navigate("/app/requests");
@@ -184,6 +187,11 @@ const RequestNew = () => {
               ? "Opcional. Por defeito assumimos o teu quarto."
               : "Optional. Defaults to your room."}
           </p>
+        </div>
+
+        <div>
+          <Label className="mb-2 block">{lang === "pt" ? "Fotos" : "Photos"}</Label>
+          <RequestPhotoUpload paths={photos} onChange={setPhotos} max={3} />
         </div>
 
         <div>

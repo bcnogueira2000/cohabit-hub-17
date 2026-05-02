@@ -5,6 +5,7 @@ import { useState } from "react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useAuth } from "@/hooks/useAuth";
 import { useLang } from "@/lib/i18n";
+import { NotificationBell } from "@/components/NotificationBell";
 import logo from "@/assets/logo.png";
 
 export const ResidentShell = () => {
@@ -40,9 +41,7 @@ export const ResidentShell = () => {
             <img src={logo} alt="Living Colours" className="h-8 w-8 object-contain" />
             <div className="font-display text-sm font-bold tracking-tight">Living Colours</div>
           </div>
-          <NavLink to="/app/notifications" className="p-2 rounded-full hover:bg-muted/60">
-            <Bell className="h-5 w-5 text-muted-foreground" />
-          </NavLink>
+          <NotificationBell />
         </div>
       </header>
 
