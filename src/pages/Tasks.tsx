@@ -29,16 +29,64 @@ const priorityDot: Record<string, string> = {
   low: "bg-muted-foreground/40", medium: "bg-info", high: "bg-destructive",
 };
 
+const NONE = "__none__";
+
 const Tasks = () => {
   const { data: tasks = [] } = useOpsTasks();
   const { data: residents = [] } = useResidents();
   const { data: rooms = [] } = useRooms();
+  const { data: staff = [] } = useStaffUsers();
   const createTask = useCreateOpsTask();
   const updateTask = useUpdateOpsTask();
+  const deleteTask = useDeleteOpsTask();
+  const { toast } = useToast();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const selected = tasks.find((t) => t.id === selectedId) || null;
 
+  // Local edit state for the sheet (assignee + due date)
+  const [editAssignee, setEditAssignee] = useState<string>(NONE);
+  const [editDueDate, setEditDueDate] = useState<string>("");
+
+  useEffect(() => {
+    if (!selected) return;
+    setEditAssignee(selected.assignedToUserId ?? NONE);
+    setEditDueDate(selected.dueDate ? selected.dueDate.slice(0, 10) : "");
+  }, [selected?.id, selected?.assignedToUserId, selected?.dueDate]);
+
   const setStatus = (id: string, status: TaskStatus) => updateTask.mutate({ id, patch: { status } });
+
+  const onAssigneeChange = (value: string) => {
+    if (!selected) return;
+    setEditAssignee(value);
+    const member = staff.find((s) => s.user_id === value);
+    updateTask.mutate({
+      id: selected.id,
+      patch: {
+        assignedToUserId: value === NONE ? null : value,
+        assignedTo: value === NONE ? null : (member?.full_name || member?.email || null),
+      },
+    });
+  };
+
+  const onDueDateChange = (value: string) => {
+    if (!selected) return;
+    setEditDueDate(value);
+    updateTask.mutate({
+      id: selected.id,
+      patch: { dueDate: value ? new Date(value).toISOString() : null },
+    });
+  };
+
+  const onDelete = () => {
+    if (!selected) return;
+    deleteTask.mutate(selected.id, {
+      onSuccess: () => {
+        toast({ title: "Tarefa eliminada", description: selected.code });
+        setSelectedId(null);
+      },
+      onError: (e: any) => toast({ title: "Erro a eliminar", description: e?.message, variant: "destructive" }),
+    });
+  };
 
   return (
     <div className="px-4 lg:px-10 py-6 lg:py-10 max-w-7xl mx-auto">
