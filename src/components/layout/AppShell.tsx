@@ -66,12 +66,12 @@ const mobileBottom: NavItem[] = [
 ];
 
 const Brand = ({ compact = false }: { compact?: boolean }) => (
-  <div className="flex items-center gap-2.5">
+  <Link to="/" className="flex items-center gap-2.5 hover:opacity-80 transition-opacity">
     <img src={logo} alt="Living Colours" className={compact ? "h-8 w-8 object-contain" : "h-9 w-9 object-contain"} />
     <div className="leading-tight">
       <div className="font-display text-[15px] font-bold text-foreground tracking-tight">Living Colours</div>
     </div>
-  </div>
+  </Link>
 );
 
 export const AppShell = () => {
