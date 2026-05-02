@@ -46,6 +46,9 @@ export const AppShell = () => {
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
   const { data: pending = [] } = usePendingProfiles();
+  const { data: myRoles = [] } = useMyRoles();
+  const isAdmin = myRoles.includes("admin");
+  const navItems = isAdmin ? [...baseNavItems, adminOnlyItem] : baseNavItems;
   const [moreOpen, setMoreOpen] = useState(false);
   const handleSignOut = async () => { await signOut(); navigate("/auth", { replace: true }); };
 
