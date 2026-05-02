@@ -3,7 +3,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { UserPlus, UserCheck, UserX, Mail, Phone, Home, Calendar } from "lucide-react";
+import { UserPlus, UserCheck, UserX, Mail, Phone, Home, Calendar, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { usePendingProfiles, useApproveProfile, useRejectProfile, type Profile } from "@/hooks/useProfile";
 import { useResidents, useRooms } from "@/hooks/useData";
