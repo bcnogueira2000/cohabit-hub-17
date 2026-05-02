@@ -71,6 +71,7 @@ export interface CleaningTask {
   assignedToUserId: string | null;
   notes?: string;
   checklist?: { label: string; done: boolean }[];
+  updatedAt?: string;
 }
 
 export type TaskStatus = "todo" | "in_progress" | "done" | "blocked";
@@ -91,6 +92,7 @@ export interface OpsTask {
   requestId: string | null;
   dueDate: string | null;
   createdAt: string;
+  updatedAt?: string;
 }
 
 export interface Space {
