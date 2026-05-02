@@ -31,6 +31,11 @@ import Stays from "./pages/Stays";
 import Approvals from "./pages/Approvals";
 import Users from "./pages/Users";
 import ResidentHome from "./pages/resident/Home";
+import ResidentRequests from "./pages/resident/Requests";
+import ResidentRequestNew from "./pages/resident/RequestNew";
+import ResidentRequestDetail from "./pages/resident/RequestDetail";
+import ResidentBookings from "./pages/resident/Bookings";
+import ResidentBookingNew from "./pages/resident/BookingNew";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -54,11 +59,11 @@ const App = () => (
             <Route element={<ProtectedRoute requireRole={["resident"]}><ResidentShell /></ProtectedRoute>}>
               <Route path="/app" element={<ResidentHome />} />
               <Route path="/app/home" element={<ResidentHome />} />
-              <Route path="/app/requests" element={<ComingSoon icon={Inbox} title="Pedidos" description="Acompanha os teus pedidos." />} />
-              <Route path="/app/requests/new" element={<ComingSoon icon={Inbox} title="Novo pedido" description="Cria um novo pedido." />} />
-              <Route path="/app/requests/:id" element={<ComingSoon icon={Inbox} title="Detalhe do pedido" description="Estado e timeline." />} />
-              <Route path="/app/bookings" element={<ComingSoon icon={CalendarRange} title="Reservas" description="As tuas reservas de espaços comuns." />} />
-              <Route path="/app/bookings/new" element={<ComingSoon icon={CalendarRange} title="Nova reserva" description="Reservar um espaço." />} />
+              <Route path="/app/requests" element={<ResidentRequests />} />
+              <Route path="/app/requests/new" element={<ResidentRequestNew />} />
+              <Route path="/app/requests/:id" element={<ResidentRequestDetail />} />
+              <Route path="/app/bookings" element={<ResidentBookings />} />
+              <Route path="/app/bookings/new" element={<ResidentBookingNew />} />
               <Route path="/app/events" element={<ComingSoon icon={PartyPopper} title="Eventos" description="Eventos da comunidade." />} />
               <Route path="/app/events/:id" element={<ComingSoon icon={PartyPopper} title="Evento" description="Detalhes do evento." />} />
               <Route path="/app/services" element={<ComingSoon icon={Sparkles} title="Serviços" description="Limpezas e extras." />} />
