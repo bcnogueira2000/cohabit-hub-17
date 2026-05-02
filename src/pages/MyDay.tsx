@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Sparkles, ListChecks, Clock, Check, MapPin, User as UserIcon } from "lucide-react";
+import { Sparkles, ListChecks, Clock, Check, MapPin } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
@@ -23,34 +23,54 @@ const MyDay = () => {
   const updateTask = useUpdateOpsTask();
 
   const [filter, setFilter] = useState<"all" | "cleaning" | "task">("all");
-  const [mineOnly, setMineOnly] = useState(false);
+  const [scope, setScope] = useState<"today" | "mine">("today");
   const [sel, setSel] = useState<Item | null>(null);
   const [notes, setNotes] = useState("");
 
-  const myEmailFirstName = user?.email?.split("@")[0] ?? "";
-
   const items: Item[] = useMemo(() => {
-    const a: Item[] = cleanings
-      .filter((c) => isToday(new Date(c.scheduledFor)) && c.status !== "completed")
+    const isMine = (assignedUserId: string | null) =>
+      !!user && assignedUserId === user.id;
+
+    const cleaningItems: Item[] = cleanings
+      .filter((c) => {
+        if (c.status === "completed") return false;
+        if (scope === "mine") return isMine(c.assignedToUserId);
+        // today scope
+        return isToday(new Date(c.scheduledFor));
+      })
       .map((c) => ({
-        kind: "cleaning", id: c.id, time: new Date(c.scheduledFor),
-        title: c.area, subtitle: `${c.service === "normal" ? "Limpeza normal" : "Limpeza simples"} · ${c.assignedTo ?? "Sem atribuição"}`,
-        status: c.status, raw: c,
+        kind: "cleaning",
+        id: c.id,
+        time: new Date(c.scheduledFor),
+        title: c.area,
+        subtitle: `${c.service === "normal" ? "Limpeza normal" : "Limpeza simples"} · ${c.assignedTo ?? "Sem atribuição"}`,
+        status: c.status,
+        raw: c,
       }));
-    const b: Item[] = tasks
-      .filter((t) => t.status !== "done" && t.dueDate && new Date(t.dueDate).toDateString() === new Date().toDateString())
+
+    const taskItems: Item[] = tasks
+      .filter((t) => {
+        if (t.status === "done") return false;
+        if (scope === "mine") return isMine(t.assignedToUserId);
+        // today scope: only those due today
+        return t.dueDate && isToday(new Date(t.dueDate));
+      })
       .map((t) => ({
-        kind: "task", id: t.id, time: new Date(t.dueDate!),
-        title: t.title, subtitle: `Tarefa · ${t.assignedTo ?? "Sem atribuição"}`,
-        status: t.status, raw: t,
+        kind: "task",
+        id: t.id,
+        time: new Date(t.dueDate ?? t.createdAt),
+        title: t.title,
+        subtitle: `Tarefa · ${t.assignedTo ?? "Sem atribuição"}`,
+        status: t.status,
+        raw: t,
       }));
-    let merged = [...a, ...b].sort((x, y) => x.time.getTime() - y.time.getTime());
+
+    let merged = [...cleaningItems, ...taskItems].sort(
+      (x, y) => x.time.getTime() - y.time.getTime(),
+    );
     if (filter !== "all") merged = merged.filter((m) => m.kind === filter);
-    if (mineOnly && myEmailFirstName) {
-      merged = merged.filter((m) => (m.raw.assignedTo ?? "").toLowerCase().includes(myEmailFirstName.toLowerCase()));
-    }
     return merged;
-  }, [cleanings, tasks, filter, mineOnly, myEmailFirstName]);
+  }, [cleanings, tasks, filter, scope, user]);
 
   const openItem = (it: Item) => {
     setSel(it);
@@ -87,6 +107,28 @@ const MyDay = () => {
         <p className="text-sm text-muted-foreground mt-1">{user?.email}</p>
       </div>
 
+      {/* Scope toggle */}
+      <div className="inline-flex p-1 rounded-full bg-muted/40 border border-border mb-4">
+        <button
+          onClick={() => setScope("today")}
+          className={cn(
+            "px-4 py-1.5 rounded-full text-sm font-medium transition-smooth",
+            scope === "today" ? "bg-foreground text-background" : "text-muted-foreground",
+          )}
+        >
+          Hoje
+        </button>
+        <button
+          onClick={() => setScope("mine")}
+          className={cn(
+            "px-4 py-1.5 rounded-full text-sm font-medium transition-smooth",
+            scope === "mine" ? "bg-foreground text-background" : "text-muted-foreground",
+          )}
+        >
+          Atribuídas a mim
+        </button>
+      </div>
+
       <div className="flex gap-2 overflow-x-auto pb-2 mb-4 -mx-1 px-1">
         {([["all","Todas"],["cleaning","Limpeza"],["task","Manutenção/Tarefas"]] as const).map(([v, l]) => (
           <button key={v} onClick={() => setFilter(v as any)}
@@ -95,16 +137,13 @@ const MyDay = () => {
             {l}
           </button>
         ))}
-        <button onClick={() => setMineOnly((m) => !m)}
-          className={cn("shrink-0 px-3.5 py-1.5 rounded-full text-sm font-medium border transition-smooth",
-            mineOnly ? "bg-primary text-primary-foreground border-primary" : "bg-card text-muted-foreground border-border")}>
-          Só minhas
-        </button>
       </div>
 
       {items.length === 0 && (
         <Card className="p-10 text-center text-muted-foreground border-dashed">
-          Nada por fazer hoje. Bom trabalho!
+          {scope === "mine"
+            ? "Não tens tarefas atribuídas neste momento."
+            : "Nada por fazer hoje. Bom trabalho!"}
         </Card>
       )}
 
@@ -120,7 +159,9 @@ const MyDay = () => {
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-0.5 text-xs text-muted-foreground">
                   <Clock className="h-3 w-3" />
-                  {it.time.toLocaleTimeString("pt-PT", { hour: "2-digit", minute: "2-digit" })}
+                  {scope === "mine" && !isToday(it.time)
+                    ? it.time.toLocaleDateString("pt-PT", { day: "numeric", month: "short" })
+                    : it.time.toLocaleTimeString("pt-PT", { hour: "2-digit", minute: "2-digit" })}
                   {it.status === "in_progress" && <span className="px-1.5 py-0.5 rounded-full bg-warning/20 text-warning text-[10px]">em curso</span>}
                 </div>
                 <div className="font-medium leading-tight">{it.title}</div>
