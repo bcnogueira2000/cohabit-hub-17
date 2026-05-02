@@ -22,6 +22,7 @@ const statusFilters: { value: RequestStatus | "all"; label: string }[] = [
 const Requests = () => {
   const { data: requests = [] } = useRequests();
   const { data: residents = [] } = useResidents();
+  const { data: rooms = [] } = useRooms();
   const [filter, setFilter] = useState<RequestStatus | "all">("all");
   const [search, setSearch] = useState("");
 
