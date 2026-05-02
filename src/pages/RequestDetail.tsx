@@ -35,12 +35,25 @@ const RequestDetail = () => {
   }
 
   const resident = residents.find((p) => p.id === request.residentId);
+  const room = rooms.find((r) => r.id === (request.roomId ?? resident?.roomId));
   const created = new Date(request.createdAt).toLocaleString("pt-PT", { dateStyle: "medium", timeStyle: "short" });
   const permissionLabel = { yes: "Sim", no: "Não", with_notice: "Apenas com aviso" }[request.permissionToEnter];
 
   const setStatus = (status: any) => {
     updateRequest.mutate({ id: request.id, patch: { status } }, { onSuccess: () => toast.success("Estado atualizado") });
   };
+
+  const saveAssignee = () => {
+    const value = assignee.trim() || null;
+    updateRequest.mutate({ id: request.id, patch: { assignedTo: value } }, { onSuccess: () => toast.success(value ? "Tarefa atribuída" : "Atribuição removida") });
+  };
+
+  const statusActions: { value: any; label: string; activeClass: string; idleClass: string }[] = [
+    { value: "in_progress", label: "Marcar em curso", activeClass: "gradient-warm border-0 text-white", idleClass: "border-border text-foreground" },
+    { value: "waiting_resident", label: "Aguarda residente", activeClass: "bg-primary text-primary-foreground border-primary", idleClass: "border-border text-foreground" },
+    { value: "waiting_supplier", label: "Aguarda fornecedor", activeClass: "bg-primary text-primary-foreground border-primary", idleClass: "border-border text-foreground" },
+    { value: "resolved", label: "Marcar resolvido", activeClass: "bg-success text-white border-success", idleClass: "border-success/40 text-success hover:bg-success/10" },
+  ];
 
   return (
     <div className="px-4 lg:px-10 py-6 lg:py-10 max-w-4xl mx-auto">
