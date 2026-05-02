@@ -1,5 +1,5 @@
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
-import { LayoutDashboard, Inbox, Sparkles, ListChecks, Users, DoorClosed, CalendarRange, BarChart3, Settings, MoreHorizontal, Sun, LogOut, LogIn, UserCheck, Shield } from "lucide-react";
+import { LayoutDashboard, Inbox, Sparkles, ListChecks, Users, DoorClosed, CalendarRange, BarChart3, Settings, MoreHorizontal, Sun, LogOut, LogIn, UserCheck, Shield, ArrowLeft } from "lucide-react";
 import { usePendingProfiles, useMyRoles } from "@/hooks/useProfile";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
