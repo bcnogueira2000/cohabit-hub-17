@@ -10,8 +10,8 @@
 
 @layer base {
   :root {
-    /* Surfaces — clean off-white, slightly warm */
-    --background: 0 0% 99%;
+    /* Surfaces — soft neutral background, cards lift with white + border */
+    --background: 220 16% 96%;
     --foreground: 220 10% 14%;
 
     --card: 0 0% 100%;
@@ -50,8 +50,8 @@
     --info: 240 32% 66%;
     --info-foreground: 0 0% 100%;
 
-    --border: 220 14% 90%;
-    --input: 220 14% 90%;
+    --border: 220 14% 88%;
+    --input: 220 14% 88%;
     --ring: 168 56% 50%;
 
     --radius: 0.875rem;
@@ -72,9 +72,9 @@
     --gradient-living: linear-gradient(135deg, hsl(240 32% 66%) 0%, hsl(168 56% 50%) 50%, hsl(46 86% 62%) 100%);
 
     /* Shadows */
-    --shadow-soft: 0 1px 2px hsl(220 10% 10% / 0.04), 0 4px 12px hsl(220 10% 10% / 0.04);
+    --shadow-soft: 0 1px 2px hsl(220 10% 10% / 0.05), 0 4px 14px hsl(220 10% 10% / 0.06);
     --shadow-elegant: 0 8px 24px -8px hsl(168 56% 35% / 0.22);
-    --shadow-card: 0 1px 3px hsl(220 10% 10% / 0.06);
+    --shadow-card: 0 1px 2px hsl(220 10% 10% / 0.04), 0 2px 8px hsl(220 10% 10% / 0.06);
 
     --transition-smooth: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 
