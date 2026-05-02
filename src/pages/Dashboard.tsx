@@ -3,10 +3,15 @@ import { Plus, ArrowRight, Inbox, Sparkles, DoorClosed, AlertTriangle, ListCheck
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import { StatusBadge, PriorityBadge } from "@/components/ui/StatusBadge";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { BrandAvatar } from "@/components/ui/BrandAvatar";
 import { NewTaskDialog } from "@/components/NewTaskDialog";
 import { useRequests, useCleaningTasks, useRooms, useResidents, useCreateOpsTask, useStays } from "@/hooks/useData";
 import { useAuth } from "@/hooks/useAuth";
+import { useProfile } from "@/hooks/useProfile";
+import { capitalize, formatDate } from "@/lib/utils";
 
 const greeting = () => {
   const h = new Date().getHours();
@@ -15,17 +20,17 @@ const greeting = () => {
   return "Boa noite";
 };
 
-const formatDate = () =>
-  new Date().toLocaleDateString("pt-PT", { weekday: "long", day: "numeric", month: "long" });
-
 const Dashboard = () => {
   const { user } = useAuth();
-  const { data: requests = [] } = useRequests();
-  const { data: cleaningTasks = [] } = useCleaningTasks();
-  const { data: rooms = [] } = useRooms();
+  const { data: profile } = useProfile();
+  const { data: requests = [], isLoading: loadingRequests } = useRequests();
+  const { data: cleaningTasks = [], isLoading: loadingCleaning } = useCleaningTasks();
+  const { data: rooms = [], isLoading: loadingRooms } = useRooms();
   const { data: residents = [] } = useResidents();
-  const { data: stays = [] } = useStays();
+  const { data: stays = [], isLoading: loadingStays } = useStays();
   const createTask = useCreateOpsTask();
+
+  const isLoadingKpis = loadingRequests || loadingCleaning || loadingRooms || loadingStays;
 
   const now = Date.now();
   const in7d = now + 7 * 86400000;
@@ -45,7 +50,11 @@ const Dashboard = () => {
   const occupancy = rooms.length ? Math.round((occupied / rooms.length) * 100) : 0;
   const checkingOut = residents.filter((r) => r.status === "checking_out").length;
 
-  const firstName = user?.email?.split("@")[0] ?? "equipa";
+  // Prefer profile name, fallback to capitalized email local part.
+  const firstName =
+    capitalize(profile?.full_name?.split(" ")[0] ?? "") ||
+    capitalize(user?.email?.split("@")[0] ?? "") ||
+    "equipa";
 
   const kpis = [
     { label: "Pedidos abertos", value: openRequests.length, sub: `${urgent.length} urgentes`, icon: Inbox, accent: "bg-primary/10 text-primary" },
@@ -55,17 +64,17 @@ const Dashboard = () => {
   ];
 
   return (
-    <div className="px-4 lg:px-10 py-6 lg:py-10 max-w-7xl mx-auto">
-      <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-8">
+    <div className="px-4 lg:px-10 py-6 lg:py-8 max-w-7xl mx-auto">
+      <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-7">
         <div>
-          <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
-            <Sun className="h-4 w-4" />
-            <span className="capitalize">{formatDate()}</span>
+          <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1.5">
+            <Sun className="h-3.5 w-3.5" />
+            <span className="capitalize">{formatDate(new Date(), "long")}</span>
           </div>
-          <h1 className="font-display text-3xl lg:text-4xl font-semibold text-foreground capitalize">
+          <h1 className="font-display text-2xl lg:text-[28px] font-semibold text-foreground">
             {greeting()}, {firstName}.
           </h1>
-          <p className="text-muted-foreground mt-1">Aqui está o que precisa da tua atenção hoje.</p>
+          <p className="text-sm text-muted-foreground mt-1">Aqui está o que precisa da tua atenção hoje.</p>
         </div>
         <div className="flex gap-2">
           <NewTaskDialog
@@ -74,175 +83,196 @@ const Dashboard = () => {
               priority: t.priority, assignedTo: t.assignedTo, dueDate: t.dueDate,
             })}
             trigger={
-              <Button variant="outline" className="rounded-full">
+              <Button variant="outline" size="sm">
                 <ListChecks className="h-4 w-4 mr-1.5" /> Nova tarefa
               </Button>
             }
           />
-          <Button asChild className="rounded-full gradient-warm border-0 shadow-elegant">
+          <Button asChild size="sm">
             <Link to="/requests/new"><Plus className="h-4 w-4 mr-1.5" /> Novo pedido</Link>
           </Button>
         </div>
       </div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4 mb-8">
+      {/* KPIs */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4 mb-7">
         {kpis.map(({ label, value, sub, icon: Icon, accent }) => (
-          <Card key={label} className="p-4 lg:p-5 shadow-card hover:shadow-elegant transition-smooth border-border/60">
+          <Card key={label} className="p-4 lg:p-5 border-border/70 shadow-none hover:shadow-card transition-smooth">
             <div className="flex items-start justify-between mb-3">
-              <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{label}</span>
+              <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">{label}</span>
               <div className={`h-8 w-8 rounded-lg flex items-center justify-center ${accent}`}>
                 <Icon className="h-4 w-4" />
               </div>
             </div>
-            <div className="font-display text-3xl font-semibold text-foreground">{value}</div>
+            {isLoadingKpis ? (
+              <Skeleton className="h-8 w-16 mb-1" />
+            ) : (
+              <div className="font-display text-2xl lg:text-[26px] font-semibold text-foreground leading-tight">{value}</div>
+            )}
             <div className="text-xs text-muted-foreground mt-1">{sub}</div>
           </Card>
         ))}
       </div>
 
-      <div className="grid lg:grid-cols-3 gap-6">
-        <Card className="lg:col-span-2 p-5 lg:p-6 shadow-card border-border/60">
+      <div className="grid lg:grid-cols-3 gap-5">
+        <Card className="lg:col-span-2 p-5 lg:p-6 border-border/70 shadow-none">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h2 className="font-display text-xl font-semibold">Pedidos abertos</h2>
-              <p className="text-sm text-muted-foreground">Os que precisam de ação</p>
+              <h2 className="font-display text-base font-semibold">Pedidos abertos</h2>
+              <p className="text-xs text-muted-foreground mt-0.5">Os que precisam de ação</p>
             </div>
-            <Button asChild variant="ghost" size="sm" className="text-primary">
+            <Button asChild variant="ghost" size="sm" className="text-primary -mr-2">
               <Link to="/requests">Ver todos <ArrowRight className="h-3.5 w-3.5 ml-1" /></Link>
             </Button>
           </div>
-          <div className="space-y-2">
-            {openRequests.length === 0 && (
-              <div className="text-sm text-muted-foreground py-6 text-center">Sem pedidos abertos. ✨</div>
+          <div className="space-y-1">
+            {loadingRequests ? (
+              <div className="space-y-2">
+                {[0, 1, 2].map((i) => <Skeleton key={i} className="h-14 w-full" />)}
+              </div>
+            ) : openRequests.length === 0 ? (
+              <EmptyState
+                icon={Inbox}
+                title="Sem pedidos abertos"
+                description="A tua equipa está em dia. Quando entrarem novos pedidos, aparecem aqui."
+                size="sm"
+              />
+            ) : (
+              openRequests.slice(0, 5).map((r) => {
+                const resident = residents.find((p) => p.id === r.residentId);
+                return (
+                  <Link
+                    key={r.id}
+                    to={`/requests/${r.id}`}
+                    className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-muted/50 transition-smooth border border-transparent hover:border-border"
+                  >
+                    <BrandAvatar name={resident?.fullName} size="sm" />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-0.5">
+                        <span className="text-[10.5px] font-mono text-muted-foreground">{r.code}</span>
+                        <PriorityBadge priority={r.priority} />
+                      </div>
+                      <div className="font-medium text-sm truncate">{r.title}</div>
+                      <div className="text-xs text-muted-foreground truncate">
+                        {resident?.fullName || "—"} · {r.location}
+                      </div>
+                    </div>
+                    <StatusBadge status={r.status} />
+                  </Link>
+                );
+              })
             )}
-            {openRequests.slice(0, 5).map((r) => {
-              const resident = residents.find((p) => p.id === r.residentId);
-              return (
-                <Link
-                  key={r.id}
-                  to={`/requests/${r.id}`}
-                  className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted/50 transition-smooth border border-transparent hover:border-border"
-                >
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="text-[11px] font-mono text-muted-foreground">{r.code}</span>
-                      <PriorityBadge priority={r.priority} />
-                    </div>
-                    <div className="font-medium text-sm truncate">{r.title}</div>
-                    <div className="text-xs text-muted-foreground truncate">
-                      {resident?.fullName || "—"} · {r.location}
-                    </div>
-                  </div>
-                  <StatusBadge status={r.status} />
-                </Link>
-              );
-            })}
           </div>
         </Card>
 
-        <Card className="p-5 lg:p-6 shadow-card border-border/60">
+        <Card className="p-5 lg:p-6 border-border/70 shadow-none">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h2 className="font-display text-xl font-semibold">Limpeza de hoje</h2>
-              <p className="text-sm text-muted-foreground">{todaysCleaning.length} agendadas</p>
+              <h2 className="font-display text-base font-semibold">Limpezas de hoje</h2>
+              <p className="text-xs text-muted-foreground mt-0.5">{todaysCleaning.length} agendadas</p>
             </div>
-            <Button asChild variant="ghost" size="sm" className="text-primary">
+            <Button asChild variant="ghost" size="sm" className="text-primary -mr-2" title="Ver todas">
               <Link to="/cleaning"><ArrowRight className="h-3.5 w-3.5" /></Link>
             </Button>
           </div>
           <div className="space-y-2">
-            {todaysCleaning.length === 0 && (
-              <div className="text-sm text-muted-foreground py-4 text-center">Sem limpezas agendadas.</div>
-            )}
-            {todaysCleaning.slice(0, 6).map((t) => (
-              <div key={t.id} className="flex items-center gap-3 p-3 rounded-lg bg-muted/40">
-                <div className={`h-9 w-9 rounded-lg flex items-center justify-center ${
-                  t.status === "in_progress" ? "bg-warning/20 text-warning" : "bg-secondary text-secondary-foreground"
-                }`}>
-                  <Sparkles className="h-4 w-4" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="font-medium text-sm truncate">{t.area}</div>
-                  <div className="text-xs text-muted-foreground">
-                    {new Date(t.scheduledFor).toLocaleTimeString("pt-PT", { hour: "2-digit", minute: "2-digit" })}
-                    {t.assignedTo && ` · ${t.assignedTo}`}
+            {loadingCleaning ? (
+              [0, 1, 2].map((i) => <Skeleton key={i} className="h-12 w-full" />)
+            ) : todaysCleaning.length === 0 ? (
+              <EmptyState icon={Sparkles} title="Sem limpezas agendadas" size="sm" />
+            ) : (
+              todaysCleaning.slice(0, 6).map((t) => (
+                <div key={t.id} className="flex items-center gap-3 p-2.5 rounded-lg bg-muted/30">
+                  <div className={`h-9 w-9 rounded-lg flex items-center justify-center ${
+                    t.status === "in_progress" ? "bg-warning/20 text-warning" : "bg-secondary text-secondary-foreground"
+                  }`}>
+                    <Sparkles className="h-4 w-4" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="font-medium text-sm truncate">{t.area}</div>
+                    <div className="text-xs text-muted-foreground">
+                      {formatDate(t.scheduledFor, "time")}
+                      {t.assignedTo && ` · ${t.assignedTo}`}
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </Card>
       </div>
 
-      <div className="grid lg:grid-cols-2 gap-6 mt-6">
-        <Card className="p-5 lg:p-6 shadow-card border-border/60">
+      <div className="grid lg:grid-cols-2 gap-5 mt-5">
+        <Card className="p-5 lg:p-6 border-border/70 shadow-none">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h2 className="font-display text-xl font-semibold flex items-center gap-2">
-                <LogIn className="h-5 w-5 text-success" /> Próximas entradas
+              <h2 className="font-display text-base font-semibold flex items-center gap-2">
+                <LogIn className="h-4 w-4 text-success" /> Próximas entradas
               </h2>
-              <p className="text-sm text-muted-foreground">Próximos 7 dias</p>
+              <p className="text-xs text-muted-foreground mt-0.5">Próximos 7 dias</p>
             </div>
-            <Button asChild variant="ghost" size="sm" className="text-primary">
+            <Button asChild variant="ghost" size="sm" className="text-primary -mr-2">
               <Link to="/stays">Ver estadias <ArrowRight className="h-3.5 w-3.5 ml-1" /></Link>
             </Button>
           </div>
-          <div className="space-y-2">
-            {upcomingArrivals.length === 0 && (
-              <div className="text-sm text-muted-foreground py-4 text-center">Sem entradas agendadas.</div>
-            )}
-            {upcomingArrivals.map((s) => {
-              const room = rooms.find((r) => r.id === s.roomId);
-              return (
-                <Link key={s.id} to="/stays" className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted/50 transition-smooth border border-transparent hover:border-border">
-                  <div className="h-10 w-10 rounded-lg bg-success/10 text-success flex items-center justify-center font-display font-semibold text-sm">
-                    {new Date(s.checkIn).getDate()}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="font-medium text-sm truncate">{s.fullName}</div>
-                    <div className="text-xs text-muted-foreground">
-                      {room ? `Quarto ${room.number}` : "Sem quarto"} · {new Date(s.checkIn).toLocaleDateString("pt-PT", { weekday: "short", day: "numeric", month: "short" })}
+          <div className="space-y-1.5">
+            {upcomingArrivals.length === 0 ? (
+              <EmptyState icon={LogIn} title="Sem entradas agendadas" size="sm" />
+            ) : (
+              upcomingArrivals.map((s) => {
+                const room = rooms.find((r) => r.id === s.roomId);
+                return (
+                  <Link key={s.id} to="/stays" className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-muted/50 transition-smooth border border-transparent hover:border-border">
+                    <div className="h-10 w-10 rounded-lg bg-success/10 text-success flex items-center justify-center font-display font-semibold text-sm">
+                      {new Date(s.checkIn).getDate()}
                     </div>
-                  </div>
-                  <Badge variant="outline" className="text-[10px]">{s.status === "confirmed" ? "Kit ✓" : "Pend."}</Badge>
-                </Link>
-              );
-            })}
+                    <div className="flex-1 min-w-0">
+                      <div className="font-medium text-sm truncate">{s.fullName}</div>
+                      <div className="text-xs text-muted-foreground truncate">
+                        {room ? `Quarto ${room.number}` : "Sem quarto"} · {formatDate(s.checkIn, "weekday")}
+                      </div>
+                    </div>
+                    <Badge variant="outline" className="text-[10px]">{s.status === "confirmed" ? "Kit ✓" : "Pend."}</Badge>
+                  </Link>
+                );
+              })
+            )}
           </div>
         </Card>
 
-        <Card className="p-5 lg:p-6 shadow-card border-border/60">
+        <Card className="p-5 lg:p-6 border-border/70 shadow-none">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h2 className="font-display text-xl font-semibold flex items-center gap-2">
-                <LogOut className="h-5 w-5 text-warning" /> Próximas saídas
+              <h2 className="font-display text-base font-semibold flex items-center gap-2">
+                <LogOut className="h-4 w-4 text-warning" /> Próximas saídas
               </h2>
-              <p className="text-sm text-muted-foreground">Próximos 7 dias</p>
+              <p className="text-xs text-muted-foreground mt-0.5">Próximos 7 dias</p>
             </div>
-            <Button asChild variant="ghost" size="sm" className="text-primary">
+            <Button asChild variant="ghost" size="sm" className="text-primary -mr-2">
               <Link to="/stays">Ver estadias <ArrowRight className="h-3.5 w-3.5 ml-1" /></Link>
             </Button>
           </div>
-          <div className="space-y-2">
-            {upcomingDepartures.length === 0 && (
-              <div className="text-sm text-muted-foreground py-4 text-center">Sem saídas agendadas.</div>
-            )}
-            {upcomingDepartures.map((s) => {
-              const room = rooms.find((r) => r.id === s.roomId);
-              return (
-                <Link key={s.id} to="/stays" className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted/50 transition-smooth border border-transparent hover:border-border">
-                  <div className="h-10 w-10 rounded-lg bg-warning/15 text-warning flex items-center justify-center font-display font-semibold text-sm">
-                    {new Date(s.checkOut).getDate()}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="font-medium text-sm truncate">{s.fullName}</div>
-                    <div className="text-xs text-muted-foreground">
-                      {room ? `Quarto ${room.number}` : "—"} · {new Date(s.checkOut).toLocaleDateString("pt-PT", { weekday: "short", day: "numeric", month: "short" })}
+          <div className="space-y-1.5">
+            {upcomingDepartures.length === 0 ? (
+              <EmptyState icon={LogOut} title="Sem saídas agendadas" size="sm" />
+            ) : (
+              upcomingDepartures.map((s) => {
+                const room = rooms.find((r) => r.id === s.roomId);
+                return (
+                  <Link key={s.id} to="/stays" className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-muted/50 transition-smooth border border-transparent hover:border-border">
+                    <div className="h-10 w-10 rounded-lg bg-warning/15 text-warning flex items-center justify-center font-display font-semibold text-sm">
+                      {new Date(s.checkOut).getDate()}
                     </div>
-                  </div>
-                </Link>
-              );
-            })}
+                    <div className="flex-1 min-w-0">
+                      <div className="font-medium text-sm truncate">{s.fullName}</div>
+                      <div className="text-xs text-muted-foreground truncate">
+                        {room ? `Quarto ${room.number}` : "—"} · {formatDate(s.checkOut, "weekday")}
+                      </div>
+                    </div>
+                  </Link>
+                );
+              })
+            )}
           </div>
         </Card>
       </div>

@@ -97,20 +97,20 @@ const Auth = () => {
         <div className="flex flex-col items-center mb-6">
           <img src={logo} alt="Living Colours" className="h-14 w-14 object-contain mb-3" />
           <h1 className="font-display text-3xl font-semibold">Living Colours</h1>
-          <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Operations</p>
+          <p className="text-sm text-muted-foreground mt-1">{lang === "pt" ? "Bem-vindo a casa" : "Welcome home"}</p>
         </div>
         <Card className="p-6 border-border/60 shadow-elegant">
           <Tabs defaultValue="signin">
-            <TabsList className="w-full grid grid-cols-2 bg-muted/60 rounded-full p-1 mb-5">
-              <TabsTrigger value="signin" className="rounded-full data-[state=active]:bg-card">{t("auth.signin")}</TabsTrigger>
-              <TabsTrigger value="signup" className="rounded-full data-[state=active]:bg-card">{t("auth.signup")}</TabsTrigger>
+            <TabsList className="w-full grid grid-cols-2 bg-muted/60 rounded-lg p-1 mb-5">
+              <TabsTrigger value="signin" className="rounded-md data-[state=active]:bg-card">{t("auth.signin")}</TabsTrigger>
+              <TabsTrigger value="signup" className="rounded-md data-[state=active]:bg-card">{t("auth.signup")}</TabsTrigger>
             </TabsList>
 
             <TabsContent value="signin">
               <form onSubmit={signIn} className="space-y-3">
                 <div><Label>{t("auth.email")}</Label><Input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} className="mt-1.5" /></div>
                 <div><Label>{t("auth.password")}</Label><Input type="password" required value={password} onChange={(e) => setPassword(e.target.value)} className="mt-1.5" /></div>
-                <Button type="submit" disabled={busy} className="w-full rounded-full gradient-warm border-0 shadow-elegant">{t("auth.signin")}</Button>
+                <Button type="submit" disabled={busy} className="w-full">{t("auth.signin")}</Button>
               </form>
               <button onClick={forgot} className="block mx-auto mt-3 text-xs text-muted-foreground hover:text-foreground">{t("auth.forgot")}</button>
             </TabsContent>
@@ -125,7 +125,7 @@ const Auth = () => {
                   <div><Label>{t("auth.room")}</Label><Input value={room} onChange={(e) => setRoom(e.target.value)} className="mt-1.5" /></div>
                   <div><Label>{t("auth.move_in")}</Label><Input type="date" value={moveIn} onChange={(e) => setMoveIn(e.target.value)} className="mt-1.5" /></div>
                 </div>
-                <Button type="submit" disabled={busy} className="w-full rounded-full gradient-warm border-0 shadow-elegant">{t("auth.signup")}</Button>
+                <Button type="submit" disabled={busy} className="w-full">{t("auth.signup")}</Button>
               </form>
             </TabsContent>
           </Tabs>
@@ -135,7 +135,7 @@ const Auth = () => {
             <div className="relative flex justify-center text-xs"><span className="bg-card px-2 text-muted-foreground">ou</span></div>
           </div>
 
-          <Button onClick={google} variant="outline" disabled={busy} className="w-full rounded-full">
+          <Button onClick={google} variant="outline" disabled={busy} className="w-full">
             {t("auth.google")}
           </Button>
         </Card>
