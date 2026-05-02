@@ -121,7 +121,11 @@ export const useUpdateRequest = () => {
       const { error } = await supabase.from("requests").update(dbPatch).eq("id", id);
       if (error) throw error;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["requests"] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["requests"] });
+      qc.invalidateQueries({ queryKey: ["ops_tasks"] });
+      qc.invalidateQueries({ queryKey: ["cleaning_tasks"] });
+    },
   });
 };
 
