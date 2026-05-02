@@ -1,5 +1,6 @@
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
-import { LayoutDashboard, Inbox, Sparkles, ListChecks, Users, DoorClosed, CalendarRange, BarChart3, Settings, MoreHorizontal, Sun, LogOut, LogIn } from "lucide-react";
+import { LayoutDashboard, Inbox, Sparkles, ListChecks, Users, DoorClosed, CalendarRange, BarChart3, Settings, MoreHorizontal, Sun, LogOut, LogIn, UserCheck } from "lucide-react";
+import { usePendingProfiles } from "@/hooks/useProfile";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -14,6 +15,7 @@ const navItems = [
   { to: "/tasks", label: "Tasks", icon: ListChecks },
   { to: "/residents", label: "Residents", icon: Users },
   { to: "/stays", label: "Estadias", icon: LogIn },
+  { to: "/approvals", label: "Aprovações", icon: UserCheck },
   { to: "/rooms", label: "Rooms", icon: DoorClosed },
   { to: "/bookings", label: "Reservas espaços", icon: CalendarRange },
   { to: "/insights", label: "Insights", icon: BarChart3 },
@@ -41,6 +43,7 @@ export const AppShell = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
+  const { data: pending = [] } = usePendingProfiles();
   const [moreOpen, setMoreOpen] = useState(false);
   const handleSignOut = async () => { await signOut(); navigate("/auth", { replace: true }); };
 
@@ -67,7 +70,10 @@ export const AppShell = () => {
               }
             >
               <Icon className="h-[18px] w-[18px]" />
-              {label}
+              <span className="flex-1">{label}</span>
+              {to === "/approvals" && pending.length > 0 && (
+                <span className="bg-primary text-primary-foreground text-[10px] rounded-full px-2 py-0.5 font-semibold">{pending.length}</span>
+              )}
             </NavLink>
           ))}
         </nav>

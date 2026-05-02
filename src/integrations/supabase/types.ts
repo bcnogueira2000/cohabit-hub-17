@@ -194,6 +194,45 @@ export type Database = {
           },
         ]
       }
+      profiles: {
+        Row: {
+          account_status: Database["public"]["Enums"]["account_status"]
+          created_at: string
+          email: string
+          expected_move_in: string | null
+          full_name: string
+          phone: string | null
+          requested_room_number: string | null
+          resident_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          account_status?: Database["public"]["Enums"]["account_status"]
+          created_at?: string
+          email: string
+          expected_move_in?: string | null
+          full_name?: string
+          phone?: string | null
+          requested_room_number?: string | null
+          resident_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          account_status?: Database["public"]["Enums"]["account_status"]
+          created_at?: string
+          email?: string
+          expected_move_in?: string | null
+          full_name?: string
+          phone?: string | null
+          requested_room_number?: string | null
+          resident_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       requests: {
         Row: {
           assigned_to: string | null
@@ -273,6 +312,7 @@ export type Database = {
           room_id: string | null
           status: Database["public"]["Enums"]["resident_status"]
           updated_at: string
+          user_id: string | null
         }
         Insert: {
           avatar_color?: string | null
@@ -286,6 +326,7 @@ export type Database = {
           room_id?: string | null
           status?: Database["public"]["Enums"]["resident_status"]
           updated_at?: string
+          user_id?: string | null
         }
         Update: {
           avatar_color?: string | null
@@ -299,6 +340,7 @@ export type Database = {
           room_id?: string | null
           status?: Database["public"]["Enums"]["resident_status"]
           updated_at?: string
+          user_id?: string | null
         }
         Relationships: [
           {
@@ -423,14 +465,45 @@ export type Database = {
         }
         Relationships: []
       }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      current_resident_id: { Args: never; Returns: string }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
+      is_staff: { Args: { _user_id: string }; Returns: boolean }
     }
     Enums: {
+      account_status: "pending_approval" | "active" | "rejected" | "disabled"
+      app_role: "resident" | "staff" | "manager" | "admin"
       cleaning_service: "normal" | "simple"
       cleaning_source: "scheduled" | "checkout" | "request" | "manual"
       cleaning_status: "scheduled" | "in_progress" | "completed" | "skipped"
@@ -610,6 +683,8 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      account_status: ["pending_approval", "active", "rejected", "disabled"],
+      app_role: ["resident", "staff", "manager", "admin"],
       cleaning_service: ["normal", "simple"],
       cleaning_source: ["scheduled", "checkout", "request", "manual"],
       cleaning_status: ["scheduled", "in_progress", "completed", "skipped"],
