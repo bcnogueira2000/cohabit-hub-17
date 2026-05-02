@@ -83,6 +83,7 @@ const App = () => (
               <Route path="/rooms/:id" element={<RoomDetail />} />
               <Route path="/stays" element={<Stays />} />
               <Route path="/approvals" element={<Approvals />} />
+              <Route path="/users" element={<ProtectedRoute requireRole={["admin"]}><Users /></ProtectedRoute>} />
               <Route path="/bookings" element={<Bookings />} />
               <Route path="/insights" element={<Insights />} />
               <Route path="/settings" element={<Settings />} />
