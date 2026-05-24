@@ -84,7 +84,7 @@ export const useCreateRequest = () => {
   return useMutation({
     mutationFn: async (input: {
       title: string; category: any; description?: string; priority: any;
-      residentId?: string | null; roomId?: string | null; location?: string;
+      residentId?: string | null; roomId?: string | null; locationId?: string | null; location?: string;
       permissionToEnter?: any;
     }) => {
       const { error, data } = await supabase.from("requests").insert({
@@ -95,9 +95,10 @@ export const useCreateRequest = () => {
         priority: input.priority,
         resident_id: input.residentId ?? null,
         room_id: input.roomId ?? null,
+        location_id: input.locationId ?? null,
         location: input.location ?? "",
         permission_to_enter: input.permissionToEnter ?? "with_notice",
-      }).select().single();
+      } as any).select().single();
       if (error) throw error;
       return data;
     },
