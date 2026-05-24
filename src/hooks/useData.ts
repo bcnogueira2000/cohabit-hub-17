@@ -118,13 +118,18 @@ export const useUpdateRequest = () => {
       if (patch.assignedTo !== undefined) dbPatch.assigned_to = patch.assignedTo;
       if (patch.assignedToUserId !== undefined) dbPatch.assigned_to_user_id = patch.assignedToUserId;
       if (patch.priority) dbPatch.priority = patch.priority;
+      if (patch.supplierId !== undefined) dbPatch.supplier_id = patch.supplierId;
+      if (patch.locationId !== undefined) dbPatch.location_id = patch.locationId;
+      if (patch.estimatedCost !== undefined) dbPatch.estimated_cost = patch.estimatedCost;
+      if (patch.finalCost !== undefined) dbPatch.final_cost = patch.finalCost;
       const { error } = await supabase.from("requests").update(dbPatch).eq("id", id);
       if (error) throw error;
     },
-    onSuccess: () => {
+    onSuccess: (_d, vars) => {
       qc.invalidateQueries({ queryKey: ["requests"] });
       qc.invalidateQueries({ queryKey: ["ops_tasks"] });
       qc.invalidateQueries({ queryKey: ["cleaning_tasks"] });
+      qc.invalidateQueries({ queryKey: ["request_activity", vars.id] });
     },
   });
 };
