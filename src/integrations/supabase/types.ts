@@ -138,6 +138,7 @@ export type Database = {
           checklist: Json | null
           created_at: string
           id: string
+          location_id: string | null
           notes: string | null
           room_id: string | null
           scheduled_for: string
@@ -145,6 +146,7 @@ export type Database = {
           source: Database["public"]["Enums"]["cleaning_source"]
           source_ref: string | null
           status: Database["public"]["Enums"]["cleaning_status"]
+          supplier_id: string | null
           type: Database["public"]["Enums"]["cleaning_type"]
           updated_at: string
         }
@@ -155,6 +157,7 @@ export type Database = {
           checklist?: Json | null
           created_at?: string
           id?: string
+          location_id?: string | null
           notes?: string | null
           room_id?: string | null
           scheduled_for: string
@@ -162,6 +165,7 @@ export type Database = {
           source?: Database["public"]["Enums"]["cleaning_source"]
           source_ref?: string | null
           status?: Database["public"]["Enums"]["cleaning_status"]
+          supplier_id?: string | null
           type: Database["public"]["Enums"]["cleaning_type"]
           updated_at?: string
         }
@@ -172,6 +176,7 @@ export type Database = {
           checklist?: Json | null
           created_at?: string
           id?: string
+          location_id?: string | null
           notes?: string | null
           room_id?: string | null
           scheduled_for?: string
@@ -179,15 +184,77 @@ export type Database = {
           source?: Database["public"]["Enums"]["cleaning_source"]
           source_ref?: string | null
           status?: Database["public"]["Enums"]["cleaning_status"]
+          supplier_id?: string | null
           type?: Database["public"]["Enums"]["cleaning_type"]
           updated_at?: string
         }
         Relationships: [
           {
+            foreignKeyName: "cleaning_tasks_location_id_fkey"
+            columns: ["location_id"]
+            isOneToOne: false
+            referencedRelation: "locations"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "cleaning_tasks_room_id_fkey"
             columns: ["room_id"]
             isOneToOne: false
             referencedRelation: "rooms"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cleaning_tasks_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      locations: {
+        Row: {
+          apartment: string | null
+          created_at: string
+          floor: number | null
+          id: string
+          kind: Database["public"]["Enums"]["location_kind"]
+          name: string
+          notes: string | null
+          parent_location_id: string | null
+          status: Database["public"]["Enums"]["location_status"]
+          updated_at: string
+        }
+        Insert: {
+          apartment?: string | null
+          created_at?: string
+          floor?: number | null
+          id?: string
+          kind?: Database["public"]["Enums"]["location_kind"]
+          name: string
+          notes?: string | null
+          parent_location_id?: string | null
+          status?: Database["public"]["Enums"]["location_status"]
+          updated_at?: string
+        }
+        Update: {
+          apartment?: string | null
+          created_at?: string
+          floor?: number | null
+          id?: string
+          kind?: Database["public"]["Enums"]["location_kind"]
+          name?: string
+          notes?: string | null
+          parent_location_id?: string | null
+          status?: Database["public"]["Enums"]["location_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "locations_parent_location_id_fkey"
+            columns: ["parent_location_id"]
+            isOneToOne: false
+            referencedRelation: "locations"
             referencedColumns: ["id"]
           },
         ]
@@ -231,15 +298,20 @@ export type Database = {
           assigned_to_user_id: string | null
           category: Database["public"]["Enums"]["task_category"]
           code: string
+          cost_currency: string
           created_at: string
           description: string | null
           due_date: string | null
+          estimated_cost: number | null
+          final_cost: number | null
           id: string
+          location_id: string | null
           priority: Database["public"]["Enums"]["task_priority"]
           request_id: string | null
           resident_id: string | null
           room_id: string | null
           status: Database["public"]["Enums"]["task_status"]
+          supplier_id: string | null
           title: string
           updated_at: string
         }
@@ -248,15 +320,20 @@ export type Database = {
           assigned_to_user_id?: string | null
           category?: Database["public"]["Enums"]["task_category"]
           code: string
+          cost_currency?: string
           created_at?: string
           description?: string | null
           due_date?: string | null
+          estimated_cost?: number | null
+          final_cost?: number | null
           id?: string
+          location_id?: string | null
           priority?: Database["public"]["Enums"]["task_priority"]
           request_id?: string | null
           resident_id?: string | null
           room_id?: string | null
           status?: Database["public"]["Enums"]["task_status"]
+          supplier_id?: string | null
           title: string
           updated_at?: string
         }
@@ -265,19 +342,31 @@ export type Database = {
           assigned_to_user_id?: string | null
           category?: Database["public"]["Enums"]["task_category"]
           code?: string
+          cost_currency?: string
           created_at?: string
           description?: string | null
           due_date?: string | null
+          estimated_cost?: number | null
+          final_cost?: number | null
           id?: string
+          location_id?: string | null
           priority?: Database["public"]["Enums"]["task_priority"]
           request_id?: string | null
           resident_id?: string | null
           room_id?: string | null
           status?: Database["public"]["Enums"]["task_status"]
+          supplier_id?: string | null
           title?: string
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "ops_tasks_location_id_fkey"
+            columns: ["location_id"]
+            isOneToOne: false
+            referencedRelation: "locations"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "ops_tasks_request_id_fkey"
             columns: ["request_id"]
@@ -297,6 +386,13 @@ export type Database = {
             columns: ["room_id"]
             isOneToOne: false
             referencedRelation: "rooms"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ops_tasks_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers"
             referencedColumns: ["id"]
           },
         ]
@@ -340,6 +436,44 @@ export type Database = {
         }
         Relationships: []
       }
+      request_activity: {
+        Row: {
+          actor_name: string | null
+          actor_user_id: string | null
+          created_at: string
+          id: string
+          kind: Database["public"]["Enums"]["request_activity_kind"]
+          payload: Json
+          request_id: string
+        }
+        Insert: {
+          actor_name?: string | null
+          actor_user_id?: string | null
+          created_at?: string
+          id?: string
+          kind: Database["public"]["Enums"]["request_activity_kind"]
+          payload?: Json
+          request_id: string
+        }
+        Update: {
+          actor_name?: string | null
+          actor_user_id?: string | null
+          created_at?: string
+          id?: string
+          kind?: Database["public"]["Enums"]["request_activity_kind"]
+          payload?: Json
+          request_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "request_activity_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       request_comments: {
         Row: {
           author_name: string
@@ -376,16 +510,21 @@ export type Database = {
           assigned_to_user_id: string | null
           category: Database["public"]["Enums"]["request_category"]
           code: string
+          cost_currency: string
           created_at: string
           description: string | null
+          estimated_cost: number | null
+          final_cost: number | null
           id: string
           location: string | null
+          location_id: string | null
           permission_to_enter: Database["public"]["Enums"]["permission_to_enter"]
           photos: string[]
           priority: Database["public"]["Enums"]["request_priority"]
           resident_id: string | null
           room_id: string | null
           status: Database["public"]["Enums"]["request_status"]
+          supplier_id: string | null
           title: string
           updated_at: string
         }
@@ -394,16 +533,21 @@ export type Database = {
           assigned_to_user_id?: string | null
           category: Database["public"]["Enums"]["request_category"]
           code: string
+          cost_currency?: string
           created_at?: string
           description?: string | null
+          estimated_cost?: number | null
+          final_cost?: number | null
           id?: string
           location?: string | null
+          location_id?: string | null
           permission_to_enter?: Database["public"]["Enums"]["permission_to_enter"]
           photos?: string[]
           priority?: Database["public"]["Enums"]["request_priority"]
           resident_id?: string | null
           room_id?: string | null
           status?: Database["public"]["Enums"]["request_status"]
+          supplier_id?: string | null
           title: string
           updated_at?: string
         }
@@ -412,20 +556,32 @@ export type Database = {
           assigned_to_user_id?: string | null
           category?: Database["public"]["Enums"]["request_category"]
           code?: string
+          cost_currency?: string
           created_at?: string
           description?: string | null
+          estimated_cost?: number | null
+          final_cost?: number | null
           id?: string
           location?: string | null
+          location_id?: string | null
           permission_to_enter?: Database["public"]["Enums"]["permission_to_enter"]
           photos?: string[]
           priority?: Database["public"]["Enums"]["request_priority"]
           resident_id?: string | null
           room_id?: string | null
           status?: Database["public"]["Enums"]["request_status"]
+          supplier_id?: string | null
           title?: string
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "requests_location_id_fkey"
+            columns: ["location_id"]
+            isOneToOne: false
+            referencedRelation: "locations"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "requests_resident_id_fkey"
             columns: ["resident_id"]
@@ -438,6 +594,13 @@ export type Database = {
             columns: ["room_id"]
             isOneToOne: false
             referencedRelation: "rooms"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "requests_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers"
             referencedColumns: ["id"]
           },
         ]
@@ -501,6 +664,7 @@ export type Database = {
           current_resident_id: string | null
           floor: number
           id: string
+          location_id: string | null
           number: string
           status: Database["public"]["Enums"]["room_status"]
           typology: string
@@ -511,6 +675,7 @@ export type Database = {
           current_resident_id?: string | null
           floor: number
           id?: string
+          location_id?: string | null
           number: string
           status?: Database["public"]["Enums"]["room_status"]
           typology: string
@@ -521,6 +686,7 @@ export type Database = {
           current_resident_id?: string | null
           floor?: number
           id?: string
+          location_id?: string | null
           number?: string
           status?: Database["public"]["Enums"]["room_status"]
           typology?: string
@@ -608,6 +774,51 @@ export type Database = {
         }
         Relationships: []
       }
+      suppliers: {
+        Row: {
+          active: boolean
+          category: Database["public"]["Enums"]["supplier_category"]
+          contact_name: string | null
+          created_at: string
+          email: string | null
+          id: string
+          name: string
+          notes: string | null
+          phone: string | null
+          tags: string[]
+          updated_at: string
+          website: string | null
+        }
+        Insert: {
+          active?: boolean
+          category?: Database["public"]["Enums"]["supplier_category"]
+          contact_name?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          name: string
+          notes?: string | null
+          phone?: string | null
+          tags?: string[]
+          updated_at?: string
+          website?: string | null
+        }
+        Update: {
+          active?: boolean
+          category?: Database["public"]["Enums"]["supplier_category"]
+          contact_name?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          name?: string
+          notes?: string | null
+          phone?: string | null
+          tags?: string[]
+          updated_at?: string
+          website?: string | null
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -671,7 +882,31 @@ export type Database = {
         | "kitchen"
         | "common"
         | "checkout_inspection"
+      location_kind:
+        | "room"
+        | "shared_bathroom"
+        | "apartment_kitchen"
+        | "common_kitchen"
+        | "corridor"
+        | "balcony"
+        | "laundry"
+        | "meeting_room"
+        | "cowork"
+        | "terrace"
+        | "winter_garden"
+        | "cinema"
+        | "technical"
+        | "other"
+      location_status: "active" | "out_of_service" | "under_maintenance"
       permission_to_enter: "yes" | "no" | "with_notice"
+      request_activity_kind:
+        | "supplier_assigned"
+        | "supplier_removed"
+        | "status_changed"
+        | "owner_changed"
+        | "cost_updated"
+        | "location_changed"
+        | "created"
       request_category:
         | "maintenance"
         | "cleaning"
@@ -705,6 +940,18 @@ export type Database = {
         | "checked_in"
         | "checked_out"
         | "cancelled"
+      supplier_category:
+        | "plumbing"
+        | "electrical"
+        | "cleaning_company"
+        | "internet"
+        | "laundry"
+        | "maintenance"
+        | "hvac"
+        | "pest_control"
+        | "gardening"
+        | "security"
+        | "other"
       task_category:
         | "maintenance"
         | "logistics"
@@ -854,7 +1101,33 @@ export const Constants = {
         "common",
         "checkout_inspection",
       ],
+      location_kind: [
+        "room",
+        "shared_bathroom",
+        "apartment_kitchen",
+        "common_kitchen",
+        "corridor",
+        "balcony",
+        "laundry",
+        "meeting_room",
+        "cowork",
+        "terrace",
+        "winter_garden",
+        "cinema",
+        "technical",
+        "other",
+      ],
+      location_status: ["active", "out_of_service", "under_maintenance"],
       permission_to_enter: ["yes", "no", "with_notice"],
+      request_activity_kind: [
+        "supplier_assigned",
+        "supplier_removed",
+        "status_changed",
+        "owner_changed",
+        "cost_updated",
+        "location_changed",
+        "created",
+      ],
       request_category: [
         "maintenance",
         "cleaning",
@@ -891,6 +1164,19 @@ export const Constants = {
         "checked_in",
         "checked_out",
         "cancelled",
+      ],
+      supplier_category: [
+        "plumbing",
+        "electrical",
+        "cleaning_company",
+        "internet",
+        "laundry",
+        "maintenance",
+        "hvac",
+        "pest_control",
+        "gardening",
+        "security",
+        "other",
       ],
       task_category: ["maintenance", "logistics", "admin", "supplier", "other"],
       task_priority: ["low", "medium", "high"],

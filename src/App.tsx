@@ -32,6 +32,10 @@ import MyDay from "./pages/MyDay";
 import Stays from "./pages/Stays";
 import Approvals from "./pages/Approvals";
 import Users from "./pages/Users";
+import Suppliers from "./pages/Suppliers";
+import SupplierDetail from "./pages/SupplierDetail";
+import Locations from "./pages/Locations";
+import LocationDetail from "./pages/LocationDetail";
 import ResidentHome from "./pages/resident/Home";
 import ResidentRequests from "./pages/resident/Requests";
 import ResidentRequestNew from "./pages/resident/RequestNew";
@@ -89,6 +93,10 @@ const App = () => (
               <Route path="/residents/:id" element={<ResidentDetail />} />
               <Route path="/rooms" element={<Rooms />} />
               <Route path="/rooms/:id" element={<RoomDetail />} />
+              <Route path="/suppliers" element={<Suppliers />} />
+              <Route path="/suppliers/:id" element={<SupplierDetail />} />
+              <Route path="/locations" element={<Locations />} />
+              <Route path="/locations/:id" element={<LocationDetail />} />
               <Route path="/stays" element={<Stays />} />
               <Route path="/approvals" element={<Approvals />} />
               <Route path="/users" element={<ProtectedRoute requireRole={["admin"]}><Users /></ProtectedRoute>} />

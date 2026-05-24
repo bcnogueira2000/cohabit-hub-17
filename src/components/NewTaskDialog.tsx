@@ -58,10 +58,15 @@ export const NewTaskDialog = ({ trigger, onCreate }: Props) => {
       priority,
       assignedTo: assignedName,
       assignedToUserId: assignedUserId === NONE ? null : assignedUserId,
+      supplierId: null,
       roomId: null,
+      locationId: null,
       residentId: null,
       requestId: null,
       dueDate: dueDate ? new Date(dueDate).toISOString() : null,
+      estimatedCost: null,
+      finalCost: null,
+      costCurrency: "EUR",
       createdAt: new Date().toISOString(),
     };
     onCreate(task);

@@ -15,16 +15,20 @@ const ACTIVE_STATUSES: RequestStatus[] = [
   "waiting_supplier",
 ];
 
+// Whitelist of columns visible to residents — never include supplier_id, costs, or assignment internals.
+const RESIDENT_SAFE_COLUMNS =
+  "id, code, title, category, description, priority, status, location, room_id, location_id, resident_id, permission_to_enter, photos, created_at, updated_at";
+
 export const useMyRequests = () =>
   useQuery({
     queryKey: ["my_requests"],
     queryFn: async (): Promise<RequestRow[]> => {
       const { data, error } = await supabase
         .from("requests")
-        .select("*")
+        .select(RESIDENT_SAFE_COLUMNS)
         .order("created_at", { ascending: false });
       if (error) throw error;
-      return data ?? [];
+      return (data ?? []) as unknown as RequestRow[];
     },
   });
 
@@ -36,11 +40,11 @@ export const useRequest = (id: string | undefined) =>
       if (!id) return null;
       const { data, error } = await supabase
         .from("requests")
-        .select("*")
+        .select(RESIDENT_SAFE_COLUMNS)
         .eq("id", id)
         .maybeSingle();
       if (error) throw error;
-      return data ?? null;
+      return (data ?? null) as unknown as RequestRow | null;
     },
   });
 

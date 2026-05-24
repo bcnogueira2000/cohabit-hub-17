@@ -84,7 +84,7 @@ export const useCreateRequest = () => {
   return useMutation({
     mutationFn: async (input: {
       title: string; category: any; description?: string; priority: any;
-      residentId?: string | null; roomId?: string | null; location?: string;
+      residentId?: string | null; roomId?: string | null; locationId?: string | null; location?: string;
       permissionToEnter?: any;
     }) => {
       const { error, data } = await supabase.from("requests").insert({
@@ -95,9 +95,10 @@ export const useCreateRequest = () => {
         priority: input.priority,
         resident_id: input.residentId ?? null,
         room_id: input.roomId ?? null,
+        location_id: input.locationId ?? null,
         location: input.location ?? "",
         permission_to_enter: input.permissionToEnter ?? "with_notice",
-      }).select().single();
+      } as any).select().single();
       if (error) throw error;
       return data;
     },
@@ -118,13 +119,18 @@ export const useUpdateRequest = () => {
       if (patch.assignedTo !== undefined) dbPatch.assigned_to = patch.assignedTo;
       if (patch.assignedToUserId !== undefined) dbPatch.assigned_to_user_id = patch.assignedToUserId;
       if (patch.priority) dbPatch.priority = patch.priority;
+      if (patch.supplierId !== undefined) dbPatch.supplier_id = patch.supplierId;
+      if (patch.locationId !== undefined) dbPatch.location_id = patch.locationId;
+      if (patch.estimatedCost !== undefined) dbPatch.estimated_cost = patch.estimatedCost;
+      if (patch.finalCost !== undefined) dbPatch.final_cost = patch.finalCost;
       const { error } = await supabase.from("requests").update(dbPatch).eq("id", id);
       if (error) throw error;
     },
-    onSuccess: () => {
+    onSuccess: (_d, vars) => {
       qc.invalidateQueries({ queryKey: ["requests"] });
       qc.invalidateQueries({ queryKey: ["ops_tasks"] });
       qc.invalidateQueries({ queryKey: ["cleaning_tasks"] });
+      qc.invalidateQueries({ queryKey: ["request_activity", vars.id] });
     },
   });
 };
