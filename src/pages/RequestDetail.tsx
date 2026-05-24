@@ -117,44 +117,124 @@ const RequestDetail = () => {
 
       <Card className="p-5 border-border/60 shadow-card mb-4">
         <h3 className="font-display text-lg font-semibold mb-3 flex items-center gap-2">
-          <UserCog className="h-4 w-4" /> Atribuir tarefa
+          <UserCog className="h-4 w-4" /> Atribuição
         </h3>
-        <div className="flex flex-col sm:flex-row gap-2">
-          <Select
-            value={assigneeUserId}
-            onValueChange={(value) => {
-              setAssigneeUserId(value);
-              const selected = staff.find((s) => s.user_id === value);
-              const name = selected?.full_name || selected?.email || null;
-              const userId = value === "__none__" ? null : value;
-              updateRequest.mutate(
-                { id: request.id, patch: { assignedTo: name, assignedToUserId: userId } },
-                { onSuccess: () => toast.success(userId ? "Tarefa atribuída" : "Atribuição removida") }
-              );
-            }}
-          >
-            <SelectTrigger className="flex-1">
-              <SelectValue placeholder="Escolher responsável…" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="__none__">Não atribuído</SelectItem>
-              {staff.map((s) => {
-                const label = s.full_name || s.email || s.user_id.slice(0, 8);
-                return (
-                  <SelectItem key={s.user_id} value={s.user_id}>
-                    {label} <span className="text-xs text-muted-foreground ml-1">· {s.role}</span>
-                  </SelectItem>
+        <div className="grid sm:grid-cols-2 gap-3">
+          <div>
+            <label className="text-xs text-muted-foreground mb-1 block">Responsável interno</label>
+            <Select
+              value={assigneeUserId}
+              onValueChange={(value) => {
+                setAssigneeUserId(value);
+                const selected = staff.find((s) => s.user_id === value);
+                const name = selected?.full_name || selected?.email || null;
+                const userId = value === "__none__" ? null : value;
+                updateRequest.mutate(
+                  { id: request.id, patch: { assignedTo: name, assignedToUserId: userId } },
+                  { onSuccess: () => toast.success(userId ? "Responsável atribuído" : "Atribuição removida") }
                 );
-              })}
-            </SelectContent>
-          </Select>
+              }}
+            >
+              <SelectTrigger><SelectValue placeholder="Escolher responsável…" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__none__">Não atribuído</SelectItem>
+                {staff.map((s) => {
+                  const label = s.full_name || s.email || s.user_id.slice(0, 8);
+                  return (
+                    <SelectItem key={s.user_id} value={s.user_id}>
+                      {label} <span className="text-xs text-muted-foreground ml-1">· {s.role}</span>
+                    </SelectItem>
+                  );
+                })}
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <label className="text-xs text-muted-foreground mb-1 block flex items-center gap-1.5">
+              <Building2 className="h-3 w-3" /> Fornecedor externo
+            </label>
+            <SupplierCombobox
+              value={request.supplierId}
+              onChange={(supplierId) => {
+                updateRequest.mutate(
+                  { id: request.id, patch: { supplierId } },
+                  { onSuccess: () => toast.success(supplierId ? "Fornecedor atribuído" : "Fornecedor removido") }
+                );
+              }}
+            />
+          </div>
+          <div className="sm:col-span-2">
+            <label className="text-xs text-muted-foreground mb-1 block flex items-center gap-1.5">
+              <MapPin className="h-3 w-3" /> Local
+            </label>
+            <LocationCombobox
+              value={request.locationId}
+              onChange={(locationId) => {
+                updateRequest.mutate(
+                  { id: request.id, patch: { locationId } },
+                  { onSuccess: () => toast.success("Local atualizado") }
+                );
+              }}
+            />
+          </div>
         </div>
-        {staff.length === 0 && (
-          <p className="text-xs text-muted-foreground mt-2">
-            Ainda não há membros da equipa registados. Adiciona-os em Utilizadores.
+        {linkedSupplier && (
+          <p className="text-xs text-muted-foreground mt-3">
+            Fornecedor: <Link to={`/suppliers/${linkedSupplier.id}`} className="text-primary hover:underline">{linkedSupplier.name}</Link>
+            {linkedSupplier.phone && <> · {linkedSupplier.phone}</>}
+          </p>
+        )}
+        {linkedLocation && (
+          <p className="text-xs text-muted-foreground mt-1">
+            Local: <Link to={`/locations/${linkedLocation.id}`} className="text-primary hover:underline">{linkedLocation.name}</Link>
           </p>
         )}
       </Card>
+
+      {canSeeCosts && (
+        <Card className="p-5 border-border/60 shadow-card mb-4">
+          <h3 className="font-display text-lg font-semibold mb-3 flex items-center gap-2">
+            <Euro className="h-4 w-4" /> Custos
+            <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-normal ml-1">admin · manager</span>
+          </h3>
+          <div className="grid sm:grid-cols-2 gap-3">
+            <div>
+              <label className="text-xs text-muted-foreground mb-1 block">Custo estimado (€)</label>
+              <Input
+                type="number" step="0.01" inputMode="decimal"
+                value={estimatedCost}
+                onChange={(e) => setEstimatedCost(e.target.value)}
+                onBlur={() => {
+                  const v = estimatedCost === "" ? null : Number(estimatedCost);
+                  if (v !== request.estimatedCost) {
+                    updateRequest.mutate(
+                      { id: request.id, patch: { estimatedCost: v } },
+                      { onSuccess: () => toast.success("Custo estimado atualizado") }
+                    );
+                  }
+                }}
+              />
+            </div>
+            <div>
+              <label className="text-xs text-muted-foreground mb-1 block">Custo final (€)</label>
+              <Input
+                type="number" step="0.01" inputMode="decimal"
+                value={finalCost}
+                onChange={(e) => setFinalCost(e.target.value)}
+                onBlur={() => {
+                  const v = finalCost === "" ? null : Number(finalCost);
+                  if (v !== request.finalCost) {
+                    updateRequest.mutate(
+                      { id: request.id, patch: { finalCost: v } },
+                      { onSuccess: () => toast.success("Custo final atualizado") }
+                    );
+                  }
+                }}
+              />
+            </div>
+          </div>
+        </Card>
+      )}
 
       <Card className="p-5 border-border/60 shadow-card mb-4">
         <h3 className="font-display text-lg font-semibold mb-3">Ações rápidas</h3>
