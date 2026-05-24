@@ -1,7 +1,6 @@
-import type { Resident, Room, Request, CleaningTask, OpsTask, Booking, Space, Stay } from "./types";
+import type { Resident, Room, Request, CleaningTask, OpsTask, Booking, Space, Stay, Supplier, Location } from "./types";
 
 // Maps from DB snake_case rows to the app's camelCase types.
-// Lets us keep existing pages mostly intact.
 
 export const mapRoom = (r: any): Room => ({
   id: r.id,
@@ -10,6 +9,7 @@ export const mapRoom = (r: any): Room => ({
   typology: r.typology,
   status: r.status,
   currentResidentId: r.current_resident_id ?? null,
+  locationId: r.location_id ?? null,
 });
 
 export const mapResident = (r: any): Resident => ({
@@ -32,11 +32,16 @@ export const mapRequest = (r: any): Request => ({
   description: r.description ?? "",
   residentId: r.resident_id ?? null,
   roomId: r.room_id ?? null,
+  locationId: r.location_id ?? null,
   location: r.location ?? "",
   priority: r.priority,
   status: r.status,
   assignedTo: r.assigned_to ?? null,
   assignedToUserId: r.assigned_to_user_id ?? null,
+  supplierId: r.supplier_id ?? null,
+  estimatedCost: r.estimated_cost !== undefined && r.estimated_cost !== null ? Number(r.estimated_cost) : null,
+  finalCost: r.final_cost !== undefined && r.final_cost !== null ? Number(r.final_cost) : null,
+  costCurrency: r.cost_currency ?? "EUR",
   createdAt: r.created_at,
   updatedAt: r.updated_at,
   permissionToEnter: r.permission_to_enter,
@@ -53,10 +58,15 @@ export const mapOpsTask = (t: any): OpsTask => ({
   priority: t.priority,
   assignedTo: t.assigned_to ?? null,
   assignedToUserId: t.assigned_to_user_id ?? null,
+  supplierId: t.supplier_id ?? null,
   roomId: t.room_id ?? null,
+  locationId: t.location_id ?? null,
   residentId: t.resident_id ?? null,
   requestId: t.request_id ?? null,
   dueDate: t.due_date ?? null,
+  estimatedCost: t.estimated_cost !== undefined && t.estimated_cost !== null ? Number(t.estimated_cost) : null,
+  finalCost: t.final_cost !== undefined && t.final_cost !== null ? Number(t.final_cost) : null,
+  costCurrency: t.cost_currency ?? "EUR",
   createdAt: t.created_at,
   updatedAt: t.updated_at ?? t.created_at,
 });
@@ -68,6 +78,8 @@ export const mapCleaning = (c: any): CleaningTask => ({
   source: c.source,
   sourceRef: c.source_ref ?? null,
   roomId: c.room_id ?? null,
+  locationId: c.location_id ?? null,
+  supplierId: c.supplier_id ?? null,
   area: c.area,
   scheduledFor: c.scheduled_for,
   status: c.status,
@@ -106,4 +118,32 @@ export const mapStay = (s: any): Stay => ({
   notes: s.notes ?? undefined,
   createdAt: s.created_at,
   updatedAt: s.updated_at,
+});
+
+export const mapSupplier = (s: any): Supplier => ({
+  id: s.id,
+  name: s.name,
+  category: s.category,
+  contactName: s.contact_name ?? null,
+  phone: s.phone ?? null,
+  email: s.email ?? null,
+  website: s.website ?? null,
+  notes: s.notes ?? null,
+  tags: Array.isArray(s.tags) ? s.tags : [],
+  active: !!s.active,
+  createdAt: s.created_at,
+  updatedAt: s.updated_at,
+});
+
+export const mapLocation = (l: any): Location => ({
+  id: l.id,
+  name: l.name,
+  kind: l.kind,
+  floor: l.floor ?? null,
+  apartment: l.apartment ?? null,
+  parentLocationId: l.parent_location_id ?? null,
+  status: l.status,
+  notes: l.notes ?? null,
+  createdAt: l.created_at,
+  updatedAt: l.updated_at,
 });
