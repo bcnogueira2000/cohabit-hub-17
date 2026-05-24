@@ -69,3 +69,50 @@ export const priorityLabels: Record<string, string> = {
   high: "Alta",
   urgent: "Urgente",
 };
+
+export const supplierCategoryLabels: Record<string, string> = {
+  plumbing: "Canalização",
+  electrical: "Eletricidade",
+  cleaning_company: "Empresa de limpeza",
+  internet: "Internet / Tech",
+  laundry: "Lavandaria",
+  maintenance: "Manutenção geral",
+  hvac: "AVAC",
+  pest_control: "Controlo de pragas",
+  gardening: "Jardinagem",
+  security: "Segurança",
+  other: "Outro",
+};
+
+export const locationKindLabels: Record<string, string> = {
+  room: "Quarto",
+  shared_bathroom: "Casa de banho partilhada",
+  apartment_kitchen: "Cozinha de apartamento",
+  common_kitchen: "Cozinha comum",
+  corridor: "Corredor",
+  balcony: "Varanda",
+  laundry: "Lavandaria",
+  meeting_room: "Sala de reuniões",
+  cowork: "Cowork",
+  terrace: "Terraço",
+  winter_garden: "Jardim de inverno",
+  cinema: "Sala de cinema",
+  technical: "Área técnica",
+  other: "Outro",
+};
+
+export const locationStatusLabels: Record<string, string> = {
+  active: "Ativo",
+  out_of_service: "Fora de serviço",
+  under_maintenance: "Em manutenção",
+};
+
+export const requestActivityLabels: Record<string, string> = {
+  created: "Pedido criado",
+  status_changed: "Estado alterado",
+  owner_changed: "Responsável alterado",
+  supplier_assigned: "Fornecedor atribuído",
+  supplier_removed: "Fornecedor removido",
+  cost_updated: "Custo atualizado",
+  location_changed: "Local alterado",
+};
