@@ -1,96 +1,164 @@
 
-# Opinião honesta sobre o UX/UI atual
+# Fase 1 — Fundações operacionais
 
-A app já está num bom ponto: identidade de marca aplicada (teal Living Colours, Source Sans), estrutura sólida (sidebar desktop + bottom nav mobile, portal de residente separado, KPIs no dashboard), e os fundamentos estão lá. **Não está mau — está "quase profissional", mas com um conjunto de detalhes que a fazem parecer um MVP em vez de produto acabado.**
+Esta fase entrega o esqueleto sobre o qual as fases seguintes (Contracts, Documents, Cleaning v2, Insights, Resident files, UX polish) vão encaixar sem reescrever schema.
 
-Aqui está a crítica honesta, organizada por prioridade.
+Princípios:
+- Não remove nada. Nada é destrutivo.
+- `room_id` continua a existir em todas as tabelas atuais — adicionamos `location_id` em paralelo e fazemos backfill.
+- Custos e supplier ficam invisíveis ao residente desde o dia 1.
 
-## O que está a funcionar bem
-- Hierarquia clara: dashboard → KPIs → cartões de detalhe
-- Portal de residente bem separado do staff, com bottom nav adequado
-- Tokens semânticos (HSL) bem montados — fácil iterar
-- Logo + paleta da marca aplicados de forma consistente
+---
 
-## Problemas concretos que tiram profissionalismo
+## 1. Suppliers (novo módulo)
 
-### 1. Inconsistência de idioma (o mais visível)
-Na sidebar coexistem **"Dashboard", "Requests", "Cleaning", "Tasks", "Residents", "Rooms"** (EN) com **"O meu dia", "Estadias", "Aprovações", "Reservas espaços", "Utilizadores"** (PT). Parece feito por duas pessoas diferentes. Decidir: tudo PT (recomendado, dado o público) ou tudo EN.
+**Tabela `suppliers`**
+- `name`, `category` (enum: `plumbing`, `electrical`, `cleaning_company`, `internet`, `laundry`, `maintenance`, `hvac`, `pest_control`, `gardening`, `security`, `other`)
+- `contact_name`, `phone`, `email`, `website`
+- `notes`, `active` (bool, default true)
+- `tags` (text[])
 
-### 2. Densidade e respiração
-- Cards com `p-4`/`p-5` e títulos `text-xl` ficam apertados. Apps profissionais (Linear, Notion, Stripe) usam mais respiração e títulos mais discretos.
-- O título "Bom dia, pedro." tem `text-3xl/4xl` — demasiado grande, e o `firstName` vem do email (`pedro` em minúscula sem capitalize correto).
-- KPI numbers em `text-3xl` com label em `uppercase tracking-wide` — visualmente OK mas o contraste tipográfico pode ser mais subtil.
+**RLS:** staff full access. Residentes: sem acesso (nem SELECT).
 
-### 3. Botões e CTAs
-- `rounded-full` em todos os botões é uma escolha forte mas usada em excesso (auth, dashboard, formulários). Apps SaaS sérias preferem `rounded-md`/`rounded-lg`. O pill-shape funciona em landing pages, não em ferramentas operacionais densas.
-- O `gradient-warm` (teal→teal claro) no CTA principal é simpático mas fica saturado em todo lado. Melhor: primary sólido, gradient apenas em hero/auth.
+**UI**
+- Nova entrada na sidebar (secção "Pessoas" ou nova secção "Parceiros") com ícone `Truck` ou `Building2`.
+- `/suppliers` — lista com filtros (categoria, ativo/inativo, search).
+- `/suppliers/new` — formulário curto (drawer/dialog).
+- `/suppliers/:id` — perfil com tabs:
+  - **Visão geral**: contactos, notas.
+  - **Pedidos ligados**: lista de requests onde este supplier foi atribuído.
+  - **Tarefas ligadas**: ops_tasks + cleaning_tasks.
+  - **Contratos** *(placeholder vazio, vem na Fase 2)*.
+  - **Custos**: soma de `final_cost` dos requests, só visível a admin/manager.
 
-### 4. Cartões "flutuantes" sem hierarquia clara
-Todos os cards têm `shadow-card` + `border-border/60`. Em apps profissionais, ou se usa **só border** (estilo Linear/Vercel) ou **só shadow suave** (estilo Stripe), não ambos competindo. Atualmente mistura os dois sinais.
+---
 
-### 5. Estados vazios pobres
-"Sem pedidos abertos. ✨", "Sem limpezas agendadas." — texto centrado, sem ícone, sem CTA. Empty states profissionais têm ícone, frase, e ação ("Criar primeiro pedido").
+## 2. Locations como tabela mãe
 
-### 6. Bottom nav mobile mistura PT/EN
-"Hoje, Requests, Cleaning, Tasks, More" — mesmo problema do ponto 1, agravado pelo espaço apertado.
+Decisão arquitetural: **`locations` é a entidade física canónica**. Rooms tornam-se um tipo de location, mantendo a tabela `rooms` para campos específicos de quarto (typology, monthly_price, etc.).
 
-### 7. Auth screen
-Boa em geral, mas o "Operations" em uppercase tracking parece corporativo demais para um coliving (que é a tua marca: comunidade, calor, cores). Tom não bate certo com a identidade.
+**Tabela `locations`**
+- `name` (ex: "Cozinha 5º piso", "Quarto 5DQ1", "Lavandaria")
+- `kind` (enum: `room`, `shared_bathroom`, `apartment_kitchen`, `common_kitchen`, `corridor`, `balcony`, `laundry`, `meeting_room`, `cowork`, `terrace`, `winter_garden`, `cinema`, `technical`, `other`)
+- `floor` (int, nullable)
+- `apartment` (text, nullable)
+- `parent_location_id` (uuid, nullable — permite "Cozinha pertence ao Apartamento X")
+- `status` (enum: `active`, `out_of_service`, `under_maintenance`)
+- `notes`
 
-### 8. Faltam micro-detalhes que distinguem produtos
-- Sem **avatares** dos residentes (só nome em texto) — uma app de gestão de pessoas devia mostrar caras
-- Sem **skeleton loaders** — quando os dados carregam, vês "0" antes do número real, parece bug
-- Sem **tooltips** em ícones-only (botão de seta para "Ver estadias")
-- Datas formatadas inconsistentemente entre páginas
+**Tabela `rooms` — alterações**
+- Adicionar `location_id uuid UNIQUE` (FK lógico para `locations.id`).
+- **Migração de dados:** para cada `rooms` existente, criar um `locations` com `kind='room'`, `name='Quarto ' || number`, `floor=rooms.floor`, e ligar `rooms.location_id`.
+- Manter todos os campos atuais de `rooms` (number, floor, typology, status, current_resident_id).
 
-### 9. Sidebar desktop
-12+ items lineares sem agrupamento. Linear/Notion agrupam: **Operações** (Requests, Cleaning, Tasks), **Pessoas** (Residents, Stays, Approvals), **Espaços** (Rooms, Bookings), **Insights & Settings**. Reduz carga cognitiva.
+**Tabelas operacionais — adicionar `location_id`**
+- `requests.location_id` (nullable, FK lógico)
+- `ops_tasks.location_id`
+- `cleaning_tasks.location_id`
+- Backfill: para linhas com `room_id`, copiar `rooms.location_id` correspondente.
+- `room_id` mantém-se para compatibilidade; novo código grava ambos quando aplicável.
 
-## Plano de melhorias
+**UI**
+- Nova rota `/locations` (sidebar secção "Espaços") — lista agrupada por `kind`.
+- `/locations/:id` — detalhe com tabs: Visão geral, Pedidos abertos, Histórico (cleaning), Documentos *(placeholder)*, Notas.
+- **Formulário de pedido (`NewRequest` + `resident/RequestNew`)**: campo "Onde é o problema?" passa a oferecer:
+  - Quarto (lista atual)
+  - **OU** Local partilhado (dropdown de `locations` não-room)
+- `RequestDetail` mostra Quarto **e/ou** Local consoante o que estiver preenchido.
 
-### Fase 1 — Consistência (impacto alto, esforço baixo)
-1. **Unificar idioma para PT** em toda a navegação e labels:
-   - Sidebar: Dashboard → "Painel", Requests → "Pedidos", Cleaning → "Limpezas", Tasks → "Tarefas", Residents → "Residentes", Rooms → "Quartos"
-   - Bottom nav: "Hoje, Pedidos, Limpezas, Tarefas, Mais"
-2. **Capitalizar `firstName`** corretamente no greeting (evitar "pedro" minúsculo do email — usar `profile.full_name` quando exista, fallback para email com capitalize).
-3. **Tirar "Operations"** do logo no Auth e sidebar. Só "Living Colours" basta.
+---
 
-### Fase 2 — Refinamento visual (impacto alto, esforço médio)
-4. **Reduzir `rounded-full`** apenas a: badges, avatares, e um único CTA primário no header. Resto vai para `rounded-lg`.
-5. **Substituir `gradient-warm`** por primary sólido em botões; manter gradient apenas no Auth e em 1 hero card do dashboard.
-6. **Cards: escolher um sinal de elevação** — recomendo manter `border` e remover `shadow-card` excepto em cards interativos (hover state). Mais limpo, mais "Linear/Vercel".
-7. **Reduzir tamanhos de título**: H1 do dashboard de `text-4xl` → `text-2xl`. Títulos de card de `text-xl` → `text-base font-semibold`.
-8. **Empty states ricos**: componente `<EmptyState icon title description action />` reutilizável, usado em todas as listas.
+## 3. Dual Assignment (Owner interno + Supplier externo)
 
-### Fase 3 — Estrutura (impacto médio, esforço médio)
-9. **Agrupar sidebar** com section labels (uppercase, micro):
-   ```
-   PRINCIPAL    Painel · O meu dia
-   OPERAÇÕES    Pedidos · Limpezas · Tarefas
-   PESSOAS      Residentes · Estadias · Aprovações
-   ESPAÇOS      Quartos · Reservas
-   SISTEMA      Insights · Definições · Utilizadores
-   ```
-10. **Skeleton loaders** nos KPIs e listas do dashboard (componente `<Skeleton />` já existe em ui/).
-11. **Avatares** (iniciais coloridas com `brand-lilac/yellow/coral` rotacionando) ao lado de nomes de residentes nas listas.
+**Schema**
+- `requests`: adicionar `supplier_id uuid` (FK lógico). O campo `assigned_to_user_id` existente passa a representar oficialmente o **Internal Owner**.
+- `ops_tasks`: igual (`supplier_id` + reusa `assigned_to_user_id`).
+- `cleaning_tasks`: igual.
 
-### Fase 4 — Polish (impacto médio, esforço baixo)
-12. **Tooltips** em todos os botões icon-only.
-13. **Formato de data único** em toda a app: helper `formatDate(date, "short" | "long")` em `lib/utils.ts`.
-14. **Auth**: substituir "Operations" subtítulo por algo mais quente em PT/EN ("Bem-vindo a casa" / "Welcome home") ou simplesmente remover.
+**Activity log mínimo (nova tabela `request_activity`)**
+- `request_id`, `actor_user_id`, `kind` (enum: `supplier_assigned`, `supplier_removed`, `status_changed`, `owner_changed`, `cost_updated`), `payload jsonb`, `created_at`.
+- Trigger em `requests` UPDATE escreve automaticamente para `supplier_id`, `assigned_to_user_id`, `status` e custos.
+- RLS: staff full; residente lê apenas eventos `status_changed` dos próprios pedidos (filtragem via view).
+
+**UI**
+- `RequestDetail` (staff): card "Atribuir" passa a ter **dois selects** lado a lado: "Responsável interno" e "Fornecedor externo". Toast contextual ("Fornecedor atribuído").
+- Mesma alteração em `Tasks` e `CleaningScheduleDialog`/detalhe de cleaning.
+- Lista `/requests` e `/tasks`: nova coluna/badge "Supplier" quando preenchido; filtros adicionais (Internal owner, Supplier).
+- Nova secção "Atividade" no `RequestDetail` mostrando o feed (resident vê só status changes).
+
+---
+
+## 4. Cost Tracking em Requests
+
+**Schema**
+- `requests`: `estimated_cost numeric(10,2)`, `final_cost numeric(10,2)`, `cost_currency text default 'EUR'`.
+- `ops_tasks`: mesmos campos (preparar para Fase 2 de insights).
+
+**RLS / acesso**
+- Funções `has_role(uid, 'admin')` e `has_role(uid, 'manager')` já existem.
+- **Decisão técnica**: como Postgres RLS não esconde colunas por role facilmente, mantemos os custos na linha mas **filtramos no client e no edge** — qualquer hook que devolva dados para o portal residente (`useResidentRequests`, etc.) faz `select` explícito sem `*_cost`. Para o residente nunca aparece nem na rede.
+- View `resident_requests_v` para garantir que o portal só recebe colunas seguras (defesa em profundidade).
+
+**UI**
+- `RequestDetail` staff: novo card "Custos" visível **apenas** se `has_role(admin|manager)`. Dois inputs (estimado, final). Atualização escreve activity log.
+- `requests` list: coluna opcional "Custo" toggleável, mesma regra de role.
+- `SupplierDetail` agrega `SUM(final_cost)` por supplier.
+- Portal residente: zero referências a custo.
+
+---
+
+## 5. Resident portal lock (preventivo)
+
+- Auditar `src/pages/resident/*` e `src/hooks/useResident*.ts`: confirmar que nenhum query devolve `supplier_id`, `estimated_cost`, `final_cost`, `request_activity`.
+- Adicionar testes leves (vitest) que verificam os `select(...)` dos hooks residentes não incluem colunas sensíveis.
+- Sidebar do `ResidentShell`: nada novo aparece.
+
+---
 
 ## Detalhes técnicos
 
-Ficheiros principais a tocar:
-- `src/components/layout/AppShell.tsx` — labels PT, agrupamento de sidebar
-- `src/index.css` / `tailwind.config.ts` — sem mudanças nos tokens, apenas usar mais brand accents (lilac/yellow/coral) em avatares
-- `src/pages/Dashboard.tsx` — tamanhos de título, empty states, skeletons, capitalize firstName
-- `src/pages/Auth.tsx` — remover "Operations", suavizar pill buttons
-- Novo: `src/components/ui/EmptyState.tsx`, `src/components/ui/Avatar.tsx` (wrapper sobre o existente com cores da marca)
-- `src/lib/utils.ts` — helpers `formatDate`, `getInitials`, `capitalize`
+### Migrações (ordem)
+1. `create type supplier_category, location_kind, location_status, activity_kind`.
+2. `create table suppliers` + RLS staff-only.
+3. `create table locations` + RLS staff full / authenticated read básico (para o resident ver nome do local do seu pedido).
+4. `alter table rooms add column location_id uuid unique`.
+5. Backfill: `insert into locations ... from rooms`; `update rooms set location_id = ...`.
+6. `alter table requests/ops_tasks/cleaning_tasks add column location_id uuid, supplier_id uuid`.
+7. Backfill `location_id` a partir de `room_id`.
+8. `alter table requests/ops_tasks add column estimated_cost, final_cost, cost_currency`.
+9. `create table request_activity` + RLS + trigger `log_request_changes()`.
+10. `create view resident_requests_v` com whitelist de colunas.
 
-Sem mudanças à estrutura de dados, sem mudanças de auth/RLS, sem migrations. É puramente camada de apresentação.
+### Hooks novos
+- `useSuppliers`, `useSupplier(id)`, `useCreateSupplier`, `useUpdateSupplier`.
+- `useLocations`, `useLocation(id)`.
+- `useRequestActivity(requestId)`.
+- Extensão de `useUpdateRequest` para aceitar `supplierId`, `locationId`, `estimatedCost`, `finalCost`.
 
-## Pergunta antes de avançar
+### Componentes novos
+- `SupplierForm`, `SupplierCombobox` (reutilizável em requests/tasks/cleaning).
+- `LocationCombobox` (com agrupamento por `kind`).
+- `LocationPicker` (para o formulário "onde é o problema": room OU location).
+- `CostFields` (card só para admin/manager).
+- `RequestActivityFeed`.
 
-Queres que execute **todas as fases (1–4)** ou prefere fazer só **Fase 1 + 2** primeiro (consistência + refinamento visual) e ver o resultado antes de continuar? A Fase 1+2 já cobre 70% do salto de "MVP" para "profissional".
+### Tipos / mappers
+- Atualizar `src/lib/types.ts` com `Supplier`, `Location`, `LocationKind`, campos novos em `Request`/`OpsTask`/`CleaningTask`.
+- Estender `src/lib/dataMappers.ts`.
+
+### Não incluído nesta fase (vem depois)
+- Contracts module (Fase 2 — depende de Suppliers ✓).
+- Document Management (Fase 2).
+- Cleaning checklist "create issue from cleaning" (Fase 3 — depende de Locations ✓).
+- Insights novos cards (Fase 3 — depende de costs ✓ e activity ✓).
+- Resident files, tags VIP, correspondence (Fase 4).
+- Stays minimum-duration alert e UX polish global (Fase 5 — quick wins finais).
+- Import real de quartos via Excel (Fase 5).
+
+### Critérios de aceitação Fase 1
+- Posso criar um supplier, atribuí-lo a um pedido, e ver esse pedido no perfil do supplier.
+- Posso criar um pedido apontando para "Cozinha 5º piso" (location não-room).
+- Posso definir custo estimado/final num pedido; residente não vê nada disso na UI nem no network tab.
+- Cada mudança de owner/supplier/status/custo gera uma linha em `request_activity`.
+- Quartos antigos continuam a funcionar exatamente como antes (mesmo `room_id`, mesmas páginas).
+
