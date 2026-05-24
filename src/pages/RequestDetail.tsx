@@ -25,15 +25,23 @@ const RequestDetail = () => {
   const { data: residents = [] } = useResidents();
   const { data: rooms = [] } = useRooms();
   const { data: staff = [] } = useStaffUsers();
+  const { data: roles = [] } = useMyRoles();
+  const canSeeCosts = roles.includes("admin") || roles.includes("manager");
   const updateRequest = useUpdateRequest();
   const request = requests.find((r) => r.id === id);
+  const { data: linkedSupplier } = useSupplier(request?.supplierId ?? undefined);
+  const { data: linkedLocation } = useLocationData(request?.locationId ?? undefined);
   const [assigneeUserId, setAssigneeUserId] = useState<string>("__none__");
+  const [estimatedCost, setEstimatedCost] = useState<string>("");
+  const [finalCost, setFinalCost] = useState<string>("");
 
   useEffect(() => {
     if (request) {
       setAssigneeUserId(request.assignedToUserId ?? "__none__");
+      setEstimatedCost(request.estimatedCost != null ? String(request.estimatedCost) : "");
+      setFinalCost(request.finalCost != null ? String(request.finalCost) : "");
     }
-  }, [request?.id, request?.assignedToUserId]);
+  }, [request?.id, request?.assignedToUserId, request?.estimatedCost, request?.finalCost]);
 
   if (!request) {
     return (
