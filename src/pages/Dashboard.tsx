@@ -45,7 +45,13 @@ const Dashboard = () => {
 
   const openRequests = requests.filter((r) => r.status === "open" || r.status === "in_progress");
   const urgent = requests.filter((r) => r.priority === "urgent" && r.status !== "resolved" && r.status !== "closed");
-  const todaysCleaning = cleaningTasks.filter((t) => t.status !== "completed");
+  const startOfToday = new Date(); startOfToday.setHours(0, 0, 0, 0);
+  const endOfToday = new Date(startOfToday.getTime() + 86400000);
+  const todaysCleaning = cleaningTasks.filter((t) => {
+    if (t.status === "completed" || t.status === "skipped") return false;
+    const d = new Date(t.scheduledFor).getTime();
+    return d >= startOfToday.getTime() && d < endOfToday.getTime();
+  });
   const occupied = rooms.filter((r) => r.status === "occupied").length;
   const occupancy = rooms.length ? Math.round((occupied / rooms.length) * 100) : 0;
   const checkingOut = residents.filter((r) => r.status === "checking_out").length;
