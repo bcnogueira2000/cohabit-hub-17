@@ -45,7 +45,14 @@ const baseSections: NavSection[] = [
     label: "Espaços",
     items: [
       { to: "/rooms", label: "Quartos", icon: DoorClosed },
+      { to: "/locations", label: "Locais", icon: MapPin },
       { to: "/bookings", label: "Reservas", icon: CalendarRange },
+    ],
+  },
+  {
+    label: "Parceiros",
+    items: [
+      { to: "/suppliers", label: "Fornecedores", icon: Building2 },
     ],
   },
   {
