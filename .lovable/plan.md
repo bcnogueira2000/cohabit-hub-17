@@ -1,92 +1,59 @@
-# Manual de Instruções — Living Colours (PDF para equipa de gestão)
+# Atualizar manual com capítulo de orientação ao teste
 
-## O que vai ser entregue
+Adicionar um novo capítulo ao PDF `manual-living-colours.pdf` focado em ajudar a equipa de gestão a testar a app de forma estruturada e a dar feedback útil.
 
-1. **Nova conta admin partilhada** para a equipa de gestão (assim ninguém usa a conta pessoal).
-2. **Conta demo cliente** já existente (Maria) — só documentada no PDF.
-3. **PDF** em português, pronto a enviar por email.
+## Onde entra no documento
 
----
+Novo capítulo **"7. Como testar e dar feedback"**, inserido antes do atual "Boas práticas & FAQ" (que passa a 8). Aparece também no índice.
 
-## 1. Conta admin partilhada
+## Conteúdo do novo capítulo (~2 páginas)
 
-Crio via backend uma conta com:
+**7.1 Objetivo do teste**
+- Não é só verificar se funciona — é avaliar se os fluxos fazem sentido no dia-a-dia da Living Colours, o que falta, o que sobra, e o que pode ser simplificado.
 
-- **Email:** `gestao@livingcolours.app`
-- **Password:** `Gestao2026!` (forte, fácil de partilhar; recomendo que cada pessoa mude depois para a sua própria via "Esqueci-me da password")
-- **Nome:** Equipa Gestão
-- **Role:** `admin` (acesso total)
-- **Email confirmado:** sim (login imediato)
+**7.2 Como abordar o teste (sugestão de ordem)**
+1. Entrar com a conta de gestão e explorar o portal staff sem agenda — primeira impressão.
+2. Entrar com a conta `maria.demo` (residente) noutro browser/janela anónima e perceber a vista do cliente.
+3. Executar os workflows-chave (lista abaixo) de ponta a ponta, alternando entre as duas contas quando faz sentido (ex.: residente cria pedido → gestão resolve).
 
-Se preferires outro email/password, dizes antes de aprovar.
+**7.3 Workflows a testar (checklist)**
+Lista curta e accionável, cada um com "o que fazer" + "o que avaliar":
+- Criar pedido como residente, atribuir fornecedor + responsável interno como staff, registar custo, fechar.
+- Agendar uma limpeza pontual e uma recorrente; verificar no Dashboard e em Limpezas.
+- Criar uma tarefa interna e marcar como concluída.
+- Aprovar um novo residente em Aprovações.
+- Adicionar um fornecedor novo e um local novo (área comum).
+- Criar uma reserva de espaço comum (se aplicável).
+- Convidar/promover um utilizador em Utilizadores (só admin).
 
-**Recomendação adicional:** o ideal é a curto prazo cada membro da gestão criar a sua própria conta e eu atribuir role `admin` (assim o log de atividade fica por pessoa). Posso fazer isso a seguir se quiseres — para já entrego a partilhada como pediste.
+**7.4 O que queremos que avaliem (eixos de feedback)**
+- **Clareza**: percebe-se o que cada página faz sem explicação?
+- **Fluxo**: o nº de cliques para tarefas frequentes é razoável?
+- **Linguagem**: termos (pedido, estadia, local, fornecedor) batem com o vocabulário interno?
+- **Falta algo**: campos, filtros, notificações, relatórios?
+- **Sobra algo**: páginas/campos que nunca usariam?
+- **Permissões**: alguém vê algo que não devia, ou não vê algo que precisa?
+- **Mobile**: experiência no telemóvel (a app é responsive).
 
-## 2. Conta demo residente (já existe)
+**7.5 Como enviar feedback**
+- Formato sugerido por item: *página/fluxo · o que aconteceu · o que esperavam · sugestão*.
+- Canal: email para [a definir contigo] ou folha partilhada (placeholder no PDF).
+- Para bugs: incluir screenshot e passos para reproduzir.
 
-- **Email:** `maria.demo@livingcolours.test`
-- **Password:** `demo1234`
-- Documentada no PDF para mostrarem a vista do residente.
+**7.6 Avisos importantes durante o teste**
+- Os dados criados durante o teste ficam no sistema — usar prefixo "TESTE -" em títulos para facilitar limpeza depois.
+- A conta de gestão é partilhada: não mudar a password sem combinar.
+- A conta `maria.demo` também é partilhada — não apagar a estadia/quarto associados.
 
----
+## Execução técnica
 
-## 3. Estrutura do PDF
+- Reabrir o script Python que gerou o PDF original (ou reescrever, mantendo o mesmo estilo Platypus/ReportLab, capa, índice, paginação e cor de acento já alinhada ao branding).
+- Inserir o novo capítulo, renumerar o seguinte, regenerar o índice.
+- Guardar como `manual-living-colours.pdf` (substitui o atual; se preferires versionar digo e crio `_v2`).
+- QA visual obrigatório: converter cada página para JPEG e inspecionar antes de entregar.
 
-Documento profissional, ~12-15 páginas, com capa, índice e secções:
+## Fora de âmbito (posso fazer a seguir se quiseres)
 
-**1. Acesso à plataforma**
-- URL da app (preview/publicado)
-- Como fazer login (conta de gestão + conta demo residente)
-- Como criar conta nova (residente vs staff via aprovação)
-- Recuperar password
-- Login com Google
-
-**2. Visão geral**
-- O que é a app, dois portais (Staff vs Residente), papéis (admin / manager / staff / resident)
-
-**3. Portal Staff — página a página**
-Para cada uma: o que é, para que serve, workflow típico.
-- Dashboard / O Meu Dia
-- Pedidos (Requests) — incluindo novo fluxo com **Fornecedor + Responsável Interno**, custos (estimado/final, só admin+manager), atividade
-- Limpezas (Cleaning) — hoje, próximas, recorrentes
-- Tarefas (Tasks)
-- Residentes / Detalhe de residente
-- Estadias (Stays)
-- Quartos
-- **Locais (NOVO)** — espaços partilhados (cozinhas, lavandaria, etc.)
-- **Fornecedores (NOVO)** — base de dados de prestadores externos
-- Reservas (Bookings)
-- Aprovações (registos pendentes)
-- Insights
-- Utilizadores (só admin)
-- Definições
-
-**4. Portal Residente — página a página**
-- Home, Os Meus Pedidos, Novo Pedido, Reservas, Perfil, A Minha Estadia
-
-**5. Workflows-chave**
-- Como criar um pedido e atribuir fornecedor + responsável interno
-- Como registar custo de uma intervenção
-- Como agendar uma limpeza
-- Como aprovar um novo residente
-- Como adicionar um novo fornecedor / local
-
-**6. Boas práticas & FAQ**
-- Quem vê o quê (matriz simples de permissões)
-- O que residentes nunca veem (custos, fornecedores, notas internas)
-- Suporte / a quem pedir ajuda
-
----
-
-## Detalhes técnicos
-
-- **Geração do PDF:** Python + ReportLab (Platypus, com índice e estilos), guardado em `/mnt/documents/manual-living-colours.pdf`.
-- **Layout:** capa com logo, tipografia limpa (Helvetica/Georgia), cor de acento alinhada ao branding atual (lê `index.css` para apanhar o primary HSL), cabeçalho/rodapé com paginação.
-- **QA visual obrigatório:** converto cada página para JPEG e inspeciono antes de entregar.
-- **Conta admin:** criada via tool `supabase--insert` chamando uma migração curta que insere o user em `auth.users`? Não — para criar utilizador uso uma **edge function** `seed-management-admin` análoga à `seed-demo-admin` existente, OU mais simples: peço-te para clicares uma vez num botão. **Decisão:** crio uma nova edge function `seed-management-admin` (idempotente) e chamo-a uma vez via curl com a tua sessão; ficas com a conta criada e podes voltar a chamar para repor a password se for preciso.
-
-## Não está incluído (posso fazer a seguir se quiseres)
-
-- Capturas de ecrã reais das páginas (PDF fica com descrições escritas; adicionar screenshots é +1 iteração).
-- Versão EN.
-- Contas individuais por cada membro da gestão (em vez da partilhada).
+- Criar um formulário online de feedback (Google Form ou página dentro da própria app).
+- Versão EN do manual.
+- Screenshots reais nas páginas.
