@@ -207,13 +207,7 @@ const RequestNew = () => {
             {lang === "pt" ? "Permissão para entrar no quarto" : "Permission to enter room"}
           </Label>
           <div className="grid grid-cols-3 gap-2">
-            {(
-              [
-                { v: "yes" as PermissionToEnter, pt: "Sim", en: "Yes" },
-                { v: "with_notice" as PermissionToEnter, pt: "Com aviso", en: "With notice" },
-                { v: "no" as PermissionToEnter, pt: "Não", en: "No" },
-              ]
-            ).map(({ v, pt, en }) => (
+            {(["yes", "with_notice", "no"] as PermissionToEnter[]).map((v) => (
               <button
                 key={v}
                 type="button"
@@ -225,7 +219,7 @@ const RequestNew = () => {
                     : "border-border/60 text-muted-foreground",
                 )}
               >
-                {lang === "pt" ? pt : en}
+                {pickLabel(permissionLabels[v], lang)}
               </button>
             ))}
           </div>
