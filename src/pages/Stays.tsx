@@ -42,15 +42,17 @@ const Stays = () => {
   const [roomId, setRoomId] = useState<string>("");
 
   const filtered = useMemo(() => {
-    const now = Date.now();
-    const in7 = now + 7 * 24 * 3600 * 1000;
+    const nowDate = new Date();
+    const startOfToday = new Date(nowDate.getFullYear(), nowDate.getMonth(), nowDate.getDate()).getTime();
+    const now = nowDate.getTime();
+    const in14 = now + 14 * 24 * 3600 * 1000;
     return stays.filter((s) => {
       const ci = new Date(s.checkIn).getTime();
       const co = new Date(s.checkOut).getTime();
       switch (filter) {
-        case "upcoming": return s.status !== "cancelled" && s.status !== "checked_out" && ci > now;
+        case "upcoming": return s.status !== "cancelled" && s.status !== "checked_out" && ci >= startOfToday;
         case "current": return s.status === "checked_in" || (s.status === "confirmed" && ci <= now && co >= now);
-        case "leaving": return s.status === "checked_in" && co <= in7;
+        case "leaving": return s.status === "checked_in" && (co <= in14 || co < now);
         case "history": return s.status === "checked_out" || s.status === "cancelled";
         case "all": return true;
       }
@@ -166,12 +168,14 @@ const Stays = () => {
           const room = rooms.find((r) => r.id === s.roomId);
           const ci = new Date(s.checkIn);
           const co = new Date(s.checkOut);
+          const overdue = s.status === "checked_in" && co.getTime() < Date.now();
           return (
             <Card key={s.id} className="p-4 lg:p-5 shadow-card border-border/60 hover:shadow-elegant transition-smooth">
               <div className="flex flex-col sm:flex-row sm:items-center gap-4">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap mb-1.5">
                     <Badge variant="outline" className={statusTone[s.status]}>{statusLabel[s.status]}</Badge>
+                    {overdue && <Badge variant="outline" className="bg-destructive/10 text-destructive border-destructive/30">Atrasada</Badge>}
                     {room && <span className="text-xs text-muted-foreground flex items-center gap-1"><Home className="h-3 w-3" /> Quarto {room.number}</span>}
                     <span className="text-[11px] text-muted-foreground capitalize">· {s.source.replace("_", " ")}</span>
                   </div>

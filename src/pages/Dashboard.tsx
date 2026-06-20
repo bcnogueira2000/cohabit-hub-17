@@ -33,13 +33,14 @@ const Dashboard = () => {
   const isLoadingKpis = loadingRequests || loadingCleaning || loadingRooms || loadingStays;
 
   const now = Date.now();
-  const in7d = now + 7 * 86400000;
+  const in30d = now + 30 * 86400000;
+  const in14d = now + 14 * 86400000;
   const upcomingArrivals = stays
-    .filter((s) => (s.status === "confirmed" || s.status === "pending") && new Date(s.checkIn).getTime() >= now && new Date(s.checkIn).getTime() <= in7d)
+    .filter((s) => (s.status === "confirmed" || s.status === "pending") && new Date(s.checkIn).getTime() >= now && new Date(s.checkIn).getTime() <= in30d)
     .sort((a, b) => new Date(a.checkIn).getTime() - new Date(b.checkIn).getTime())
     .slice(0, 3);
   const upcomingDepartures = stays
-    .filter((s) => s.status === "checked_in" && new Date(s.checkOut).getTime() >= now && new Date(s.checkOut).getTime() <= in7d)
+    .filter((s) => s.status === "checked_in" && new Date(s.checkOut).getTime() >= now && new Date(s.checkOut).getTime() <= in14d)
     .sort((a, b) => new Date(a.checkOut).getTime() - new Date(b.checkOut).getTime())
     .slice(0, 3);
 
@@ -215,7 +216,7 @@ const Dashboard = () => {
               <h2 className="font-display text-base font-semibold flex items-center gap-2">
                 <LogIn className="h-4 w-4 text-success" /> Próximas entradas
               </h2>
-              <p className="text-xs text-muted-foreground mt-0.5">Próximos 7 dias</p>
+              <p className="text-xs text-muted-foreground mt-0.5">Próximos 30 dias</p>
             </div>
             <Button asChild variant="ghost" size="sm" className="text-primary -mr-2">
               <Link to="/stays">Ver estadias <ArrowRight className="h-3.5 w-3.5 ml-1" /></Link>
@@ -252,7 +253,7 @@ const Dashboard = () => {
               <h2 className="font-display text-base font-semibold flex items-center gap-2">
                 <LogOut className="h-4 w-4 text-warning" /> Próximas saídas
               </h2>
-              <p className="text-xs text-muted-foreground mt-0.5">Próximos 7 dias</p>
+              <p className="text-xs text-muted-foreground mt-0.5">Próximos 14 dias</p>
             </div>
             <Button asChild variant="ghost" size="sm" className="text-primary -mr-2">
               <Link to="/stays">Ver estadias <ArrowRight className="h-3.5 w-3.5 ml-1" /></Link>
