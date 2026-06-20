@@ -82,7 +82,7 @@ const RequestNew = () => {
   return (
     <div className="px-4 py-6 space-y-5">
       <Link to="/app/requests" className="inline-flex items-center gap-1 text-sm text-muted-foreground">
-        <ArrowLeft className="h-4 w-4" /> {t("common.back")}
+        <ArrowLeft className="h-4 w-4" strokeWidth={ICON_STROKE} /> {t("common.back")}
       </Link>
 
       <h1 className="font-display text-2xl font-semibold">{t("home.new_request")}</h1>
