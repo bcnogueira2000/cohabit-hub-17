@@ -1,8 +1,18 @@
 import { NavLink, Outlet, useLocation, useNavigate, Link } from "react-router-dom";
-import { Home, Inbox, CalendarRange, PartyPopper, MoreHorizontal, Bell, Sparkles, BookOpen, HelpCircle, User, LogOut, Globe, BedDouble } from "lucide-react";
+import { Home, Inbox, CalendarRange, PartyPopper, MoreHorizontal, Sparkles, BookOpen, HelpCircle, User, LogOut, Globe, BedDouble } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { useAuth } from "@/hooks/useAuth";
 import { useLang } from "@/lib/i18n";
 import { NotificationBell } from "@/components/NotificationBell";
@@ -15,6 +25,7 @@ export const ResidentShell = () => {
   const { signOut } = useAuth();
   const { t, lang, setLang } = useLang();
   const [moreOpen, setMoreOpen] = useState(false);
+  const [signOutOpen, setSignOutOpen] = useState(false);
 
   const handleSignOut = async () => { await signOut(); navigate("/auth", { replace: true }); };
 
@@ -22,14 +33,13 @@ export const ResidentShell = () => {
     { to: "/app/home", label: t("tab.home"), icon: Home, end: true },
     { to: "/app/requests", label: t("tab.requests"), icon: Inbox },
     { to: "/app/bookings", label: t("tab.bookings"), icon: CalendarRange },
-    { to: "/app/events", label: t("tab.events"), icon: PartyPopper },
+    { to: "/app/my-stay", label: lang === "pt" ? "A minha estadia" : "My stay", icon: BedDouble },
   ];
 
   const more = [
-    { to: "/app/my-stay", label: lang === "pt" ? "A minha estadia" : "My stay", icon: BedDouble },
+    { to: "/app/events", label: t("tab.events"), icon: PartyPopper },
     { to: "/app/profile", label: lang === "pt" ? "O meu perfil" : "My profile", icon: User },
     { to: "/app/services", label: lang === "pt" ? "Serviços" : "Services", icon: Sparkles },
-    { to: "/app/notifications", label: lang === "pt" ? "Notificações" : "Notifications", icon: Bell },
     { to: "/app/onboarding", label: "Onboarding", icon: BookOpen },
     { to: "/app/faqs", label: "FAQs", icon: HelpCircle },
   ];
