@@ -14,6 +14,7 @@ export default {
       fontFamily: {
         display: ["Source Sans 3", "Myriad Pro", "system-ui", "sans-serif"],
         sans: ["Source Sans 3", "Myriad Pro", "system-ui", "sans-serif"],
+        serif: ["Fraunces", "Georgia", "serif"],
       },
       colors: {
         border: "hsl(var(--border))",

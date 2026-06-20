@@ -1,12 +1,13 @@
 import { Card } from "@/components/ui/card";
 import { Link } from "react-router-dom";
-import { Inbox, CalendarRange, Sparkles, PartyPopper, ArrowRight, Plus } from "lucide-react";
+import { Inbox, CalendarRange, Sparkles, PartyPopper, ArrowRight, Plus, BedDouble } from "lucide-react";
 import { useLang } from "@/lib/i18n";
 import { useProfile } from "@/hooks/useProfile";
 import { useMyRequests, isActiveRequest } from "@/hooks/useResidentRequests";
 import { useMyBookings } from "@/hooks/useResidentBookings";
 import { useMyStay } from "@/hooks/useMyStay";
 import { statusLabels } from "@/lib/labels";
+import heroImg from "@/assets/home-hero.jpg";
 
 const statusLabelsEn: Record<string, string> = {
   open: "Open",
@@ -31,14 +32,15 @@ const Home = () => {
 
   const firstName = profile?.full_name?.split(" ")[0] || "";
 
-  // Days lived in the house based on the most recent checked-in stay
-  const activeStay = stay?.stays?.find((s) => s.status === "checked_in");
-  const daysHere = activeStay?.check_in
-    ? Math.max(
-        0,
-        Math.floor((Date.now() - new Date(activeStay.check_in).getTime()) / (1000 * 60 * 60 * 24)),
-      )
-    : null;
+  const resident = stay?.resident;
+  const room = stay?.room;
+  const city = "Lisboa"; // Living Colours building city (no per-resident city in schema yet)
+  const moveIn = resident?.move_in ? new Date(resident.move_in) : null;
+  const daysHere =
+    moveIn && moveIn.getTime() <= Date.now()
+      ? Math.max(0, Math.floor((Date.now() - moveIn.getTime()) / (1000 * 60 * 60 * 24)))
+      : null;
+  const hasStay = !!resident && !!moveIn;
 
   const shortcuts = [
     {
@@ -46,78 +48,122 @@ const Home = () => {
       label: t("home.new_request"),
       icon: Plus,
       bg: "bg-brand-coral/10",
-      iconColor: "text-brand-coral",
+      badge: "bg-brand-coral",
     },
     {
       to: "/app/bookings/new",
       label: t("home.book_space"),
       icon: CalendarRange,
       bg: "bg-brand-teal/10",
-      iconColor: "text-brand-teal",
+      badge: "bg-brand-teal",
     },
     {
       to: "/app/services",
       label: t("home.services"),
       icon: Sparkles,
       bg: "bg-brand-lilac/15",
-      iconColor: "text-brand-lilac",
+      badge: "bg-brand-lilac",
     },
     {
       to: "/app/events",
       label: t("home.events"),
       icon: PartyPopper,
-      bg: "bg-brand-yellow/15",
-      iconColor: "text-brand-yellow",
+      bg: "bg-brand-yellow/20",
+      badge: "bg-brand-yellow",
     },
   ];
 
   return (
-    <div className="px-4 py-6 space-y-6">
-      {/* Greeting banner */}
-      <div className="gradient-living rounded-3xl p-6 text-foreground shadow-elegant relative overflow-hidden">
-        <div className="absolute inset-0 bg-background/10 backdrop-blur-[1px]" aria-hidden />
-        <div className="relative">
-          <p className="text-sm font-medium opacity-90">{t("home.greeting")} 👋</p>
-          <h1 className="font-display text-3xl sm:text-4xl font-semibold mt-1 leading-tight">
-            {firstName || (lang === "pt" ? "Bem-vindo" : "Welcome")}
+    <div className="px-4 py-5 space-y-6">
+      {/* Hero */}
+      <section
+        className="relative rounded-3xl overflow-hidden shadow-elegant"
+        style={{ height: 232 }}
+      >
+        <img
+          src={heroImg}
+          alt=""
+          width={1280}
+          height={896}
+          className="absolute inset-0 w-full h-full object-cover"
+        />
+        <div
+          className="absolute inset-0"
+          style={{
+            background:
+              "linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.45) 45%, rgba(0,0,0,0.05) 100%)",
+          }}
+          aria-hidden
+        />
+        <div className="relative h-full flex flex-col justify-end p-5 text-white">
+          <p className="text-sm font-medium opacity-95">
+            {t("home.greeting")}, {firstName || (lang === "pt" ? "amig@" : "friend")} 👋
+          </p>
+          <h1 className="font-serif text-[26px] sm:text-3xl font-semibold leading-tight mt-1">
+            {lang === "pt" ? `A tua casa em ${city}.` : `Your home in ${city}.`}
           </h1>
-          {daysHere !== null ? (
-            <p className="mt-3 text-sm font-medium bg-background/30 inline-flex px-3 py-1 rounded-full backdrop-blur-sm">
-              {lang === "pt"
-                ? daysHere === 0
-                  ? "Primeiro dia em casa 🌱"
-                  : `${daysHere} ${daysHere === 1 ? "dia" : "dias"} a viver aqui`
-                : daysHere === 0
-                  ? "First day at home 🌱"
-                  : `${daysHere} ${daysHere === 1 ? "day" : "days"} living here`}
+          {hasStay && (
+            <p className="text-xs opacity-90 mt-1.5 flex items-center gap-2 flex-wrap">
+              {daysHere !== null && (
+                <span>
+                  {lang === "pt"
+                    ? daysHere === 0
+                      ? "Primeiro dia em casa"
+                      : `${daysHere} ${daysHere === 1 ? "dia" : "dias"} aqui`
+                    : daysHere === 0
+                      ? "First day at home"
+                      : `${daysHere} ${daysHere === 1 ? "day" : "days"} in`}
+                </span>
+              )}
+              {room?.number && (
+                <>
+                  <span aria-hidden className="opacity-60">·</span>
+                  <span className="inline-flex items-center gap-1">
+                    <BedDouble className="h-3 w-3" />
+                    {lang === "pt" ? "Quarto" : "Room"} {room.number}
+                  </span>
+                </>
+              )}
             </p>
-          ) : (
-            <p className="mt-3 text-sm opacity-90">{t("home.welcome")}</p>
           )}
+          <Link
+            to="/app/my-stay"
+            className="mt-3 inline-flex items-center gap-1.5 self-start text-xs font-medium bg-white/20 backdrop-blur-md hover:bg-white/30 transition-smooth px-3.5 py-1.5 rounded-full border border-white/25"
+          >
+            {lang === "pt" ? "Ver a minha estadia" : "View my stay"}
+            <ArrowRight className="h-3 w-3" />
+          </Link>
         </div>
-      </div>
+      </section>
 
       {/* Shortcuts */}
       <div className="grid grid-cols-2 gap-3">
-        {shortcuts.map(({ to, label, icon: Icon, bg, iconColor }) => (
+        {shortcuts.map(({ to, label, icon: Icon, bg, badge }) => (
           <Link
             key={to}
             to={to}
             className={
-              "rounded-2xl p-5 border border-border/60 transition-smooth hover:shadow-elegant hover:-translate-y-0.5 " +
+              "rounded-2xl p-4 border border-border/50 transition-smooth hover:shadow-elegant hover:-translate-y-0.5 flex flex-col gap-3 " +
               bg
             }
           >
-            <Icon className={"h-6 w-6 " + iconColor} />
-            <div className="mt-3 text-sm font-semibold text-foreground">{label}</div>
+            <span
+              className={
+                "h-10 w-10 rounded-full flex items-center justify-center text-white shadow-sm " +
+                badge
+              }
+            >
+              <Icon className="h-5 w-5" />
+            </span>
+            <span className="text-sm font-semibold text-foreground leading-tight">{label}</span>
           </Link>
         ))}
       </div>
 
       {/* Active requests */}
-      <Card className="p-5 border-border/60">
+      <Card className="p-5 rounded-2xl border-border/50">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="font-display text-lg font-semibold flex items-center gap-2">
+          <h2 className="font-display text-base font-semibold flex items-center gap-2">
             <Inbox className="h-4 w-4 text-primary" /> {t("home.active_requests")}
           </h2>
           <Link to="/app/requests" className="text-xs text-primary flex items-center gap-1 hover:underline">
@@ -134,7 +180,7 @@ const Home = () => {
               <Link
                 key={r.id}
                 to={`/app/requests/${r.id}`}
-                className="block p-3 bg-muted/40 rounded-lg hover:bg-muted/60 transition-smooth"
+                className="block p-3 bg-muted/40 rounded-xl hover:bg-muted/60 transition-smooth"
               >
                 <div className="flex items-center justify-between gap-3">
                   <span className="text-sm font-medium truncate">{r.title}</span>
@@ -151,9 +197,9 @@ const Home = () => {
       </Card>
 
       {/* Next booking */}
-      <Card className="p-5 border-border/60">
+      <Card className="p-5 rounded-2xl border-border/50">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="font-display text-lg font-semibold flex items-center gap-2">
+          <h2 className="font-display text-base font-semibold flex items-center gap-2">
             <CalendarRange className="h-4 w-4 text-primary" /> {t("home.next_booking")}
           </h2>
           <Link to="/app/bookings" className="text-xs text-primary flex items-center gap-1 hover:underline">
@@ -165,7 +211,7 @@ const Home = () => {
             {lang === "pt" ? "Sem reservas próximas." : "No upcoming bookings."}
           </p>
         ) : (
-          <div className="p-3 bg-muted/40 rounded-lg">
+          <div className="p-3 bg-muted/40 rounded-xl">
             <div className="text-sm font-medium">{myUpcomingBooking.title}</div>
             <div className="text-xs text-muted-foreground mt-0.5">
               {new Date(myUpcomingBooking.start_at).toLocaleString(
