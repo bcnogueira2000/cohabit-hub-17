@@ -10,7 +10,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "sonner";
 
 const Bookings = () => {
-  const { data: spaces = [] } = useSpaces();
+  const { data: allSpaces = [] } = useSpaces();
+  const spaces = useMemo(() => allSpaces.filter((s) => s.active), [allSpaces]);
   const { data: bookings = [] } = useBookings();
   const { data: residents = [] } = useResidents();
   const createBooking = useCreateBooking();
