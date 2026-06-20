@@ -1,8 +1,7 @@
 import { NavLink, Outlet, useLocation, useNavigate, Link } from "react-router-dom";
-import { Home, Inbox, CalendarRange, PartyPopper, MoreHorizontal, Sparkles, BookOpen, HelpCircle, User, LogOut, Globe, BedDouble } from "lucide-react";
+import { Home, Inbox, CalendarRange, User, LogOut, Globe, BedDouble, BookOpen, HelpCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -36,7 +35,6 @@ export const ResidentShell = () => {
   const { signOut } = useAuth();
   const { data: profile } = useProfile();
   const { t, lang, setLang } = useLang();
-  const [moreOpen, setMoreOpen] = useState(false);
   const [signOutOpen, setSignOutOpen] = useState(false);
 
   const handleSignOut = async () => { await signOut(); navigate("/auth", { replace: true }); };
@@ -46,14 +44,6 @@ export const ResidentShell = () => {
     { to: "/app/requests", label: t("tab.requests"), icon: Inbox },
     { to: "/app/bookings", label: t("tab.bookings"), icon: CalendarRange },
     { to: "/app/my-stay", label: lang === "pt" ? "A minha estadia" : "My stay", icon: BedDouble },
-  ];
-
-  const more = [
-    { to: "/app/events", label: t("tab.events"), icon: PartyPopper },
-    { to: "/app/profile", label: lang === "pt" ? "O meu perfil" : "My profile", icon: User },
-    { to: "/app/services", label: lang === "pt" ? "Serviços" : "Services", icon: Sparkles },
-    { to: "/app/onboarding", label: "Onboarding", icon: BookOpen },
-    { to: "/app/faqs", label: "FAQs", icon: HelpCircle },
   ];
 
   return (
@@ -77,6 +67,19 @@ export const ResidentShell = () => {
                   {lang === "pt" ? "O meu perfil" : "My profile"}
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => navigate("/app/onboarding")}>
+                  <BookOpen className="h-4 w-4 mr-2" strokeWidth={ICON_STROKE} />
+                  Onboarding
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => navigate("/app/faqs")}>
+                  <HelpCircle className="h-4 w-4 mr-2" strokeWidth={ICON_STROKE} />
+                  FAQs
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setLang(lang === "pt" ? "en" : "pt")}>
+                  <Globe className="h-4 w-4 mr-2" strokeWidth={ICON_STROKE} />
+                  {lang === "pt" ? "English" : "Português"}
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={() => setSignOutOpen(true)}>
                   <LogOut className="h-4 w-4 mr-2" strokeWidth={ICON_STROKE} />
                   {lang === "pt" ? "Terminar sessão" : "Sign out"}
@@ -95,7 +98,7 @@ export const ResidentShell = () => {
 
       {/* Bottom nav */}
       <nav className="fixed bottom-0 inset-x-0 z-30 bg-background/95 backdrop-blur border-t border-border">
-        <div className="grid grid-cols-5 h-16 max-w-2xl mx-auto">
+        <div className="grid grid-cols-4 h-16 max-w-2xl mx-auto">
           {tabs.map(({ to, label, icon: Icon, end }) => (
             <NavLink
               key={to}
@@ -112,41 +115,6 @@ export const ResidentShell = () => {
               {label}
             </NavLink>
           ))}
-          <Sheet open={moreOpen} onOpenChange={setMoreOpen}>
-            <SheetTrigger className="flex flex-col items-center justify-center gap-0.5 text-[11px] font-medium text-muted-foreground">
-              <MoreHorizontal className="h-5 w-5" strokeWidth={ICON_STROKE} />
-              {t("tab.more")}
-            </SheetTrigger>
-            <SheetContent side="bottom" className="rounded-t-2xl">
-              <div className="grid grid-cols-2 gap-2 pt-4">
-                {more.map(({ to, label, icon: Icon }) => (
-                  <NavLink
-                    key={to}
-                    to={to}
-                    onClick={() => setMoreOpen(false)}
-                    className="flex items-center gap-3 rounded-lg p-3 bg-muted/40 hover:bg-muted transition-smooth"
-                  >
-                    <Icon className="h-5 w-5 text-primary" strokeWidth={ICON_STROKE} />
-                    <span className="text-sm font-medium">{label}</span>
-                  </NavLink>
-                ))}
-                <button
-                  onClick={() => { setLang(lang === "pt" ? "en" : "pt"); setMoreOpen(false); }}
-                  className="flex items-center gap-3 rounded-lg p-3 bg-muted/40 hover:bg-muted transition-smooth"
-                >
-                  <Globe className="h-5 w-5 text-primary" strokeWidth={ICON_STROKE} />
-                  <span className="text-sm font-medium">{lang === "pt" ? "English" : "Português"}</span>
-                </button>
-                <button
-                  onClick={() => { setMoreOpen(false); setSignOutOpen(true); }}
-                  className="flex items-center gap-3 rounded-lg p-3 bg-muted/40 hover:bg-muted transition-smooth"
-                >
-                  <LogOut className="h-5 w-5 text-primary" strokeWidth={ICON_STROKE} />
-                  <span className="text-sm font-medium">{lang === "pt" ? "Sair" : "Sign out"}</span>
-                </button>
-              </div>
-            </SheetContent>
-          </Sheet>
         </div>
       </nav>
 
