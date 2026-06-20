@@ -17,6 +17,16 @@ const Bookings = () => {
   const deleteBooking = useDeleteBooking();
   const [selectedSpace, setSelectedSpace] = useState<string>("");
   const [open, setOpen] = useState(false);
+  const [weekOffset, setWeekOffset] = useState(0);
+
+  const days = useMemo(() => Array.from({ length: 7 }).map((_, i) => {
+    const d = new Date();
+    d.setDate(d.getDate() + weekOffset * 7 + i);
+    d.setHours(0, 0, 0, 0);
+    return d;
+  }), [weekOffset]);
+
+  const rangeLabel = `${days[0].toLocaleDateString("pt-PT", { day: "numeric", month: "short" })} – ${days[6].toLocaleDateString("pt-PT", { day: "numeric", month: "short" })}`;
 
   const cancelBooking = (id: string) => {
     deleteBooking.mutate(id, { onSuccess: () => toast.success("Reserva cancelada") });
