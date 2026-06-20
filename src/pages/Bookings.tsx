@@ -54,7 +54,7 @@ const Bookings = () => {
       <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-6">
         <div>
           <h1 className="font-display text-3xl lg:text-4xl font-semibold">Bookings</h1>
-          <p className="text-muted-foreground mt-1">Reservas de espaços comuns · próximos 7 dias</p>
+          <p className="text-muted-foreground mt-1">Reservas de espaços comuns</p>
         </div>
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
