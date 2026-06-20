@@ -156,33 +156,36 @@ const BookingNew = () => {
         <div className="grid grid-cols-2 gap-3">
           <div>
             <Label htmlFor="start">{lang === "pt" ? "Início" : "Start"}</Label>
-            <select
-              id="start"
-              value={startTime}
-              onChange={(e) => setStartTime(e.target.value)}
-              className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm"
-            >
-              {TIME_SLOTS.map((s) => (
-                <option key={s} value={s} disabled={occupiedSlots.has(s)}>
-                  {s}{occupiedSlots.has(s) ? " — ocupado" : ""}
-                </option>
-              ))}
-            </select>
+            <Select value={startTime} onValueChange={setStartTime}>
+              <SelectTrigger id="start">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {TIME_SLOTS.map((s) => {
+                  const occ = occupiedSlots.has(s);
+                  return (
+                    <SelectItem key={s} value={s} disabled={occ}>
+                      {s}{occ ? (lang === "pt" ? " — ocupado" : " — booked") : ""}
+                    </SelectItem>
+                  );
+                })}
+              </SelectContent>
+            </Select>
           </div>
           <div>
             <Label htmlFor="end">{lang === "pt" ? "Fim" : "End"}</Label>
-            <select
-              id="end"
-              value={endTime}
-              onChange={(e) => setEndTime(e.target.value)}
-              className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm"
-            >
-              {TIME_SLOTS.map((s) => (
-                <option key={s} value={s}>
-                  {s}
-                </option>
-              ))}
-            </select>
+            <Select value={endTime} onValueChange={setEndTime}>
+              <SelectTrigger id="end">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {TIME_SLOTS.map((s) => (
+                  <SelectItem key={s} value={s}>
+                    {s}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </div>
 
