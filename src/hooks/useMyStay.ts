@@ -1,6 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import type { Database } from "@/integrations/supabase/types";
+
+type ResidentStatus = Database["public"]["Enums"]["resident_status"];
+type StayStatus = Database["public"]["Enums"]["stay_status"];
 
 export interface MyStayData {
   resident: {
@@ -10,7 +14,7 @@ export interface MyStayData {
     phone: string | null;
     move_in: string | null;
     move_out: string | null;
-    status: string;
+    status: ResidentStatus;
     avatar_color: string | null;
     room_id: string | null;
   } | null;
@@ -24,7 +28,7 @@ export interface MyStayData {
     id: string;
     check_in: string;
     check_out: string;
-    status: string;
+    status: StayStatus;
     source: string;
     notes: string | null;
   }>;
