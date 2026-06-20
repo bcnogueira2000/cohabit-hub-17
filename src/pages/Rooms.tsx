@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/card";
 import { useRooms, useResidents } from "@/hooks/useData";
 import { roomStatusLabels } from "@/lib/labels";
 import { Room, RoomStatus } from "@/lib/types";
-import { cn } from "@/lib/utils";
+import { cn, parseRoomNumber, type RoomSide } from "@/lib/utils";
 
 const statusTone: Record<RoomStatus, string> = {
   available: "bg-success/15 text-success border-success/30",
@@ -23,6 +23,13 @@ const statusFilters: { value: RoomStatus | "all"; label: string }[] = [
   { value: "cleaning_required", label: "Precisa limpeza" },
   { value: "maintenance", label: "Manutenção" },
 ];
+
+const sideOrder: RoomSide[] = ["esquerdo", "direito", "indefinido"];
+const sideLabels: Record<RoomSide, string> = {
+  esquerdo: "Esquerdo",
+  direito: "Direito",
+  indefinido: "Indefinido",
+};
 
 const Rooms = () => {
   const { data: rooms = [] } = useRooms();
@@ -52,39 +59,65 @@ const Rooms = () => {
         ))}
       </div>
 
-      <div className="space-y-6">
-        {Object.entries(byFloor).sort(([a], [b]) => Number(a) - Number(b)).map(([floor, rs]) => (
-          <div key={floor}>
-            <h2 className="font-display text-xl font-semibold mb-3">{floor}º andar</h2>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-              {rs.map((r) => {
-                const resident = residents.find((p) => p.id === r.currentResidentId);
-                return (
-                  <Link key={r.id} to={`/rooms/${r.id}`}>
-                    <Card className="p-4 hover:shadow-elegant transition-smooth border-border/60 cursor-pointer h-full">
-                      <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-center gap-2">
-                          <DoorClosed className="h-4 w-4 text-muted-foreground" />
-                          <span className="font-display text-2xl font-semibold">{r.number}</span>
-                        </div>
-                        <span className={cn("text-[10px] px-2 py-0.5 rounded-full border font-medium", statusTone[r.status])}>{roomStatusLabels[r.status]}</span>
+      <div className="space-y-8">
+        {Object.entries(byFloor).sort(([a], [b]) => Number(a) - Number(b)).map(([floor, rs]) => {
+          const bySide = rs.reduce<Record<RoomSide, Room[]>>((acc, r) => {
+            const { side } = parseRoomNumber(r.number);
+            (acc[side] ||= []).push(r);
+            return acc;
+          }, { esquerdo: [], direito: [], indefinido: [] });
+
+          const presentSides = sideOrder.filter((s) => bySide[s].length > 0);
+
+          return (
+            <div key={floor}>
+              <h2 className="font-display text-xl font-semibold mb-3">{floor}º andar</h2>
+              <div className={cn("grid gap-4", presentSides.length > 1 ? "lg:grid-cols-2" : "grid-cols-1")}>
+                {presentSides.map((side) => {
+                  const sorted = [...bySide[side]].sort((a, b) => {
+                    const sa = parseRoomNumber(a.number).sequence ?? 0;
+                    const sb = parseRoomNumber(b.number).sequence ?? 0;
+                    return sa - sb;
+                  });
+                  return (
+                    <div key={side}>
+                      <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">
+                        {sideLabels[side]}
+                      </h3>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-2">
+                        {sorted.map((r) => {
+                          const resident = residents.find((p) => p.id === r.currentResidentId);
+                          return (
+                            <Link key={r.id} to={`/rooms/${r.id}`}>
+                              <Card className="p-2.5 hover:shadow-elegant transition-smooth border-border/60 cursor-pointer h-full">
+                                <div className="flex items-center justify-between mb-1.5 gap-1">
+                                  <div className="flex items-center gap-1 min-w-0">
+                                    <DoorClosed className="h-3 w-3 text-muted-foreground shrink-0" />
+                                    <span className="font-display text-sm font-semibold truncate">{r.number}</span>
+                                  </div>
+                                  <span className={cn("text-[9px] px-1.5 py-0.5 rounded-full border font-medium shrink-0", statusTone[r.status])}>{roomStatusLabels[r.status]}</span>
+                                </div>
+                                <div className="text-[10px] text-muted-foreground mb-1 truncate">{r.typology}</div>
+                                {resident ? (
+                                  <div className="flex items-center gap-1 text-[10px]">
+                                    <User className="h-2.5 w-2.5 text-muted-foreground shrink-0" />
+                                    <span className="truncate">{resident.fullName}</span>
+                                  </div>
+                                ) : (
+                                  <div className="text-[10px] text-muted-foreground italic">Sem residente</div>
+                                )}
+                              </Card>
+                            </Link>
+                          );
+                        })}
                       </div>
-                      <div className="text-xs text-muted-foreground mb-2">{r.typology}</div>
-                      {resident ? (
-                        <div className="flex items-center gap-1.5 text-xs">
-                          <User className="h-3 w-3 text-muted-foreground" />
-                          <span className="truncate">{resident.fullName}</span>
-                        </div>
-                      ) : (
-                        <div className="text-xs text-muted-foreground italic">Sem residente</div>
-                      )}
-                    </Card>
-                  </Link>
-                );
-              })}
+                    </div>
+                  );
+                })}
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

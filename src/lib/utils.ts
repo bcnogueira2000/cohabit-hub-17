@@ -33,6 +33,25 @@ export function colorKey(seed?: string | null): 0 | 1 | 2 | 3 {
   return (Math.abs(h) % 4) as 0 | 1 | 2 | 3;
 }
 
+export type RoomSide = "esquerdo" | "direito" | "indefinido";
+
+export interface ParsedRoomNumber {
+  floor: number | null;
+  side: RoomSide;
+  sequence: number | null;
+}
+
+/** Parse room numbers in the official format {floor}{D|E}Q{seq}, e.g. "5DQ1". */
+export function parseRoomNumber(number: string): ParsedRoomNumber {
+  const m = /^(\d+)([DE])Q(\d+)$/i.exec(number?.trim() ?? "");
+  if (!m) return { floor: null, side: "indefinido", sequence: null };
+  return {
+    floor: Number(m[1]),
+    side: m[2].toUpperCase() === "E" ? "esquerdo" : "direito",
+    sequence: Number(m[3]),
+  };
+}
+
 const DATE_LOCALE = "pt-PT";
 
 export type DateFormat = "short" | "long" | "time" | "datetime" | "weekday";
