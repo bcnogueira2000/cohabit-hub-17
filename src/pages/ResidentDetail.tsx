@@ -78,6 +78,34 @@ const ResidentDetail = () => {
               </div>
             </Card>
           </div>
+          <Card className="p-4 border-border/60 shadow-card space-y-3">
+            <h3 className="font-display text-lg font-semibold">Informação pessoal</h3>
+            <div className="grid sm:grid-cols-2 gap-3 text-sm">
+              <div>
+                <div className="text-xs text-muted-foreground flex items-center gap-1 mb-0.5"><Globe className="h-3 w-3" /> Nacionalidade</div>
+                <div className="font-medium">{profile?.nationality || <span className="text-muted-foreground">—</span>}</div>
+              </div>
+              <div>
+                <div className="text-xs text-muted-foreground flex items-center gap-1 mb-0.5"><Heart className="h-3 w-3" /> Contacto de emergência</div>
+                <div className="font-medium">
+                  {profile?.emergency_contact_name || profile?.emergency_contact_phone ? (
+                    <>
+                      {profile?.emergency_contact_name ?? ""}
+                      {profile?.emergency_contact_phone ? ` · ${profile.emergency_contact_phone}` : ""}
+                    </>
+                  ) : (
+                    <span className="text-muted-foreground">—</span>
+                  )}
+                </div>
+              </div>
+            </div>
+            <div>
+              <div className="text-xs text-muted-foreground flex items-center gap-1 mb-0.5"><AlertTriangle className="h-3 w-3" /> Necessidades especiais</div>
+              <div className="text-sm whitespace-pre-wrap">
+                {profile?.special_needs || <span className="text-muted-foreground">Sem indicações.</span>}
+              </div>
+            </div>
+          </Card>
           <Card className="p-4 border-border/60 shadow-card">
             <h3 className="font-display text-lg font-semibold mb-2">Notas internas</h3>
             <p className="text-sm text-muted-foreground">Sem notas. Adicionar contexto sobre o residente para a equipa de operações.</p>
