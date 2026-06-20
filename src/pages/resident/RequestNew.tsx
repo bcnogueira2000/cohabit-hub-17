@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { ArrowLeft, Wrench, Sparkles, Wifi, Search, Package, MessageSquare, Loader2, Home as HomeIcon } from "lucide-react";
+import { ArrowLeft, Loader2, Home as HomeIcon } from "lucide-react";
 import { toast } from "sonner";
 import {
   useCreateRequest,
@@ -16,20 +16,7 @@ import { useLang } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { RequestPhotoUpload } from "@/components/RequestPhotoUpload";
-
-const categoryOptions: {
-  value: RequestCategory;
-  icon: React.ComponentType<{ className?: string }>;
-  pt: string;
-  en: string;
-}[] = [
-  { value: "maintenance", icon: Wrench, pt: "Manutenção", en: "Maintenance" },
-  { value: "cleaning", icon: Sparkles, pt: "Limpeza", en: "Cleaning" },
-  { value: "wifi_tech", icon: Wifi, pt: "Wi-Fi / Tech", en: "Wi-Fi / Tech" },
-  { value: "lost_found", icon: Search, pt: "Lost & Found", en: "Lost & Found" },
-  { value: "consumables", icon: Package, pt: "Consumíveis", en: "Consumables" },
-  { value: "other", icon: MessageSquare, pt: "Outro", en: "Other" },
-];
+import { ICON_STROKE, categoryOptions, priorityLabels, permissionLabels, pickLabel } from "@/lib/residentLabels";
 
 const RequestNew = () => {
   const navigate = useNavigate();
