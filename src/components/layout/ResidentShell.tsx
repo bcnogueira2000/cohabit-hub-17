@@ -108,7 +108,7 @@ export const ResidentShell = () => {
                   <span className="text-sm font-medium">{lang === "pt" ? "English" : "Português"}</span>
                 </button>
                 <button
-                  onClick={() => { setMoreOpen(false); handleSignOut(); }}
+                  onClick={() => { setMoreOpen(false); setSignOutOpen(true); }}
                   className="flex items-center gap-3 rounded-lg p-3 bg-muted/40 hover:bg-muted transition-smooth"
                 >
                   <LogOut className="h-5 w-5 text-primary" />
