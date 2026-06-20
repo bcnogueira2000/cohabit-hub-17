@@ -400,37 +400,70 @@ export type Database = {
       profiles: {
         Row: {
           account_status: Database["public"]["Enums"]["account_status"]
+          alternate_address: string | null
           created_at: string
+          date_of_birth: string | null
+          document_url: string | null
           email: string
+          emergency_contact_name: string | null
+          emergency_contact_phone: string | null
+          employer_or_school: string | null
           expected_move_in: string | null
           full_name: string
+          gender: string | null
+          iban: string | null
+          nationality: string | null
           phone: string | null
+          photo_url: string | null
           requested_room_number: string | null
           resident_id: string | null
+          special_needs: string | null
           updated_at: string
           user_id: string
         }
         Insert: {
           account_status?: Database["public"]["Enums"]["account_status"]
+          alternate_address?: string | null
           created_at?: string
+          date_of_birth?: string | null
+          document_url?: string | null
           email: string
+          emergency_contact_name?: string | null
+          emergency_contact_phone?: string | null
+          employer_or_school?: string | null
           expected_move_in?: string | null
           full_name?: string
+          gender?: string | null
+          iban?: string | null
+          nationality?: string | null
           phone?: string | null
+          photo_url?: string | null
           requested_room_number?: string | null
           resident_id?: string | null
+          special_needs?: string | null
           updated_at?: string
           user_id: string
         }
         Update: {
           account_status?: Database["public"]["Enums"]["account_status"]
+          alternate_address?: string | null
           created_at?: string
+          date_of_birth?: string | null
+          document_url?: string | null
           email?: string
+          emergency_contact_name?: string | null
+          emergency_contact_phone?: string | null
+          employer_or_school?: string | null
           expected_move_in?: string | null
           full_name?: string
+          gender?: string | null
+          iban?: string | null
+          nationality?: string | null
           phone?: string | null
+          photo_url?: string | null
           requested_room_number?: string | null
           resident_id?: string | null
+          special_needs?: string | null
           updated_at?: string
           user_id?: string
         }
