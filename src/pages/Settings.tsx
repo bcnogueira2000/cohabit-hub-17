@@ -5,9 +5,24 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { categoryLabels, cleaningTypeLabels } from "@/lib/labels";
 import { useSpaces } from "@/hooks/useData";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 const Settings = () => {
   const { data: spaces = [] } = useSpaces();
+  const qc = useQueryClient();
+  const toggleSpace = useMutation({
+    mutationFn: async ({ id, active }: { id: string; active: boolean }) => {
+      const { error } = await supabase.from("spaces").update({ active }).eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: (_d, vars) => {
+      qc.invalidateQueries({ queryKey: ["spaces"] });
+      toast.success(vars.active ? "Espaço ativado" : "Espaço desativado");
+    },
+    onError: (e: any) => toast.error(e.message ?? "Erro ao atualizar"),
+  });
   const slas = [
     { priority: "Urgente", target: "2 horas" },
     { priority: "Alta", target: "8 horas" },
@@ -70,7 +85,11 @@ const Settings = () => {
                   <div className="font-medium text-sm">{s.name}</div>
                   <div className="text-xs text-muted-foreground">Capacidade {s.capacity}</div>
                 </div>
-                <Switch defaultChecked />
+                <Switch
+                  checked={s.active}
+                  disabled={toggleSpace.isPending}
+                  onCheckedChange={(v) => toggleSpace.mutate({ id: s.id, active: v })}
+                />
               </div>
             ))}
           </div>
