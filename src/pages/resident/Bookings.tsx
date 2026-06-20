@@ -7,6 +7,17 @@ import { toast } from "sonner";
 import { useMyBookings, useSpaces, useCancelBooking } from "@/hooks/useResidentBookings";
 import { useLang } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
+import { ICON_STROKE } from "@/lib/residentLabels";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 const Bookings = () => {
   const { t, lang } = useLang();
@@ -14,6 +25,7 @@ const Bookings = () => {
   const { data: spaces = [] } = useSpaces();
   const cancel = useCancelBooking();
   const [tab, setTab] = useState<"upcoming" | "past">("upcoming");
+  const [cancelId, setCancelId] = useState<string | null>(null);
 
   const now = Date.now();
   const filtered = bookings
@@ -28,13 +40,15 @@ const Bookings = () => {
 
   const spaceName = (id: string) => spaces.find((s) => s.id === id)?.name ?? "—";
 
-  const handleCancel = async (id: string) => {
-    if (!confirm(lang === "pt" ? "Cancelar esta reserva?" : "Cancel this booking?")) return;
+  const handleConfirmCancel = async () => {
+    if (!cancelId) return;
     try {
-      await cancel.mutateAsync(id);
+      await cancel.mutateAsync(cancelId);
       toast.success(lang === "pt" ? "Reserva cancelada" : "Booking cancelled");
     } catch (e: any) {
       toast.error(e.message ?? "Error");
+    } finally {
+      setCancelId(null);
     }
   };
 
@@ -44,7 +58,7 @@ const Bookings = () => {
         <h1 className="font-display text-2xl font-semibold">{t("tab.bookings")}</h1>
         <Button asChild size="sm" className="gradient-warm border-0">
           <Link to="/app/bookings/new">
-            <Plus className="h-4 w-4 mr-1" />
+            <Plus className="h-4 w-4 mr-1" strokeWidth={ICON_STROKE} />
             {lang === "pt" ? "Reservar" : "Book"}
           </Link>
         </Button>
@@ -69,11 +83,11 @@ const Bookings = () => {
 
       {isLoading ? (
         <div className="flex items-center gap-2 text-muted-foreground py-8 justify-center">
-          <Loader2 className="h-4 w-4 animate-spin" /> {t("common.loading")}
+          <Loader2 className="h-4 w-4 animate-spin" strokeWidth={ICON_STROKE} /> {t("common.loading")}
         </div>
       ) : filtered.length === 0 ? (
         <Card className="p-10 text-center border-dashed border-border/60">
-          <CalendarRange className="h-10 w-10 mx-auto text-muted-foreground/60 mb-3" />
+          <CalendarRange className="h-10 w-10 mx-auto text-muted-foreground/60 mb-3" strokeWidth={ICON_STROKE} />
           <p className="text-sm text-muted-foreground mb-4">
             {tab === "upcoming"
               ? lang === "pt" ? "Sem reservas próximas." : "No upcoming bookings."
@@ -82,7 +96,7 @@ const Bookings = () => {
           {tab === "upcoming" && (
             <Button asChild variant="outline" size="sm">
               <Link to="/app/bookings/new">
-                <Plus className="h-4 w-4 mr-1" />
+                <Plus className="h-4 w-4 mr-1" strokeWidth={ICON_STROKE} />
                 {lang === "pt" ? "Reservar espaço" : "Book a space"}
               </Link>
             </Button>
@@ -123,11 +137,11 @@ const Bookings = () => {
                     <Button
                       size="icon"
                       variant="ghost"
-                      onClick={() => handleCancel(b.id)}
+                      onClick={() => setCancelId(b.id)}
                       disabled={cancel.isPending}
                       className="text-muted-foreground hover:text-destructive"
                     >
-                      <X className="h-4 w-4" />
+                      <X className="h-4 w-4" strokeWidth={ICON_STROKE} />
                     </Button>
                   )}
                 </div>
@@ -136,6 +150,27 @@ const Bookings = () => {
           })}
         </div>
       )}
+
+      <AlertDialog open={!!cancelId} onOpenChange={(o) => !o && setCancelId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {lang === "pt" ? "Cancelar esta reserva?" : "Cancel this booking?"}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {lang === "pt"
+                ? "A reserva será removida e o espaço fica disponível para outros residentes. Esta ação não pode ser desfeita."
+                : "The booking will be removed and the space released for other residents. This cannot be undone."}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{lang === "pt" ? "Voltar" : "Back"}</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmCancel} className="bg-destructive hover:bg-destructive/90">
+              {lang === "pt" ? "Sim, cancelar" : "Yes, cancel"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
