@@ -13,6 +13,14 @@ import {
 } from "@/hooks/useResidentBookings";
 import { useLang } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
+import { ICON_STROKE } from "@/lib/residentLabels";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const today = () => {
   const d = new Date();
@@ -93,7 +101,7 @@ const BookingNew = () => {
   return (
     <div className="px-4 py-6 space-y-5">
       <Link to="/app/bookings" className="inline-flex items-center gap-1 text-sm text-muted-foreground">
-        <ArrowLeft className="h-4 w-4" /> {t("common.back")}
+        <ArrowLeft className="h-4 w-4" strokeWidth={ICON_STROKE} /> {t("common.back")}
       </Link>
 
       <h1 className="font-display text-2xl font-semibold">
@@ -125,7 +133,7 @@ const BookingNew = () => {
                 >
                   <p className="font-medium text-sm">{s.name}</p>
                   <p className="text-[11px] text-muted-foreground flex items-center gap-1 mt-1">
-                    <Users className="h-3 w-3" /> {s.capacity}
+                    <Users className="h-3 w-3" strokeWidth={ICON_STROKE} /> {s.capacity}
                   </p>
                 </button>
               ))}
@@ -148,33 +156,36 @@ const BookingNew = () => {
         <div className="grid grid-cols-2 gap-3">
           <div>
             <Label htmlFor="start">{lang === "pt" ? "Início" : "Start"}</Label>
-            <select
-              id="start"
-              value={startTime}
-              onChange={(e) => setStartTime(e.target.value)}
-              className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm"
-            >
-              {TIME_SLOTS.map((s) => (
-                <option key={s} value={s} disabled={occupiedSlots.has(s)}>
-                  {s}{occupiedSlots.has(s) ? " — ocupado" : ""}
-                </option>
-              ))}
-            </select>
+            <Select value={startTime} onValueChange={setStartTime}>
+              <SelectTrigger id="start">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {TIME_SLOTS.map((s) => {
+                  const occ = occupiedSlots.has(s);
+                  return (
+                    <SelectItem key={s} value={s} disabled={occ}>
+                      {s}{occ ? (lang === "pt" ? " — ocupado" : " — booked") : ""}
+                    </SelectItem>
+                  );
+                })}
+              </SelectContent>
+            </Select>
           </div>
           <div>
             <Label htmlFor="end">{lang === "pt" ? "Fim" : "End"}</Label>
-            <select
-              id="end"
-              value={endTime}
-              onChange={(e) => setEndTime(e.target.value)}
-              className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm"
-            >
-              {TIME_SLOTS.map((s) => (
-                <option key={s} value={s}>
-                  {s}
-                </option>
-              ))}
-            </select>
+            <Select value={endTime} onValueChange={setEndTime}>
+              <SelectTrigger id="end">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {TIME_SLOTS.map((s) => (
+                  <SelectItem key={s} value={s}>
+                    {s}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </div>
 
@@ -200,7 +211,7 @@ const BookingNew = () => {
         </div>
 
         <Button type="submit" className="w-full gradient-warm border-0" disabled={create.isPending}>
-          {create.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+          {create.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" strokeWidth={ICON_STROKE} />}
           {t("common.submit")}
         </Button>
       </form>
