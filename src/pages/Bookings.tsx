@@ -95,6 +95,21 @@ const Bookings = () => {
         </Dialog>
       </div>
 
+      <div className="flex items-center justify-between gap-3 mb-4">
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="icon" className="rounded-full h-9 w-9" onClick={() => setWeekOffset((w) => w - 1)} aria-label="Semana anterior">
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          <Button variant="outline" size="icon" className="rounded-full h-9 w-9" onClick={() => setWeekOffset((w) => w + 1)} aria-label="Semana seguinte">
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+          {weekOffset !== 0 && (
+            <Button variant="ghost" size="sm" className="rounded-full" onClick={() => setWeekOffset(0)}>Hoje</Button>
+          )}
+        </div>
+        <div className="text-sm font-medium text-muted-foreground">{rangeLabel}</div>
+      </div>
+
       <div className="space-y-6">
         {spaces.map((space) => {
           const spaceBookings = bookings.filter((b) => b.spaceId === space.id);
