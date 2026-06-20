@@ -39,7 +39,10 @@ export const ProtectedRoute = ({ children, requireRole }: Props) => {
     const ok = requireRole.some((r) =>
       r === "resident" ? isResident : roles.includes(r as any)
     );
-    if (!ok) {
+    // DEV: staff/admin/manager podem aceder a qualquer área (inclui portal residente)
+    // para facilitar testes sem trocar de login. Remover antes de produção.
+    const devBypass = isStaff;
+    if (!ok && !devBypass) {
       // Redirect to the right home for their role
       if (isResident) return <Navigate to="/app/home" replace />;
       if (isStaff) return <Navigate to="/" replace />;
