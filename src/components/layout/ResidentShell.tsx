@@ -13,16 +13,28 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/hooks/useAuth";
+import { useProfile } from "@/hooks/useProfile";
 import { useLang } from "@/lib/i18n";
 import { NotificationBell } from "@/components/NotificationBell";
+import { BrandAvatar } from "@/components/ui/BrandAvatar";
 import logo from "@/assets/logo.png";
 import wordmark from "@/assets/wordmark.png";
+
+const ICON_STROKE = 1.5;
 
 export const ResidentShell = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { signOut } = useAuth();
+  const { data: profile } = useProfile();
   const { t, lang, setLang } = useLang();
   const [moreOpen, setMoreOpen] = useState(false);
   const [signOutOpen, setSignOutOpen] = useState(false);
@@ -53,7 +65,25 @@ export const ResidentShell = () => {
             <img src={logo} alt="" aria-hidden className="h-8 w-8 object-contain" />
             <img src={wordmark} alt="Living Colours" className="h-4 object-contain" />
           </Link>
-          <NotificationBell />
+          <div className="flex items-center gap-2">
+            <NotificationBell />
+            <DropdownMenu>
+              <DropdownMenuTrigger className="rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+                <BrandAvatar name={profile?.full_name} src={profile?.photo_url} size="sm" />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-52">
+                <DropdownMenuItem onClick={() => navigate("/app/profile")}>
+                  <User className="h-4 w-4 mr-2" strokeWidth={ICON_STROKE} />
+                  {lang === "pt" ? "O meu perfil" : "My profile"}
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => setSignOutOpen(true)}>
+                  <LogOut className="h-4 w-4 mr-2" strokeWidth={ICON_STROKE} />
+                  {lang === "pt" ? "Terminar sessão" : "Sign out"}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </div>
       </header>
 
@@ -78,13 +108,13 @@ export const ResidentShell = () => {
                 )
               }
             >
-              <Icon className="h-5 w-5" />
+              <Icon className="h-5 w-5" strokeWidth={ICON_STROKE} />
               {label}
             </NavLink>
           ))}
           <Sheet open={moreOpen} onOpenChange={setMoreOpen}>
             <SheetTrigger className="flex flex-col items-center justify-center gap-0.5 text-[11px] font-medium text-muted-foreground">
-              <MoreHorizontal className="h-5 w-5" />
+              <MoreHorizontal className="h-5 w-5" strokeWidth={ICON_STROKE} />
               {t("tab.more")}
             </SheetTrigger>
             <SheetContent side="bottom" className="rounded-t-2xl">
@@ -96,7 +126,7 @@ export const ResidentShell = () => {
                     onClick={() => setMoreOpen(false)}
                     className="flex items-center gap-3 rounded-lg p-3 bg-muted/40 hover:bg-muted transition-smooth"
                   >
-                    <Icon className="h-5 w-5 text-primary" />
+                    <Icon className="h-5 w-5 text-primary" strokeWidth={ICON_STROKE} />
                     <span className="text-sm font-medium">{label}</span>
                   </NavLink>
                 ))}
@@ -104,14 +134,14 @@ export const ResidentShell = () => {
                   onClick={() => { setLang(lang === "pt" ? "en" : "pt"); setMoreOpen(false); }}
                   className="flex items-center gap-3 rounded-lg p-3 bg-muted/40 hover:bg-muted transition-smooth"
                 >
-                  <Globe className="h-5 w-5 text-primary" />
+                  <Globe className="h-5 w-5 text-primary" strokeWidth={ICON_STROKE} />
                   <span className="text-sm font-medium">{lang === "pt" ? "English" : "Português"}</span>
                 </button>
                 <button
                   onClick={() => { setMoreOpen(false); setSignOutOpen(true); }}
                   className="flex items-center gap-3 rounded-lg p-3 bg-muted/40 hover:bg-muted transition-smooth"
                 >
-                  <LogOut className="h-5 w-5 text-primary" />
+                  <LogOut className="h-5 w-5 text-primary" strokeWidth={ICON_STROKE} />
                   <span className="text-sm font-medium">{lang === "pt" ? "Sair" : "Sign out"}</span>
                 </button>
               </div>
