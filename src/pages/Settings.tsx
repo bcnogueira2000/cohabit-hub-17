@@ -85,7 +85,11 @@ const Settings = () => {
                   <div className="font-medium text-sm">{s.name}</div>
                   <div className="text-xs text-muted-foreground">Capacidade {s.capacity}</div>
                 </div>
-                <Switch defaultChecked />
+                <Switch
+                  checked={s.active}
+                  disabled={toggleSpace.isPending}
+                  onCheckedChange={(v) => toggleSpace.mutate({ id: s.id, active: v })}
+                />
               </div>
             ))}
           </div>
