@@ -143,7 +143,7 @@ const RequestNew = () => {
             "flex items-center gap-2 px-3 py-2.5 rounded-lg border bg-muted/40",
             hasRoom === false ? "border-amber-300/60" : "border-border/60",
           )}>
-            <HomeIcon className="h-4 w-4 text-muted-foreground" />
+            <HomeIcon className="h-4 w-4 text-muted-foreground" strokeWidth={ICON_STROKE} />
             <span className="text-sm">
               {hasRoom === null
                 ? (lang === "pt" ? "A carregar…" : "Loading…")
