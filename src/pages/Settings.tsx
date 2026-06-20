@@ -11,6 +11,18 @@ import { toast } from "sonner";
 
 const Settings = () => {
   const { data: spaces = [] } = useSpaces();
+  const qc = useQueryClient();
+  const toggleSpace = useMutation({
+    mutationFn: async ({ id, active }: { id: string; active: boolean }) => {
+      const { error } = await supabase.from("spaces").update({ active }).eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: (_d, vars) => {
+      qc.invalidateQueries({ queryKey: ["spaces"] });
+      toast.success(vars.active ? "Espaço ativado" : "Espaço desativado");
+    },
+    onError: (e: any) => toast.error(e.message ?? "Erro ao atualizar"),
+  });
   const slas = [
     { priority: "Urgente", target: "2 horas" },
     { priority: "Alta", target: "8 horas" },
