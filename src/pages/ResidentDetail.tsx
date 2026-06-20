@@ -25,6 +25,7 @@ const ResidentDetail = () => {
   const { data: rooms = [] } = useRooms();
   const { data: requests = [] } = useRequests();
   const resident = residents.find((r) => r.id === id);
+  const { data: profile } = useProfileByResidentId(resident?.id);
   const [checks, setChecks] = useState<boolean[]>(checkInItems.map((_, i) => i < 3));
 
   if (!resident) {
