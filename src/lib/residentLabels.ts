@@ -72,3 +72,38 @@ export const categoryLabels: Record<RequestCategory, Bi> = categoryOptions.reduc
 );
 
 export const pickLabel = (b: Bi, lang: string) => (lang === "pt" ? b.pt : b.en);
+
+import type { Database } from "@/integrations/supabase/types";
+
+export type ResidentStatus = Database["public"]["Enums"]["resident_status"];
+export type StayStatus = Database["public"]["Enums"]["stay_status"];
+
+export const residentStatusLabels: Record<ResidentStatus, Bi> = {
+  upcoming: { pt: "A chegar", en: "Upcoming" },
+  active: { pt: "Ativo", en: "Active" },
+  checking_out: { pt: "Check-out próximo", en: "Checking out" },
+  past: { pt: "Anterior", en: "Past" },
+};
+
+export const residentStatusBadgeClass: Record<ResidentStatus, string> = {
+  upcoming: "bg-info/15 text-info border-info/30",
+  active: "bg-success/15 text-success border-success/30",
+  checking_out: "bg-warning/15 text-warning border-warning/30",
+  past: "bg-muted text-muted-foreground border-border",
+};
+
+export const stayStatusLabels: Record<StayStatus, Bi> = {
+  pending: { pt: "Pendente", en: "Pending" },
+  confirmed: { pt: "Confirmada", en: "Confirmed" },
+  checked_in: { pt: "Em casa", en: "Checked in" },
+  checked_out: { pt: "Saiu", en: "Checked out" },
+  cancelled: { pt: "Cancelada", en: "Cancelled" },
+};
+
+export const stayStatusBadgeClass: Record<StayStatus, string> = {
+  pending: "bg-warning/15 text-warning border-warning/30",
+  confirmed: "bg-info/15 text-info border-info/30",
+  checked_in: "bg-success/15 text-success border-success/30",
+  checked_out: "bg-muted text-muted-foreground border-border",
+  cancelled: "bg-destructive/15 text-destructive border-destructive/30",
+};
