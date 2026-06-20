@@ -14,9 +14,39 @@ export interface Profile {
   resident_id: string | null;
   requested_room_number: string | null;
   expected_move_in: string | null;
+  nationality: string | null;
+  date_of_birth: string | null;
+  gender: string | null;
+  emergency_contact_name: string | null;
+  emergency_contact_phone: string | null;
+  employer_or_school: string | null;
+  alternate_address: string | null;
+  special_needs: string | null;
+  iban: string | null;
+  photo_url: string | null;
+  document_url: string | null;
   created_at: string;
   updated_at: string;
 }
+
+export type ProfileUpdate = Partial<
+  Pick<
+    Profile,
+    | "full_name"
+    | "phone"
+    | "nationality"
+    | "date_of_birth"
+    | "gender"
+    | "emergency_contact_name"
+    | "emergency_contact_phone"
+    | "employer_or_school"
+    | "alternate_address"
+    | "special_needs"
+    | "iban"
+    | "photo_url"
+    | "document_url"
+  >
+>;
 
 export const useProfile = () => {
   const { user } = useAuth();
@@ -36,11 +66,27 @@ export const useProfile = () => {
   });
 };
 
+export const useProfileByResidentId = (residentId: string | null | undefined) =>
+  useQuery({
+    enabled: !!residentId,
+    queryKey: ["profile_by_resident", residentId],
+    queryFn: async (): Promise<Profile | null> => {
+      if (!residentId) return null;
+      const { data, error } = await supabase
+        .from("profiles" as any)
+        .select("*")
+        .eq("resident_id", residentId)
+        .maybeSingle();
+      if (error) throw error;
+      return (data as any) ?? null;
+    },
+  });
+
 export const useUpdateProfile = () => {
   const qc = useQueryClient();
   const { user } = useAuth();
   return useMutation({
-    mutationFn: async (input: { full_name?: string; phone?: string | null }) => {
+    mutationFn: async (input: ProfileUpdate) => {
       if (!user) throw new Error("Não autenticado");
       const { error } = await supabase
         .from("profiles" as any)
