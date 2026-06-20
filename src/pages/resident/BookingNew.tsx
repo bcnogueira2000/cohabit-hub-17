@@ -133,7 +133,7 @@ const BookingNew = () => {
                 >
                   <p className="font-medium text-sm">{s.name}</p>
                   <p className="text-[11px] text-muted-foreground flex items-center gap-1 mt-1">
-                    <Users className="h-3 w-3" /> {s.capacity}
+                    <Users className="h-3 w-3" strokeWidth={ICON_STROKE} /> {s.capacity}
                   </p>
                 </button>
               ))}
