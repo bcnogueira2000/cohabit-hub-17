@@ -253,7 +253,7 @@ const Dashboard = () => {
               <h2 className="font-display text-base font-semibold flex items-center gap-2">
                 <LogOut className="h-4 w-4 text-warning" /> Próximas saídas
               </h2>
-              <p className="text-xs text-muted-foreground mt-0.5">Próximos 7 dias</p>
+              <p className="text-xs text-muted-foreground mt-0.5">Próximos 14 dias</p>
             </div>
             <Button asChild variant="ghost" size="sm" className="text-primary -mr-2">
               <Link to="/stays">Ver estadias <ArrowRight className="h-3.5 w-3.5 ml-1" /></Link>
