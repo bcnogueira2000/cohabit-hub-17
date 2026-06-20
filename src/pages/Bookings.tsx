@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { CalendarRange, Clock, Plus, X } from "lucide-react";
+import { useState, useMemo } from "react";
+import { CalendarRange, Clock, Plus, X, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useSpaces, useBookings, useResidents, useCreateBooking, useDeleteBooking } from "@/hooks/useData";
@@ -9,13 +9,6 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 
-const days = Array.from({ length: 7 }).map((_, i) => {
-  const d = new Date();
-  d.setDate(d.getDate() + i);
-  d.setHours(0, 0, 0, 0);
-  return d;
-});
-
 const Bookings = () => {
   const { data: spaces = [] } = useSpaces();
   const { data: bookings = [] } = useBookings();
@@ -24,6 +17,16 @@ const Bookings = () => {
   const deleteBooking = useDeleteBooking();
   const [selectedSpace, setSelectedSpace] = useState<string>("");
   const [open, setOpen] = useState(false);
+  const [weekOffset, setWeekOffset] = useState(0);
+
+  const days = useMemo(() => Array.from({ length: 7 }).map((_, i) => {
+    const d = new Date();
+    d.setDate(d.getDate() + weekOffset * 7 + i);
+    d.setHours(0, 0, 0, 0);
+    return d;
+  }), [weekOffset]);
+
+  const rangeLabel = `${days[0].toLocaleDateString("pt-PT", { day: "numeric", month: "short" })} – ${days[6].toLocaleDateString("pt-PT", { day: "numeric", month: "short" })}`;
 
   const cancelBooking = (id: string) => {
     deleteBooking.mutate(id, { onSuccess: () => toast.success("Reserva cancelada") });
@@ -51,7 +54,7 @@ const Bookings = () => {
       <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-6">
         <div>
           <h1 className="font-display text-3xl lg:text-4xl font-semibold">Bookings</h1>
-          <p className="text-muted-foreground mt-1">Reservas de espaços comuns · próximos 7 dias</p>
+          <p className="text-muted-foreground mt-1">Reservas de espaços comuns</p>
         </div>
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
@@ -90,6 +93,21 @@ const Bookings = () => {
             </form>
           </DialogContent>
         </Dialog>
+      </div>
+
+      <div className="flex items-center justify-between gap-3 mb-4">
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="icon" className="rounded-full h-9 w-9" onClick={() => setWeekOffset((w) => w - 1)} aria-label="Semana anterior">
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          <Button variant="outline" size="icon" className="rounded-full h-9 w-9" onClick={() => setWeekOffset((w) => w + 1)} aria-label="Semana seguinte">
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+          {weekOffset !== 0 && (
+            <Button variant="ghost" size="sm" className="rounded-full" onClick={() => setWeekOffset(0)}>Hoje</Button>
+          )}
+        </div>
+        <div className="text-sm font-medium text-muted-foreground">{rangeLabel}</div>
       </div>
 
       <div className="space-y-6">
