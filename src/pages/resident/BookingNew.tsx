@@ -13,6 +13,14 @@ import {
 } from "@/hooks/useResidentBookings";
 import { useLang } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
+import { ICON_STROKE } from "@/lib/residentLabels";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const today = () => {
   const d = new Date();
