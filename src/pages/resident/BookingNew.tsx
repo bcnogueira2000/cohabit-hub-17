@@ -30,7 +30,8 @@ const TIME_SLOTS = Array.from({ length: 34 }, (_, i) => {
 const BookingNew = () => {
   const navigate = useNavigate();
   const { t, lang } = useLang();
-  const { data: spaces = [], isLoading: spacesLoading } = useSpaces();
+  const { data: allSpaces = [], isLoading: spacesLoading } = useSpaces();
+  const spaces = useMemo(() => allSpaces.filter((s: any) => s.active !== false), [allSpaces]);
   const create = useCreateBooking();
 
   const [spaceId, setSpaceId] = useState<string | null>(null);
