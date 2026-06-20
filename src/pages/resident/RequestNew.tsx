@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { ArrowLeft, Wrench, Sparkles, Wifi, Search, Package, MessageSquare, Loader2, Home as HomeIcon } from "lucide-react";
+import { ArrowLeft, Loader2, Home as HomeIcon } from "lucide-react";
 import { toast } from "sonner";
 import {
   useCreateRequest,
@@ -16,20 +16,7 @@ import { useLang } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { RequestPhotoUpload } from "@/components/RequestPhotoUpload";
-
-const categoryOptions: {
-  value: RequestCategory;
-  icon: React.ComponentType<{ className?: string }>;
-  pt: string;
-  en: string;
-}[] = [
-  { value: "maintenance", icon: Wrench, pt: "Manutenção", en: "Maintenance" },
-  { value: "cleaning", icon: Sparkles, pt: "Limpeza", en: "Cleaning" },
-  { value: "wifi_tech", icon: Wifi, pt: "Wi-Fi / Tech", en: "Wi-Fi / Tech" },
-  { value: "lost_found", icon: Search, pt: "Lost & Found", en: "Lost & Found" },
-  { value: "consumables", icon: Package, pt: "Consumíveis", en: "Consumables" },
-  { value: "other", icon: MessageSquare, pt: "Outro", en: "Other" },
-];
+import { ICON_STROKE, categoryOptions, priorityLabels, permissionLabels, pickLabel } from "@/lib/residentLabels";
 
 const RequestNew = () => {
   const navigate = useNavigate();
@@ -95,7 +82,7 @@ const RequestNew = () => {
   return (
     <div className="px-4 py-6 space-y-5">
       <Link to="/app/requests" className="inline-flex items-center gap-1 text-sm text-muted-foreground">
-        <ArrowLeft className="h-4 w-4" /> {t("common.back")}
+        <ArrowLeft className="h-4 w-4" strokeWidth={ICON_STROKE} /> {t("common.back")}
       </Link>
 
       <h1 className="font-display text-2xl font-semibold">{t("home.new_request")}</h1>
@@ -118,7 +105,7 @@ const RequestNew = () => {
                     : "border-border/60 bg-card hover:border-border",
                 )}
               >
-                <Icon className={cn("h-5 w-5", category === value ? "text-primary" : "text-muted-foreground")} />
+                <Icon className={cn("h-5 w-5", category === value ? "text-primary" : "text-muted-foreground")} strokeWidth={ICON_STROKE} />
                 <span className="text-[11px] font-medium text-center leading-tight">
                   {lang === "pt" ? pt : en}
                 </span>
@@ -156,7 +143,7 @@ const RequestNew = () => {
             "flex items-center gap-2 px-3 py-2.5 rounded-lg border bg-muted/40",
             hasRoom === false ? "border-amber-300/60" : "border-border/60",
           )}>
-            <HomeIcon className="h-4 w-4 text-muted-foreground" />
+            <HomeIcon className="h-4 w-4 text-muted-foreground" strokeWidth={ICON_STROKE} />
             <span className="text-sm">
               {hasRoom === null
                 ? (lang === "pt" ? "A carregar…" : "Loading…")
@@ -203,15 +190,13 @@ const RequestNew = () => {
                 type="button"
                 onClick={() => setPriority(p)}
                 className={cn(
-                  "py-2.5 rounded-lg border text-sm font-medium capitalize transition-smooth",
+                  "py-2.5 rounded-lg border text-sm font-medium transition-smooth",
                   priority === p
                     ? "border-primary bg-primary/5 text-foreground"
                     : "border-border/60 text-muted-foreground",
                 )}
               >
-                {p === "low" ? (lang === "pt" ? "Baixa" : "Low") :
-                 p === "medium" ? (lang === "pt" ? "Média" : "Medium") :
-                 (lang === "pt" ? "Alta" : "High")}
+                {pickLabel(priorityLabels[p], lang)}
               </button>
             ))}
           </div>
@@ -222,13 +207,7 @@ const RequestNew = () => {
             {lang === "pt" ? "Permissão para entrar no quarto" : "Permission to enter room"}
           </Label>
           <div className="grid grid-cols-3 gap-2">
-            {(
-              [
-                { v: "yes" as PermissionToEnter, pt: "Sim", en: "Yes" },
-                { v: "with_notice" as PermissionToEnter, pt: "Com aviso", en: "With notice" },
-                { v: "no" as PermissionToEnter, pt: "Não", en: "No" },
-              ]
-            ).map(({ v, pt, en }) => (
+            {(["yes", "with_notice", "no"] as PermissionToEnter[]).map((v) => (
               <button
                 key={v}
                 type="button"
@@ -240,7 +219,7 @@ const RequestNew = () => {
                     : "border-border/60 text-muted-foreground",
                 )}
               >
-                {lang === "pt" ? pt : en}
+                {pickLabel(permissionLabels[v], lang)}
               </button>
             ))}
           </div>
@@ -251,7 +230,7 @@ const RequestNew = () => {
           className="w-full gradient-warm border-0"
           disabled={create.isPending}
         >
-          {create.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+          {create.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" strokeWidth={ICON_STROKE} />}
           {t("common.submit")}
         </Button>
       </form>

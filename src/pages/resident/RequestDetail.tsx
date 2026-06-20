@@ -13,24 +13,15 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-
-const statusLabelMap: Record<RequestStatus, { pt: string; en: string }> = {
-  open: { pt: "Aberto", en: "Open" },
-  in_progress: { pt: "Em curso", en: "In progress" },
-  waiting_resident: { pt: "Aguarda-te", en: "Waiting on you" },
-  waiting_supplier: { pt: "Aguarda fornecedor", en: "Waiting on supplier" },
-  resolved: { pt: "Resolvido", en: "Resolved" },
-  closed: { pt: "Fechado", en: "Closed" },
-};
-
-const statusColor: Record<RequestStatus, string> = {
-  open: "bg-blue-500/10 text-blue-700 dark:text-blue-300 border-blue-500/30",
-  in_progress: "bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-500/30",
-  waiting_resident: "bg-purple-500/10 text-purple-700 dark:text-purple-300 border-purple-500/30",
-  waiting_supplier: "bg-purple-500/10 text-purple-700 dark:text-purple-300 border-purple-500/30",
-  resolved: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/30",
-  closed: "bg-muted text-muted-foreground border-border",
-};
+import {
+  ICON_STROKE,
+  statusBadgeClass,
+  statusLabels,
+  priorityLabels,
+  permissionLabels,
+  categoryLabels,
+  pickLabel,
+} from "@/lib/residentLabels";
 
 const TIMELINE: { key: RequestStatus; pt: string; en: string }[] = [
   { key: "open", pt: "Recebido", en: "Received" },
@@ -48,7 +39,7 @@ const RequestDetail = () => {
   if (isLoading) {
     return (
       <div className="flex items-center gap-2 text-muted-foreground p-8 justify-center">
-        <Loader2 className="h-4 w-4 animate-spin" /> {t("common.loading")}
+        <Loader2 className="h-4 w-4 animate-spin" strokeWidth={ICON_STROKE} /> {t("common.loading")}
       </div>
     );
   }
@@ -81,14 +72,14 @@ const RequestDetail = () => {
   return (
     <div className="px-4 py-6 space-y-5">
       <Link to="/app/requests" className="inline-flex items-center gap-1 text-sm text-muted-foreground">
-        <ArrowLeft className="h-4 w-4" /> {t("common.back")}
+        <ArrowLeft className="h-4 w-4" strokeWidth={ICON_STROKE} /> {t("common.back")}
       </Link>
 
       <div>
         <div className="flex items-center gap-2 mb-2">
           <span className="text-xs font-mono text-muted-foreground">{req.code}</span>
-          <Badge variant="outline" className={cn("text-[10px]", statusColor[req.status])}>
-            {statusLabelMap[req.status][lang === "pt" ? "pt" : "en"]}
+          <Badge variant="outline" className={cn("text-[10px]", statusBadgeClass[req.status])}>
+            {pickLabel(statusLabels[req.status], lang)}
           </Badge>
         </div>
         <h1 className="font-display text-2xl font-semibold leading-tight">{req.title}</h1>
@@ -103,7 +94,7 @@ const RequestDetail = () => {
           <AlertDialog>
             <AlertDialogTrigger asChild>
               <Button variant="outline" size="sm" className="mt-3 text-destructive border-destructive/30 hover:bg-destructive/10 hover:text-destructive">
-                <X className="h-3.5 w-3.5 mr-1.5" />
+                <X className="h-3.5 w-3.5 mr-1.5" strokeWidth={ICON_STROKE} />
                 {lang === "pt" ? "Cancelar pedido" : "Cancel request"}
               </Button>
             </AlertDialogTrigger>
@@ -131,26 +122,26 @@ const RequestDetail = () => {
 
       <Card className="p-4 border-border/60 space-y-3">
         <div className="flex items-start gap-3">
-          <Tag className="h-4 w-4 text-muted-foreground mt-0.5" />
+          <Tag className="h-4 w-4 text-muted-foreground mt-0.5" strokeWidth={ICON_STROKE} />
           <div>
             <p className="text-[11px] uppercase tracking-wider text-muted-foreground">
               {lang === "pt" ? "Categoria" : "Category"}
             </p>
-            <p className="text-sm font-medium capitalize">{req.category.replace(/_/g, " ")}</p>
+            <p className="text-sm font-medium">{pickLabel(categoryLabels[req.category], lang)}</p>
           </div>
         </div>
         <div className="flex items-start gap-3">
-          <AlertCircle className="h-4 w-4 text-muted-foreground mt-0.5" />
+          <AlertCircle className="h-4 w-4 text-muted-foreground mt-0.5" strokeWidth={ICON_STROKE} />
           <div>
             <p className="text-[11px] uppercase tracking-wider text-muted-foreground">
               {lang === "pt" ? "Prioridade" : "Priority"}
             </p>
-            <p className="text-sm font-medium capitalize">{req.priority}</p>
+            <p className="text-sm font-medium">{pickLabel(priorityLabels[req.priority], lang)}</p>
           </div>
         </div>
         {req.location && (
           <div className="flex items-start gap-3">
-            <MapPin className="h-4 w-4 text-muted-foreground mt-0.5" />
+            <MapPin className="h-4 w-4 text-muted-foreground mt-0.5" strokeWidth={ICON_STROKE} />
             <div>
               <p className="text-[11px] uppercase tracking-wider text-muted-foreground">
                 {lang === "pt" ? "Localização" : "Location"}
@@ -160,12 +151,12 @@ const RequestDetail = () => {
           </div>
         )}
         <div className="flex items-start gap-3">
-          <KeyRound className="h-4 w-4 text-muted-foreground mt-0.5" />
+          <KeyRound className="h-4 w-4 text-muted-foreground mt-0.5" strokeWidth={ICON_STROKE} />
           <div>
             <p className="text-[11px] uppercase tracking-wider text-muted-foreground">
               {lang === "pt" ? "Permissão para entrar" : "Permission to enter"}
             </p>
-            <p className="text-sm font-medium capitalize">{req.permission_to_enter.replace(/_/g, " ")}</p>
+            <p className="text-sm font-medium">{pickLabel(permissionLabels[req.permission_to_enter], lang)}</p>
           </div>
         </div>
       </Card>
@@ -182,7 +173,7 @@ const RequestDetail = () => {
       {(req as any).photos && (req as any).photos.length > 0 && (
         <Card className="p-4 border-border/60">
           <p className="text-[11px] uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-1.5">
-            <ImageIcon className="h-3.5 w-3.5" /> {lang === "pt" ? "Fotos" : "Photos"}
+            <ImageIcon className="h-3.5 w-3.5" strokeWidth={ICON_STROKE} /> {lang === "pt" ? "Fotos" : "Photos"}
           </p>
           <RequestPhotoGallery paths={(req as any).photos} />
         </Card>
@@ -203,7 +194,7 @@ const RequestDetail = () => {
                     reached ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground",
                   )}
                 >
-                  {reached ? <Check className="h-3.5 w-3.5" /> : <Circle className="h-3 w-3" />}
+                  {reached ? <Check className="h-3.5 w-3.5" strokeWidth={ICON_STROKE} /> : <Circle className="h-3 w-3" strokeWidth={ICON_STROKE} />}
                 </div>
                 <span className={cn("text-sm", reached ? "font-medium" : "text-muted-foreground")}>
                   {lang === "pt" ? step.pt : step.en}
