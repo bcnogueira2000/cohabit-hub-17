@@ -42,15 +42,17 @@ const Stays = () => {
   const [roomId, setRoomId] = useState<string>("");
 
   const filtered = useMemo(() => {
-    const now = Date.now();
-    const in7 = now + 7 * 24 * 3600 * 1000;
+    const nowDate = new Date();
+    const startOfToday = new Date(nowDate.getFullYear(), nowDate.getMonth(), nowDate.getDate()).getTime();
+    const now = nowDate.getTime();
+    const in14 = now + 14 * 24 * 3600 * 1000;
     return stays.filter((s) => {
       const ci = new Date(s.checkIn).getTime();
       const co = new Date(s.checkOut).getTime();
       switch (filter) {
-        case "upcoming": return s.status !== "cancelled" && s.status !== "checked_out" && ci > now;
+        case "upcoming": return s.status !== "cancelled" && s.status !== "checked_out" && ci >= startOfToday;
         case "current": return s.status === "checked_in" || (s.status === "confirmed" && ci <= now && co >= now);
-        case "leaving": return s.status === "checked_in" && co <= in7;
+        case "leaving": return s.status === "checked_in" && (co <= in14 || co < now);
         case "history": return s.status === "checked_out" || s.status === "cancelled";
         case "all": return true;
       }
