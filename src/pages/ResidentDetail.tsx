@@ -1,10 +1,11 @@
 import { Link, useParams } from "react-router-dom";
-import { ArrowLeft, Mail, Phone, DoorClosed, Calendar, Check } from "lucide-react";
+import { ArrowLeft, Mail, Phone, DoorClosed, Calendar, Check, Globe, Heart, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useResidents, useRooms, useRequests } from "@/hooks/useData";
+import { useProfileByResidentId } from "@/hooks/useProfile";
 import { StatusBadge, PriorityBadge } from "@/components/ui/StatusBadge";
 import { useState } from "react";
 
