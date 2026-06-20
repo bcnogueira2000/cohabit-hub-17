@@ -29,12 +29,20 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { toast } from "sonner";
 import { z } from "zod";
 import { useProfile, useUpdateProfile, type ProfileUpdate } from "@/hooks/useProfile";
 import { useAuth } from "@/hooks/useAuth";
 import { useLang } from "@/lib/i18n";
 import { ResidentFileUpload } from "@/components/ResidentFileUpload";
+import { ICON_STROKE } from "@/lib/residentLabels";
 
 const schema = z.object({
   full_name: z.string().trim().min(2, "Nome demasiado curto").max(100),
@@ -69,6 +77,14 @@ const schema = z.object({
 });
 
 const emptyToNull = (v: string | undefined) => (v && v.trim() !== "" ? v.trim() : null);
+
+const GENDER_OPTIONS: { value: string; pt: string; en: string }[] = [
+  { value: "female", pt: "Feminino", en: "Female" },
+  { value: "male", pt: "Masculino", en: "Male" },
+  { value: "non_binary", pt: "Não-binário", en: "Non-binary" },
+  { value: "other", pt: "Outro", en: "Other" },
+  { value: "prefer_not_to_say", pt: "Prefiro não dizer", en: "Prefer not to say" },
+];
 
 const Profile = () => {
   const { lang, t } = useLang();
@@ -146,7 +162,6 @@ const Profile = () => {
     }
   };
 
-  // Persist file changes immediately so storage and DB stay in sync
   const persistFile = async (field: "photo_url" | "document_url", value: string | null) => {
     try {
       await update.mutateAsync({ [field]: value } as ProfileUpdate);
@@ -158,7 +173,7 @@ const Profile = () => {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-16 text-muted-foreground">
-        <Loader2 className="h-4 w-4 animate-spin mr-2" /> {t("common.loading")}
+        <Loader2 className="h-4 w-4 animate-spin mr-2" strokeWidth={ICON_STROKE} /> {t("common.loading")}
       </div>
     );
   }
@@ -166,7 +181,7 @@ const Profile = () => {
   return (
     <div className="px-4 py-6 space-y-5">
       <Link to="/app/home" className="inline-flex items-center gap-1 text-sm text-muted-foreground">
-        <ArrowLeft className="h-4 w-4" /> {t("common.back")}
+        <ArrowLeft className="h-4 w-4" strokeWidth={ICON_STROKE} /> {t("common.back")}
       </Link>
 
       <h1 className="font-display text-2xl font-semibold">
@@ -175,12 +190,12 @@ const Profile = () => {
 
       <Card className="p-4 border-border/60 space-y-3">
         <div className="flex items-center gap-3 text-sm">
-          <Mail className="h-4 w-4 text-muted-foreground" />
+          <Mail className="h-4 w-4 text-muted-foreground" strokeWidth={ICON_STROKE} />
           <span className="text-muted-foreground">{lang === "pt" ? "Email" : "Email"}:</span>
           <span className="font-medium">{profile?.email}</span>
         </div>
         <div className="flex items-center gap-3 text-sm">
-          <Shield className="h-4 w-4 text-muted-foreground" />
+          <Shield className="h-4 w-4 text-muted-foreground" strokeWidth={ICON_STROKE} />
           <span className="text-muted-foreground">{lang === "pt" ? "Estado" : "Status"}:</span>
           <span className="font-medium capitalize">{profile?.account_status?.replace(/_/g, " ")}</span>
         </div>
@@ -188,8 +203,8 @@ const Profile = () => {
 
       <form onSubmit={handleSave} className="space-y-4">
         <Card className="p-4 border-border/60 space-y-4">
-          <h2 className="font-display text-lg font-semibold flex items-center gap-2">
-            <UserIcon className="h-4 w-4 text-primary" /> {lang === "pt" ? "Identificação" : "Identification"}
+          <h2 className="font-display font-semibold text-sm flex items-center gap-2">
+            <UserIcon className="h-4 w-4 text-primary" strokeWidth={ICON_STROKE} /> {lang === "pt" ? "Identificação" : "Identification"}
           </h2>
           <div>
             <Label htmlFor="name">{lang === "pt" ? "Nome" : "Name"}</Label>
@@ -203,7 +218,7 @@ const Profile = () => {
           </div>
           <div>
             <Label htmlFor="phone" className="flex items-center gap-2">
-              <Phone className="h-3.5 w-3.5" /> {lang === "pt" ? "Telefone" : "Phone"}
+              <Phone className="h-3.5 w-3.5" strokeWidth={ICON_STROKE} /> {lang === "pt" ? "Telefone" : "Phone"}
             </Label>
             <Input
               id="phone"
@@ -216,7 +231,7 @@ const Profile = () => {
           <div className="grid sm:grid-cols-2 gap-3">
             <div>
               <Label className="flex items-center gap-2">
-                <ImageIcon className="h-3.5 w-3.5" /> {lang === "pt" ? "Fotografia de perfil" : "Profile photo"}
+                <ImageIcon className="h-3.5 w-3.5" strokeWidth={ICON_STROKE} /> {lang === "pt" ? "Fotografia de perfil" : "Profile photo"}
               </Label>
               <ResidentFileUpload
                 path={photoUrl}
@@ -230,7 +245,7 @@ const Profile = () => {
             </div>
             <div>
               <Label className="flex items-center gap-2">
-                <FileText className="h-3.5 w-3.5" /> {lang === "pt" ? "Documento de identificação (PDF)" : "ID document (PDF)"}
+                <FileText className="h-3.5 w-3.5" strokeWidth={ICON_STROKE} /> {lang === "pt" ? "Documento de identificação (PDF)" : "ID document (PDF)"}
               </Label>
               <ResidentFileUpload
                 path={documentUrl}
@@ -246,8 +261,8 @@ const Profile = () => {
         </Card>
 
         <Card className="p-4 border-border/60 space-y-4">
-          <h2 className="font-display text-lg font-semibold flex items-center gap-2">
-            <Globe className="h-4 w-4 text-primary" /> {lang === "pt" ? "Pessoal" : "Personal"}
+          <h2 className="font-display font-semibold text-sm flex items-center gap-2">
+            <Globe className="h-4 w-4 text-primary" strokeWidth={ICON_STROKE} /> {lang === "pt" ? "Pessoal" : "Personal"}
           </h2>
           <div className="grid sm:grid-cols-3 gap-3">
             <div>
@@ -270,19 +285,25 @@ const Profile = () => {
             </div>
             <div>
               <Label htmlFor="gender">{lang === "pt" ? "Sexo" : "Gender"}</Label>
-              <Input
-                id="gender"
-                value={form.gender}
-                onChange={(e) => set("gender", e.target.value)}
-                maxLength={40}
-              />
+              <Select value={form.gender || undefined} onValueChange={(v) => set("gender", v)}>
+                <SelectTrigger id="gender">
+                  <SelectValue placeholder={lang === "pt" ? "Seleciona…" : "Select…"} />
+                </SelectTrigger>
+                <SelectContent>
+                  {GENDER_OPTIONS.map((o) => (
+                    <SelectItem key={o.value} value={o.value}>
+                      {lang === "pt" ? o.pt : o.en}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
         </Card>
 
         <Card className="p-4 border-border/60 space-y-4">
-          <h2 className="font-display text-lg font-semibold flex items-center gap-2">
-            <Heart className="h-4 w-4 text-primary" /> {lang === "pt" ? "Contacto de emergência" : "Emergency contact"}
+          <h2 className="font-display font-semibold text-sm flex items-center gap-2">
+            <Heart className="h-4 w-4 text-primary" strokeWidth={ICON_STROKE} /> {lang === "pt" ? "Contacto de emergência" : "Emergency contact"}
           </h2>
           <div className="grid sm:grid-cols-2 gap-3">
             <div>
@@ -308,8 +329,8 @@ const Profile = () => {
         </Card>
 
         <Card className="p-4 border-border/60 space-y-4">
-          <h2 className="font-display text-lg font-semibold flex items-center gap-2">
-            <Briefcase className="h-4 w-4 text-primary" /> {lang === "pt" ? "Outros" : "Other"}
+          <h2 className="font-display font-semibold text-sm flex items-center gap-2">
+            <Briefcase className="h-4 w-4 text-primary" strokeWidth={ICON_STROKE} /> {lang === "pt" ? "Outros" : "Other"}
           </h2>
           <div>
             <Label htmlFor="emp">
@@ -367,7 +388,7 @@ const Profile = () => {
         </Card>
 
         <Button type="submit" className="w-full gradient-warm border-0" disabled={update.isPending}>
-          {update.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+          {update.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" strokeWidth={ICON_STROKE} />}
           {lang === "pt" ? "Guardar alterações" : "Save changes"}
         </Button>
       </form>
