@@ -1,8 +1,18 @@
 import { NavLink, Outlet, useLocation, useNavigate, Link } from "react-router-dom";
-import { Home, Inbox, CalendarRange, PartyPopper, MoreHorizontal, Bell, Sparkles, BookOpen, HelpCircle, User, LogOut, Globe, BedDouble } from "lucide-react";
+import { Home, Inbox, CalendarRange, PartyPopper, MoreHorizontal, Sparkles, BookOpen, HelpCircle, User, LogOut, Globe, BedDouble } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { useAuth } from "@/hooks/useAuth";
 import { useLang } from "@/lib/i18n";
 import { NotificationBell } from "@/components/NotificationBell";
@@ -15,6 +25,7 @@ export const ResidentShell = () => {
   const { signOut } = useAuth();
   const { t, lang, setLang } = useLang();
   const [moreOpen, setMoreOpen] = useState(false);
+  const [signOutOpen, setSignOutOpen] = useState(false);
 
   const handleSignOut = async () => { await signOut(); navigate("/auth", { replace: true }); };
 
@@ -22,14 +33,13 @@ export const ResidentShell = () => {
     { to: "/app/home", label: t("tab.home"), icon: Home, end: true },
     { to: "/app/requests", label: t("tab.requests"), icon: Inbox },
     { to: "/app/bookings", label: t("tab.bookings"), icon: CalendarRange },
-    { to: "/app/events", label: t("tab.events"), icon: PartyPopper },
+    { to: "/app/my-stay", label: lang === "pt" ? "A minha estadia" : "My stay", icon: BedDouble },
   ];
 
   const more = [
-    { to: "/app/my-stay", label: lang === "pt" ? "A minha estadia" : "My stay", icon: BedDouble },
+    { to: "/app/events", label: t("tab.events"), icon: PartyPopper },
     { to: "/app/profile", label: lang === "pt" ? "O meu perfil" : "My profile", icon: User },
     { to: "/app/services", label: lang === "pt" ? "Serviços" : "Services", icon: Sparkles },
-    { to: "/app/notifications", label: lang === "pt" ? "Notificações" : "Notifications", icon: Bell },
     { to: "/app/onboarding", label: "Onboarding", icon: BookOpen },
     { to: "/app/faqs", label: "FAQs", icon: HelpCircle },
   ];
@@ -98,7 +108,7 @@ export const ResidentShell = () => {
                   <span className="text-sm font-medium">{lang === "pt" ? "English" : "Português"}</span>
                 </button>
                 <button
-                  onClick={() => { setMoreOpen(false); handleSignOut(); }}
+                  onClick={() => { setMoreOpen(false); setSignOutOpen(true); }}
                   className="flex items-center gap-3 rounded-lg p-3 bg-muted/40 hover:bg-muted transition-smooth"
                 >
                   <LogOut className="h-5 w-5 text-primary" />
@@ -109,6 +119,21 @@ export const ResidentShell = () => {
           </Sheet>
         </div>
       </nav>
+
+      <AlertDialog open={signOutOpen} onOpenChange={setSignOutOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{lang === "pt" ? "Tens a certeza que queres sair?" : "Are you sure you want to sign out?"}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {lang === "pt" ? "Vais ter de fazer login novamente para voltar à app." : "You'll need to log in again to come back."}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{lang === "pt" ? "Cancelar" : "Cancel"}</AlertDialogCancel>
+            <AlertDialogAction onClick={handleSignOut}>{lang === "pt" ? "Sair" : "Sign out"}</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
