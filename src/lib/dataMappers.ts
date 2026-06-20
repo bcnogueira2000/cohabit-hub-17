@@ -91,7 +91,7 @@ export const mapCleaning = (c: any): CleaningTask => ({
 });
 
 export const mapSpace = (s: any): Space => ({
-  id: s.id, name: s.name, capacity: s.capacity, description: s.description ?? "",
+  id: s.id, name: s.name, capacity: s.capacity, description: s.description ?? "", active: s.active ?? true,
 });
 
 export const mapBooking = (b: any): Booking => ({
