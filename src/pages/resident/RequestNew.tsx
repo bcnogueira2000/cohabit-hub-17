@@ -190,15 +190,13 @@ const RequestNew = () => {
                 type="button"
                 onClick={() => setPriority(p)}
                 className={cn(
-                  "py-2.5 rounded-lg border text-sm font-medium capitalize transition-smooth",
+                  "py-2.5 rounded-lg border text-sm font-medium transition-smooth",
                   priority === p
                     ? "border-primary bg-primary/5 text-foreground"
                     : "border-border/60 text-muted-foreground",
                 )}
               >
-                {p === "low" ? (lang === "pt" ? "Baixa" : "Low") :
-                 p === "medium" ? (lang === "pt" ? "Média" : "Medium") :
-                 (lang === "pt" ? "Alta" : "High")}
+                {pickLabel(priorityLabels[p], lang)}
               </button>
             ))}
           </div>
