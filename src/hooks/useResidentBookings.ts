@@ -20,11 +20,12 @@ export const useMyBookings = () =>
 
 export const useSpaces = () =>
   useQuery({
-    queryKey: ["spaces"],
+    queryKey: ["spaces", "active"],
     queryFn: async (): Promise<SpaceRow[]> => {
       const { data, error } = await supabase
         .from("spaces")
         .select("*")
+        .eq("active", true)
         .order("name", { ascending: true });
       if (error) throw error;
       return data ?? [];
