@@ -12,8 +12,8 @@ export default {
     },
     extend: {
       fontFamily: {
-        display: ["Source Sans 3", "Myriad Pro", "system-ui", "sans-serif"],
-        sans: ["Source Sans 3", "Myriad Pro", "system-ui", "sans-serif"],
+        display: ["Plus Jakarta Sans", "system-ui", "sans-serif"],
+        sans: ["Plus Jakarta Sans", "system-ui", "sans-serif"],
         serif: ["Fraunces", "Georgia", "serif"],
       },
       colors: {
