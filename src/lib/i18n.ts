@@ -47,7 +47,7 @@ const dict: Record<string, { pt: string; en: string }> = {
   "home.services": { pt: "Serviços", en: "Services" },
   "home.events": { pt: "Eventos", en: "Events" },
   "home.active_requests": { pt: "Pedidos ativos", en: "Active requests" },
-  "home.next_booking": { pt: "Próxima reserva", en: "Next booking" },
+  "home.next_booking": { pt: "Próxima reserva de espaço", en: "Next space booking" },
 };
 
 export const useLang = () => {
