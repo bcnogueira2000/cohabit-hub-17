@@ -105,7 +105,7 @@ const RequestNew = () => {
                     : "border-border/60 bg-card hover:border-border",
                 )}
               >
-                <Icon className={cn("h-5 w-5", category === value ? "text-primary" : "text-muted-foreground")} />
+                <Icon className={cn("h-5 w-5", category === value ? "text-primary" : "text-muted-foreground")} strokeWidth={ICON_STROKE} />
                 <span className="text-[11px] font-medium text-center leading-tight">
                   {lang === "pt" ? pt : en}
                 </span>
