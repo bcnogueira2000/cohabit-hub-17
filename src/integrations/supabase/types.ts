@@ -704,6 +704,7 @@ export type Database = {
       }
       spaces: {
         Row: {
+          active: boolean
           capacity: number
           created_at: string
           description: string | null
@@ -711,6 +712,7 @@ export type Database = {
           name: string
         }
         Insert: {
+          active?: boolean
           capacity?: number
           created_at?: string
           description?: string | null
@@ -718,6 +720,7 @@ export type Database = {
           name: string
         }
         Update: {
+          active?: boolean
           capacity?: number
           created_at?: string
           description?: string | null
