@@ -119,6 +119,21 @@ export const ResidentShell = () => {
           </Sheet>
         </div>
       </nav>
+
+      <AlertDialog open={signOutOpen} onOpenChange={setSignOutOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{lang === "pt" ? "Tens a certeza que queres sair?" : "Are you sure you want to sign out?"}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {lang === "pt" ? "Vais ter de fazer login novamente para voltar à app." : "You'll need to log in again to come back."}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{lang === "pt" ? "Cancelar" : "Cancel"}</AlertDialogCancel>
+            <AlertDialogAction onClick={handleSignOut}>{lang === "pt" ? "Sair" : "Sign out"}</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
