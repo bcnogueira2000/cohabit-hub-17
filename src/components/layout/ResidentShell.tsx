@@ -1,25 +1,6 @@
-import { NavLink, Outlet, useLocation, useNavigate, Link } from "react-router-dom";
-import { Home, Inbox, CalendarRange, User, LogOut, Globe, BedDouble, BookOpen, HelpCircle } from "lucide-react";
+import { NavLink, Outlet, useLocation, Link } from "react-router-dom";
+import { Home, Inbox, CalendarRange, BedDouble } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useState } from "react";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
 import { useLang } from "@/lib/i18n";
 import { NotificationBell } from "@/components/NotificationBell";
@@ -31,13 +12,9 @@ const ICON_STROKE = 1.5;
 
 export const ResidentShell = () => {
   const location = useLocation();
-  const navigate = useNavigate();
-  const { signOut } = useAuth();
   const { data: profile } = useProfile();
-  const { t, lang, setLang } = useLang();
-  const [signOutOpen, setSignOutOpen] = useState(false);
+  const { t, lang } = useLang();
 
-  const handleSignOut = async () => { await signOut(); navigate("/auth", { replace: true }); };
 
   const tabs = [
     { to: "/app/home", label: t("tab.home"), icon: Home, end: true },
@@ -99,21 +76,7 @@ export const ResidentShell = () => {
           </div>
         </div>
       </nav>
-
-      <AlertDialog open={signOutOpen} onOpenChange={setSignOutOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>{lang === "pt" ? "Tens a certeza que queres sair?" : "Are you sure you want to sign out?"}</AlertDialogTitle>
-            <AlertDialogDescription>
-              {lang === "pt" ? "Vais ter de fazer login novamente para voltar à app." : "You'll need to log in again to come back."}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>{lang === "pt" ? "Cancelar" : "Cancel"}</AlertDialogCancel>
-            <AlertDialogAction onClick={handleSignOut}>{lang === "pt" ? "Sair" : "Sign out"}</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 };
+
