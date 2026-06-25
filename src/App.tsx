@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Inbox, CalendarRange, PartyPopper, Sparkles, Bell, BookOpen, HelpCircle, User } from "lucide-react";
 import ResidentProfile from "./pages/resident/Profile";
+import ResidentAccount from "./pages/resident/Account";
 import ResidentMyStay from "./pages/resident/MyStay";
 import { AppShell } from "@/components/layout/AppShell";
 import { ResidentShell } from "@/components/layout/ResidentShell";
@@ -77,6 +78,7 @@ const App = () => (
               <Route path="/app/onboarding" element={<ComingSoon icon={BookOpen} title="Onboarding" description="Como funciona o Living Colours." />} />
               <Route path="/app/faqs" element={<ComingSoon icon={HelpCircle} title="FAQs" description="Perguntas frequentes." />} />
               <Route path="/app/profile" element={<ResidentProfile />} />
+              <Route path="/app/account" element={<ResidentAccount />} />
               <Route path="/app/my-stay" element={<ResidentMyStay />} />
             </Route>
 

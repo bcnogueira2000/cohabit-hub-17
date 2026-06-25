@@ -57,35 +57,13 @@ export const ResidentShell = () => {
           </Link>
           <div className="flex items-center gap-2">
             <NotificationBell />
-            <DropdownMenu>
-              <DropdownMenuTrigger className="rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-ring">
-                <BrandAvatar name={profile?.full_name} src={profile?.photo_url} size="sm" />
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-52">
-                <DropdownMenuItem onClick={() => navigate("/app/profile")}>
-                  <User className="h-4 w-4 mr-2" strokeWidth={ICON_STROKE} />
-                  {lang === "pt" ? "O meu perfil" : "My profile"}
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => navigate("/app/onboarding")}>
-                  <BookOpen className="h-4 w-4 mr-2" strokeWidth={ICON_STROKE} />
-                  Onboarding
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => navigate("/app/faqs")}>
-                  <HelpCircle className="h-4 w-4 mr-2" strokeWidth={ICON_STROKE} />
-                  FAQs
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setLang(lang === "pt" ? "en" : "pt")}>
-                  <Globe className="h-4 w-4 mr-2" strokeWidth={ICON_STROKE} />
-                  {lang === "pt" ? "English" : "Português"}
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => setSignOutOpen(true)}>
-                  <LogOut className="h-4 w-4 mr-2" strokeWidth={ICON_STROKE} />
-                  {lang === "pt" ? "Terminar sessão" : "Sign out"}
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <Link
+              to="/app/account"
+              aria-label={lang === "pt" ? "A minha conta" : "My account"}
+              className="rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              <BrandAvatar name={profile?.full_name} src={profile?.photo_url} size="sm" />
+            </Link>
           </div>
         </div>
       </header>
