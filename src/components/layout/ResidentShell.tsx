@@ -60,7 +60,7 @@ export const ResidentShell = () => {
                 end={end}
                 className={({ isActive }) =>
                   cn(
-                    "flex-1 flex flex-col items-center justify-center gap-0.5 rounded-2xl py-2 px-0.5 transition-all duration-300",
+                    "flex-1 flex flex-col items-center justify-center gap-1 rounded-2xl py-2 px-0.5 transition-all duration-300",
                     isActive
                       ? "bg-foreground text-background"
                       : "text-muted-foreground hover:text-foreground"
@@ -68,7 +68,7 @@ export const ResidentShell = () => {
                 }
               >
                 <Icon className="h-[18px] w-[18px]" strokeWidth={ICON_STROKE} />
-                <span className="text-[10px] font-medium leading-none tracking-tighter text-center whitespace-nowrap">{label}</span>
+                <span className="text-[10px] font-medium leading-none tracking-tight text-center whitespace-nowrap">{label}</span>
               </NavLink>
             ))}
           </div>
