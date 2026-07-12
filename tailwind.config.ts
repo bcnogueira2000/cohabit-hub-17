@@ -12,9 +12,9 @@ export default {
     },
     extend: {
       fontFamily: {
-        display: ["Plus Jakarta Sans", "system-ui", "sans-serif"],
-        sans: ["Plus Jakarta Sans", "system-ui", "sans-serif"],
-        serif: ["Fraunces", "Georgia", "serif"],
+        display: ["Syne", "system-ui", "sans-serif"],
+        sans: ["General Sans", "system-ui", "sans-serif"],
+        serif: ["Syne", "Georgia", "serif"],
       },
       colors: {
         border: "hsl(var(--border))",
