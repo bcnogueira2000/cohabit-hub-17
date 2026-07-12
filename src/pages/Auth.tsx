@@ -95,7 +95,7 @@ const Auth = () => {
     <div className="min-h-screen gradient-soft flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <div className="flex flex-col items-center mb-6">
-          <img src={logo} alt="Living Colours" className="h-14 w-14 object-contain mb-3" />
+          <img src={logo.url} alt="Living Colours" className="h-14 w-14 object-contain mb-3" />
           <h1 className="font-display text-3xl font-semibold">Living Colours</h1>
           <p className="text-sm text-muted-foreground mt-1">{lang === "pt" ? "Bem-vindo a casa" : "Welcome home"}</p>
         </div>
