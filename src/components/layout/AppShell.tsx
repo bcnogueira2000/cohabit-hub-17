@@ -12,7 +12,6 @@ import { useAuth } from "@/hooks/useAuth";
 import { NotificationBell } from "@/components/NotificationBell";
 import { BrandAvatar } from "@/components/ui/BrandAvatar";
 import logo from "@/assets/logo.png";
-import wordmark from "@/assets/wordmark.png";
 
 type NavItem = { to: string; label: string; icon: any; end?: boolean };
 type NavSection = { label: string; items: NavItem[] };
