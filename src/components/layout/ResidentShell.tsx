@@ -6,7 +6,6 @@ import { useLang } from "@/lib/i18n";
 import { NotificationBell } from "@/components/NotificationBell";
 import { BrandAvatar } from "@/components/ui/BrandAvatar";
 import logo from "@/assets/logo.png";
-import wordmark from "@/assets/wordmark.png";
 
 const ICON_STROKE = 1.5;
 
