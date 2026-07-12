@@ -11,7 +11,7 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useAuth } from "@/hooks/useAuth";
 import { NotificationBell } from "@/components/NotificationBell";
 import { BrandAvatar } from "@/components/ui/BrandAvatar";
-import logo from "@/assets/logo.asset.json";
+import logo from "@/assets/logo.png";
 
 type NavItem = { to: string; label: string; icon: any; end?: boolean };
 type NavSection = { label: string; items: NavItem[] };
@@ -74,7 +74,7 @@ const mobileBottom: NavItem[] = [
 
 const Brand = ({ compact = false }: { compact?: boolean }) => (
   <Link to="/" className="flex items-center hover:opacity-80 transition-opacity">
-    <img src={logo.url} alt="Living Colours" className={compact ? "h-8 w-8 object-contain" : "h-10 w-10 object-contain"} />
+    <img src={logo} alt="Living Colours" className={compact ? "h-8 w-8 object-contain" : "h-10 w-10 object-contain"} />
   </Link>
 );
 

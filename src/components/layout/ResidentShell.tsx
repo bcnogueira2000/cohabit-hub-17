@@ -5,7 +5,7 @@ import { useProfile } from "@/hooks/useProfile";
 import { useLang } from "@/lib/i18n";
 import { NotificationBell } from "@/components/NotificationBell";
 import { BrandAvatar } from "@/components/ui/BrandAvatar";
-import logo from "@/assets/logo.asset.json";
+import logo from "@/assets/logo.png";
 
 const ICON_STROKE = 1.5;
 
@@ -28,7 +28,7 @@ export const ResidentShell = () => {
       <header className="sticky top-0 z-30 bg-background/85 backdrop-blur border-b border-border">
         <div className="flex items-center justify-between px-4 h-14 max-w-2xl mx-auto">
           <Link to="/app/home" className="flex items-center hover:opacity-80 transition-opacity">
-            <img src={logo.url} alt="Living Colours" className="h-9 w-9 object-contain" />
+            <img src={logo} alt="Living Colours" className="h-9 w-9 object-contain" />
           </Link>
           <div className="flex items-center gap-2">
             <NotificationBell />
