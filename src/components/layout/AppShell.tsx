@@ -73,9 +73,8 @@ const mobileBottom: NavItem[] = [
 ];
 
 const Brand = ({ compact = false }: { compact?: boolean }) => (
-  <Link to="/" className="flex items-center gap-2.5 hover:opacity-80 transition-opacity">
-    <img src={logo} alt="" aria-hidden className={compact ? "h-8 w-8 object-contain" : "h-9 w-9 object-contain"} />
-    <img src={wordmark} alt="Living Colours" className={compact ? "h-4 object-contain" : "h-5 object-contain"} />
+  <Link to="/" className="flex items-center hover:opacity-80 transition-opacity">
+    <img src={logo} alt="Living Colours" className={compact ? "h-8 w-8 object-contain" : "h-10 w-10 object-contain"} />
   </Link>
 );
 
