@@ -6,7 +6,6 @@ import { useLang } from "@/lib/i18n";
 import { NotificationBell } from "@/components/NotificationBell";
 import { BrandAvatar } from "@/components/ui/BrandAvatar";
 import logo from "@/assets/logo.png";
-import wordmark from "@/assets/wordmark.png";
 
 const ICON_STROKE = 1.5;
 
@@ -28,9 +27,8 @@ export const ResidentShell = () => {
       {/* Top bar */}
       <header className="sticky top-0 z-30 bg-background/85 backdrop-blur border-b border-border">
         <div className="flex items-center justify-between px-4 h-14 max-w-2xl mx-auto">
-          <Link to="/app/home" className="flex items-center gap-2.5 hover:opacity-80 transition-opacity">
-            <img src={logo} alt="" aria-hidden className="h-8 w-8 object-contain" />
-            <img src={wordmark} alt="Living Colours" className="h-4 object-contain" />
+          <Link to="/app/home" className="flex items-center hover:opacity-80 transition-opacity">
+            <img src={logo} alt="Living Colours" className="h-9 w-9 object-contain" />
           </Link>
           <div className="flex items-center gap-2">
             <NotificationBell />
@@ -53,17 +51,16 @@ export const ResidentShell = () => {
 
       {/* Bottom nav */}
       <nav className="fixed bottom-0 inset-x-0 z-30 pb-[env(safe-area-inset-bottom)]">
-        <div className="max-w-2xl mx-auto px-6 pb-4 pt-2">
-          <div className="flex items-center justify-around bg-background/90 backdrop-blur-xl border border-border/60 rounded-full shadow-[0_8px_30px_-12px_rgba(0,0,0,0.18)] px-3 py-2">
+        <div className="max-w-2xl mx-auto px-4 pb-3 pt-2">
+          <div className="flex items-stretch justify-around bg-background/90 backdrop-blur-xl border border-border/60 rounded-3xl shadow-[0_8px_30px_-12px_rgba(0,0,0,0.18)] px-2 py-2">
             {tabs.map(({ to, label, icon: Icon, end }) => (
               <NavLink
                 key={to}
                 to={to}
                 end={end}
-                aria-label={label}
                 className={({ isActive }) =>
                   cn(
-                    "flex items-center justify-center h-11 w-11 rounded-full transition-all duration-300",
+                    "flex-1 flex flex-col items-center justify-center gap-1 rounded-2xl py-2 px-1 transition-all duration-300",
                     isActive
                       ? "bg-foreground text-background"
                       : "text-muted-foreground hover:text-foreground"
@@ -71,6 +68,7 @@ export const ResidentShell = () => {
                 }
               >
                 <Icon className="h-[18px] w-[18px]" strokeWidth={ICON_STROKE} />
+                <span className="text-[10.5px] font-medium leading-none tracking-tight">{label}</span>
               </NavLink>
             ))}
           </div>

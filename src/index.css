@@ -1,4 +1,5 @@
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&display=swap');
+@import url('https://api.fontshare.com/v2/css?f[]=general-sans@400,500,600,700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -10,83 +11,80 @@
 
 @layer base {
   :root {
-    /* Surfaces — soft neutral background, cards lift with white + border */
-    --background: 220 16% 96%;
-    --foreground: 220 10% 14%;
+    /* Surfaces — Cream #F2EDE4 */
+    --background: 37 33% 92%;
+    --foreground: 0 0% 9%;
 
     --card: 0 0% 100%;
-    --card-foreground: 220 10% 14%;
+    --card-foreground: 0 0% 9%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 220 10% 14%;
+    --popover-foreground: 0 0% 9%;
 
-    /* Brand — muted teal from Living Colours identity (~#3d8879) */
-    --primary: 170 38% 38%;
-    --primary-foreground: 0 0% 100%;
-    --primary-glow: 170 34% 52%;
+    /* Brand — Sage #4C827D */
+    --primary: 174 27% 40%;
+    --primary-foreground: 37 33% 96%;
+    --primary-glow: 174 25% 50%;
 
-    /* Charcoal secondary (Pantone 19-4015) */
-    --secondary: 220 8% 22%;
-    --secondary-foreground: 0 0% 99%;
+    /* Charcoal secondary #171717 */
+    --secondary: 0 0% 9%;
+    --secondary-foreground: 37 33% 96%;
 
-    --muted: 220 12% 95%;
-    --muted-foreground: 220 8% 42%;
+    --muted: 37 20% 88%;
+    --muted-foreground: 0 0% 32%;
 
-    --accent: 170 40% 92%;
-    --accent-foreground: 170 38% 24%;
+    --accent: 174 22% 86%;
+    --accent-foreground: 172 27% 22%;
 
-    /* Coral (Pantone 16-1735) */
-    --destructive: 346 75% 62%;
+    --destructive: 12 62% 52%;
     --destructive-foreground: 0 0% 100%;
 
-    --success: 170 38% 38%;
+    --success: 174 27% 40%;
     --success-foreground: 0 0% 100%;
 
-    /* Yellow (Pantone 13-0755) */
-    --warning: 46 86% 62%;
-    --warning-foreground: 220 10% 14%;
+    --warning: 38 72% 58%;
+    --warning-foreground: 0 0% 9%;
 
-    /* Lilac (Pantone 17-3932) */
-    --info: 240 32% 66%;
+    --info: 174 27% 40%;
     --info-foreground: 0 0% 100%;
 
-    --border: 220 14% 88%;
-    --input: 220 14% 88%;
-    --ring: 170 38% 38%;
+    --border: 37 20% 82%;
+    --input: 37 20% 82%;
+    --ring: 174 27% 40%;
 
     --radius: 0.875rem;
 
-    /* Brand accent tokens — for charts, badges, illustrative use */
-    --brand-teal: 170 38% 38%;
-    --brand-lilac: 240 32% 66%;
-    --brand-yellow: 46 86% 62%;
-    --brand-coral: 346 75% 62%;
-    --brand-charcoal: 220 8% 22%;
-    --brand-grey: 220 6% 45%;
+    /* Brand accent tokens */
+    --brand-teal: 174 27% 40%;
+    --brand-lilac: 172 28% 26%;
+    --brand-yellow: 38 72% 58%;
+    --brand-coral: 12 62% 52%;
+    --brand-charcoal: 0 0% 9%;
+    --brand-grey: 30 8% 42%;
 
-    /* Gradients */
-    --gradient-warm: linear-gradient(135deg, hsl(170 38% 38%) 0%, hsl(170 34% 52%) 100%);
-    --gradient-soft: linear-gradient(180deg, hsl(0 0% 100%) 0%, hsl(220 14% 97%) 100%);
-    --gradient-sage: linear-gradient(135deg, hsl(170 42% 32%) 0%, hsl(170 34% 46%) 100%);
-    --gradient-earth: linear-gradient(135deg, hsl(220 8% 22%) 0%, hsl(220 8% 32%) 100%);
-    --gradient-living: linear-gradient(135deg, hsl(240 32% 66%) 0%, hsl(170 38% 38%) 50%, hsl(46 86% 62%) 100%);
+    /* Gradients — sage tones from brand kit */
+    --gradient-warm: linear-gradient(135deg, hsl(174 27% 40%) 0%, hsl(171 27% 34%) 100%);
+    --gradient-soft: linear-gradient(180deg, hsl(37 33% 96%) 0%, hsl(37 25% 90%) 100%);
+    --gradient-sage: linear-gradient(135deg, hsl(172 27% 28%) 0%, hsl(174 27% 40%) 100%);
+    --gradient-earth: linear-gradient(135deg, hsl(0 0% 9%) 0%, hsl(0 0% 18%) 100%);
+    --gradient-living: linear-gradient(135deg, hsl(172 28% 26%) 0%, hsl(174 27% 40%) 50%, hsl(37 33% 92%) 100%);
 
     /* Shadows */
-    --shadow-soft: 0 1px 2px hsl(220 10% 10% / 0.05), 0 4px 14px hsl(220 10% 10% / 0.06);
-    --shadow-elegant: 0 8px 24px -8px hsl(170 38% 28% / 0.22);
-    --shadow-card: 0 1px 2px hsl(220 10% 10% / 0.04), 0 2px 8px hsl(220 10% 10% / 0.06);
+    --shadow-soft: 0 1px 2px hsl(0 0% 9% / 0.05), 0 4px 14px hsl(0 0% 9% / 0.06);
+    --shadow-elegant: 0 8px 24px -8px hsl(172 27% 22% / 0.22);
+    --shadow-card: 0 1px 2px hsl(0 0% 9% / 0.04), 0 2px 8px hsl(0 0% 9% / 0.06);
 
     --transition-smooth: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 
     /* Sidebar */
-    --sidebar-background: 0 0% 100%;
-    --sidebar-foreground: 220 10% 24%;
-    --sidebar-primary: 170 38% 38%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 170 40% 94%;
-    --sidebar-accent-foreground: 170 38% 24%;
-    --sidebar-border: 220 14% 92%;
-    --sidebar-ring: 170 38% 38%;
+    --sidebar-background: 37 33% 96%;
+    --sidebar-foreground: 0 0% 14%;
+    --sidebar-primary: 174 27% 40%;
+    --sidebar-primary-foreground: 37 33% 96%;
+    --sidebar-accent: 174 22% 88%;
+    --sidebar-accent-foreground: 172 27% 22%;
+    --sidebar-border: 37 20% 86%;
+    --sidebar-ring: 174 27% 40%;
   }
 
   .dark {
@@ -126,20 +124,19 @@
   }
 
   html {
-    font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+    font-family: 'General Sans', system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
 
   body {
     @apply bg-background text-foreground;
-    font-feature-settings: 'cv11', 'ss01';
   }
 
   h1, h2, h3, h4, .font-display {
-    font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
-    font-weight: 700;
-    letter-spacing: -0.015em;
+    font-family: 'Syne', system-ui, sans-serif;
+    font-weight: 800;
+    letter-spacing: -0.02em;
   }
 }
 
