@@ -27,9 +27,8 @@ export const ResidentShell = () => {
       {/* Top bar */}
       <header className="sticky top-0 z-30 bg-background/85 backdrop-blur border-b border-border">
         <div className="flex items-center justify-between px-4 h-14 max-w-2xl mx-auto">
-          <Link to="/app/home" className="flex items-center gap-2.5 hover:opacity-80 transition-opacity">
-            <img src={logo} alt="" aria-hidden className="h-8 w-8 object-contain" />
-            <img src={wordmark} alt="Living Colours" className="h-4 object-contain" />
+          <Link to="/app/home" className="flex items-center hover:opacity-80 transition-opacity">
+            <img src={logo} alt="Living Colours" className="h-9 w-9 object-contain" />
           </Link>
           <div className="flex items-center gap-2">
             <NotificationBell />
