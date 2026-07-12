@@ -6,7 +6,7 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import logo from "@/assets/logo.png";
+import logo from "@/assets/logo.asset.json";
 
 const ResetPassword = () => {
   const navigate = useNavigate();
@@ -36,7 +36,7 @@ const ResetPassword = () => {
     <div className="min-h-screen gradient-soft flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <div className="flex flex-col items-center mb-6">
-          <img src={logo} alt="Living Colours" className="h-14 w-14 object-contain mb-3" />
+          <img src={logo.url} alt="Living Colours" className="h-14 w-14 object-contain mb-3" />
           <h1 className="font-display text-2xl font-semibold">Definir nova password</h1>
         </div>
         <Card className="p-6 border-border/60 shadow-elegant">

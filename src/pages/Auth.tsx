@@ -10,7 +10,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import { useLang } from "@/lib/i18n";
-import logo from "@/assets/logo.png";
+import logo from "@/assets/logo.asset.json";
 
 const Auth = () => {
   const navigate = useNavigate();
