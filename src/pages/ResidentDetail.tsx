@@ -136,6 +136,53 @@ const ResidentDetail = () => {
               </div>
             </Card>
           </div>
+
+          <Card className="p-4 border-border/60 shadow-card space-y-3">
+            <h3 className="font-display text-lg font-semibold">Documentos</h3>
+            {!profile ? (
+              <p className="text-sm text-muted-foreground">
+                Este residente ainda não tem conta associada, por isso não é possível anexar documentos.
+              </p>
+            ) : (
+              <div className="space-y-3">
+                <ResidentFileUpload
+                  accept="pdf"
+                  label="Contrato assinado"
+                  path={documentPath}
+                  onChange={saveDocument}
+                />
+                {documentPath && (
+                  <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
+                    <span className="flex items-center gap-1.5">
+                      <FileText className="h-3.5 w-3.5" strokeWidth={1.5} />
+                      Último carregamento:{" "}
+                      {profile.updated_at ? new Date(profile.updated_at).toLocaleDateString("pt-PT") : "—"}
+                    </span>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button variant="outline" size="sm" className="h-7 text-xs">
+                          <Trash2 className="h-3.5 w-3.5 mr-1.5" strokeWidth={1.5} /> Remover
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Remover contrato?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            O ficheiro será apagado permanentemente do armazenamento.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                          <AlertDialogAction onClick={removeDocument}>Remover</AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </div>
+                )}
+              </div>
+            )}
+          </Card>
+
           <Card className="p-4 border-border/60 shadow-card space-y-3">
             <h3 className="font-display text-lg font-semibold">Informação pessoal</h3>
             <div className="grid sm:grid-cols-2 gap-3 text-sm">
