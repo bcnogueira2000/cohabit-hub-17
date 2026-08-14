@@ -662,6 +662,7 @@ export type Database = {
       residents: {
         Row: {
           avatar_color: string | null
+          checkin_checklist: Json
           created_at: string
           email: string
           full_name: string
@@ -676,6 +677,7 @@ export type Database = {
         }
         Insert: {
           avatar_color?: string | null
+          checkin_checklist?: Json
           created_at?: string
           email: string
           full_name: string
@@ -690,6 +692,7 @@ export type Database = {
         }
         Update: {
           avatar_color?: string | null
+          checkin_checklist?: Json
           created_at?: string
           email?: string
           full_name?: string
