@@ -1,13 +1,26 @@
 import { Link, useParams } from "react-router-dom";
-import { ArrowLeft, Mail, Phone, DoorClosed, Calendar, Check, Globe, Heart, AlertTriangle, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, Mail, Phone, DoorClosed, Calendar, Check, Globe, Heart, AlertTriangle, CheckCircle2, FileText, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Progress } from "@/components/ui/progress";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { useResidents, useRooms, useRequests, useUpdateResidentChecklist } from "@/hooks/useData";
-import { useProfileByResidentId } from "@/hooks/useProfile";
+import { useProfileByResidentId, useUpdateProfileByUserId } from "@/hooks/useProfile";
 import { StatusBadge, PriorityBadge } from "@/components/ui/StatusBadge";
+import ResidentFileUpload from "@/components/ResidentFileUpload";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import type { ChecklistItem } from "@/lib/types";
 
