@@ -98,6 +98,24 @@ export const useUpdateProfile = () => {
   });
 };
 
+// Staff-side update of a resident's profile (RLS allows staff)
+export const useUpdateProfileByUserId = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ userId, values }: { userId: string; values: ProfileUpdate }) => {
+      const { error } = await supabase
+        .from("profiles" as any)
+        .update(values as any)
+        .eq("user_id", userId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["profile_by_resident"] });
+      qc.invalidateQueries({ queryKey: ["profile"] });
+    },
+  });
+};
+
 export const useMyRoles = () => {
   const { user } = useAuth();
   return useQuery({
