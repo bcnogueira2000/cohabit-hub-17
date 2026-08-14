@@ -21,6 +21,12 @@ export interface Resident {
   moveOut: string;
   status: "upcoming" | "active" | "checking_out" | "past";
   avatarColor: string;
+  checkinChecklist: ChecklistItem[];
+}
+
+export interface ChecklistItem {
+  label: string;
+  done: boolean;
 }
 
 export type RoomStatus = "available" | "occupied" | "reserved" | "maintenance" | "cleaning_required" | "out_of_service";
