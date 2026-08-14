@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { Plus, Search, Clock, User as UserIcon, X } from "lucide-react";
+import { Search, Clock, User as UserIcon, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useLeads, type Lead, type LeadStatus } from "@/hooks/useLeads";
 import { useStaffUsers } from "@/hooks/useStaffUsers";
+import { NewLeadDialog } from "@/components/leads/NewLeadDialog";
 import { leadStatusLabels, leadSourceLabels, leadProfileLabels } from "@/lib/labels";
 
 const statusTone: Record<LeadStatus, string> = {
@@ -99,9 +100,8 @@ const Leads = () => {
             {leads.length} {leads.length === 1 ? "lead" : "leads"} · pipeline de prospecção
           </p>
         </div>
-        <Button className="rounded-full gradient-warm border-0 shadow-elegant" disabled>
-          <Plus className="h-4 w-4 mr-1.5" strokeWidth={1.5} /> Novo lead
-        </Button>
+        <NewLeadDialog />
+
       </div>
 
       <Tabs value={filter} onValueChange={(v) => setFilter(v as Filter)} className="mb-4">
