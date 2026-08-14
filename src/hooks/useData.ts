@@ -27,6 +27,31 @@ export const useResidents = () =>
     },
   });
 
+export const useUpdateResidentChecklist = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, checklist }: { id: string; checklist: { label: string; done: boolean }[] }) => {
+      const { error } = await supabase
+        .from("residents")
+        .update({ checkin_checklist: checklist } as any)
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onMutate: async ({ id, checklist }) => {
+      await qc.cancelQueries({ queryKey: ["residents"] });
+      const previous = qc.getQueryData<Resident[]>(["residents"]);
+      qc.setQueryData<Resident[]>(["residents"], (old) =>
+        (old ?? []).map((r) => (r.id === id ? { ...r, checkinChecklist: checklist } : r)),
+      );
+      return { previous };
+    },
+    onError: (_e, _vars, ctx) => {
+      if (ctx?.previous) qc.setQueryData(["residents"], ctx.previous);
+    },
+    onSettled: () => qc.invalidateQueries({ queryKey: ["residents"] }),
+  });
+};
+
 export const useRequests = () =>
   useQuery({
     queryKey: ["requests"],
