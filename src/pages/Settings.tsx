@@ -5,12 +5,21 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { categoryLabels, cleaningTypeLabels } from "@/lib/labels";
 import { useSpaces } from "@/hooks/useData";
+import { useAppSettings } from "@/hooks/useAppSettings";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
+const SLA_KEYS = [
+  { key: "sla_urgent", label: "Urgente" },
+  { key: "sla_high", label: "Alta" },
+  { key: "sla_medium", label: "Média" },
+  { key: "sla_low", label: "Baixa" },
+];
+
 const Settings = () => {
   const { data: spaces = [] } = useSpaces();
+  const { settings, isLoading, isSaving, updateSetting } = useAppSettings();
   const qc = useQueryClient();
   const toggleSpace = useMutation({
     mutationFn: async ({ id, active }: { id: string; active: boolean }) => {
@@ -23,12 +32,17 @@ const Settings = () => {
     },
     onError: (e: any) => toast.error(e.message ?? "Erro ao atualizar"),
   });
-  const slas = [
-    { priority: "Urgente", target: "2 horas" },
-    { priority: "Alta", target: "8 horas" },
-    { priority: "Média", target: "24 horas" },
-    { priority: "Baixa", target: "72 horas" },
-  ];
+
+  const saveSetting = async (key: string, value: string) => {
+    const next = value.trim();
+    if (!next || next === (settings[key] ?? "")) return;
+    try {
+      await updateSetting(key, next);
+      toast.success("Configuração guardada");
+    } catch (e: any) {
+      toast.error(e.message ?? "Erro ao guardar configuração");
+    }
+  };
 
   return (
     <div className="px-4 lg:px-10 py-6 lg:py-10 max-w-4xl mx-auto">
@@ -41,22 +55,49 @@ const Settings = () => {
         <Card className="p-5 border-border/60 shadow-card">
           <h2 className="font-display text-xl font-semibold mb-4 flex items-center gap-2"><Cog className="h-5 w-5 text-primary" /> Geral</h2>
           <div className="grid sm:grid-cols-2 gap-4">
-            <div><Label>Nome da operação</Label><Input defaultValue="Living Colours AR" className="mt-1.5" /></div>
-            <div><Label>Fuso horário</Label><Input defaultValue="Europe/Lisbon" className="mt-1.5" /></div>
+            <div>
+              <Label htmlFor="operation_name">Nome da operação</Label>
+              <Input
+                id="operation_name"
+                key={`operation_name-${settings.operation_name ?? ""}`}
+                defaultValue={settings.operation_name ?? ""}
+                disabled={isLoading || isSaving}
+                onBlur={(e) => saveSetting("operation_name", e.target.value)}
+                className="mt-1.5"
+              />
+            </div>
+            <div>
+              <Label htmlFor="timezone">Fuso horário</Label>
+              <Input
+                id="timezone"
+                key={`timezone-${settings.timezone ?? ""}`}
+                defaultValue={settings.timezone ?? ""}
+                disabled={isLoading || isSaving}
+                onBlur={(e) => saveSetting("timezone", e.target.value)}
+                className="mt-1.5"
+              />
+            </div>
           </div>
         </Card>
 
         <Card className="p-5 border-border/60 shadow-card">
           <h2 className="font-display text-xl font-semibold mb-4 flex items-center gap-2"><Clock className="h-5 w-5 text-primary" /> SLA por prioridade</h2>
           <div className="space-y-2">
-            {slas.map((s) => (
-              <div key={s.priority} className="flex items-center justify-between p-3 bg-muted/40 rounded-lg">
-                <span className="font-medium text-sm">{s.priority}</span>
-                <Input defaultValue={s.target} className="w-32 h-8" />
+            {SLA_KEYS.map((s) => (
+              <div key={s.key} className="flex items-center justify-between p-3 bg-muted/40 rounded-lg">
+                <span className="font-medium text-sm">{s.label}</span>
+                <Input
+                  key={`${s.key}-${settings[s.key] ?? ""}`}
+                  defaultValue={settings[s.key] ?? ""}
+                  disabled={isLoading || isSaving}
+                  onBlur={(e) => saveSetting(s.key, e.target.value)}
+                  className="w-32 h-8"
+                />
               </div>
             ))}
           </div>
         </Card>
+
 
         <Card className="p-5 border-border/60 shadow-card">
           <h2 className="font-display text-xl font-semibold mb-4 flex items-center gap-2"><Tag className="h-5 w-5 text-primary" /> Categorias de pedidos</h2>
