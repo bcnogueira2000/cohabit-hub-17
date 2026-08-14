@@ -1,13 +1,15 @@
 import { Link, useParams } from "react-router-dom";
-import { ArrowLeft, Mail, Phone, DoorClosed, Calendar, Check, Globe, Heart, AlertTriangle } from "lucide-react";
+import { ArrowLeft, Mail, Phone, DoorClosed, Calendar, Check, Globe, Heart, AlertTriangle, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
-import { useResidents, useRooms, useRequests } from "@/hooks/useData";
+import { Progress } from "@/components/ui/progress";
+import { useResidents, useRooms, useRequests, useUpdateResidentChecklist } from "@/hooks/useData";
 import { useProfileByResidentId } from "@/hooks/useProfile";
 import { StatusBadge, PriorityBadge } from "@/components/ui/StatusBadge";
-import { useState } from "react";
+import { toast } from "sonner";
+import type { ChecklistItem } from "@/lib/types";
 
 const checkInItems = [
   "Documento de identificação verificado",
@@ -19,6 +21,8 @@ const checkInItems = [
   "Kit de boas-vindas entregue",
 ];
 
+const defaultChecklist = (): ChecklistItem[] => checkInItems.map((label) => ({ label, done: false }));
+
 const ResidentDetail = () => {
   const { id } = useParams();
   const { data: residents = [] } = useResidents();
@@ -26,7 +30,24 @@ const ResidentDetail = () => {
   const { data: requests = [] } = useRequests();
   const resident = residents.find((r) => r.id === id);
   const { data: profile } = useProfileByResidentId(resident?.id);
-  const [checks, setChecks] = useState<boolean[]>(checkInItems.map((_, i) => i < 3));
+  const updateChecklist = useUpdateResidentChecklist();
+
+  const checklist: ChecklistItem[] =
+    resident?.checkinChecklist && resident.checkinChecklist.length > 0
+      ? resident.checkinChecklist
+      : defaultChecklist();
+  const doneCount = checklist.filter((c) => c.done).length;
+  const allDone = doneCount === checklist.length;
+
+  const toggleItem = (index: number, done: boolean) => {
+    if (!resident) return;
+    const next = checklist.map((item, i) => (i === index ? { ...item, done } : item));
+    updateChecklist.mutate(
+      { id: resident.id, checklist: next },
+      { onError: (e: any) => toast.error(e?.message ?? "Não foi possível guardar a checklist") },
+    );
+  };
+
 
   if (!resident) {
     return (
@@ -115,17 +136,32 @@ const ResidentDetail = () => {
         <TabsContent value="checkin">
           <Card className="p-5 border-border/60 shadow-card">
             <h3 className="font-display text-lg font-semibold mb-3">Check-in checklist</h3>
+
+            <div className="mb-4">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium">
+                  {doneCount}/{checklist.length} concluídos
+                </span>
+                {allDone && (
+                  <span className="flex items-center gap-1.5 text-xs font-medium text-success">
+                    <CheckCircle2 className="h-4 w-4" strokeWidth={1.5} /> Check-in completo
+                  </span>
+                )}
+              </div>
+              <Progress value={(doneCount / checklist.length) * 100} className="h-2" />
+            </div>
+
             <div className="space-y-1">
-              {checkInItems.map((item, i) => (
-                <label key={i} className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-muted/40 cursor-pointer">
-                  <Checkbox checked={checks[i]} onCheckedChange={(c) => setChecks((prev) => prev.map((v, idx) => (idx === i ? !!c : v)))} />
-                  <span className={checks[i] ? "line-through text-muted-foreground text-sm" : "text-sm"}>{item}</span>
-                  {checks[i] && <Check className="h-4 w-4 text-success ml-auto" />}
+              {checklist.map((item, i) => (
+                <label key={item.label} className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-muted/40 cursor-pointer">
+                  <Checkbox
+                    checked={item.done}
+                    onCheckedChange={(c) => toggleItem(i, !!c)}
+                  />
+                  <span className={item.done ? "line-through text-muted-foreground text-sm" : "text-sm"}>{item.label}</span>
+                  {item.done && <Check className="h-4 w-4 text-success ml-auto" strokeWidth={1.5} />}
                 </label>
               ))}
-            </div>
-            <div className="mt-4 pt-4 border-t border-border text-xs text-muted-foreground">
-              {checks.filter(Boolean).length} de {checkInItems.length} concluídos
             </div>
           </Card>
         </TabsContent>
