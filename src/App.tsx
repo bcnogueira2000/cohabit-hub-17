@@ -22,6 +22,7 @@ import NewRequest from "./pages/NewRequest";
 import PublicRequest from "./pages/PublicRequest";
 import Cleaning from "./pages/Cleaning";
 import Tasks from "./pages/Tasks";
+import Leads from "./pages/Leads";
 import Residents from "./pages/Residents";
 import ResidentDetail from "./pages/ResidentDetail";
 import Rooms from "./pages/Rooms";
@@ -91,6 +92,7 @@ const App = () => (
               <Route path="/requests/:id" element={<RequestDetail />} />
               <Route path="/cleaning" element={<Cleaning />} />
               <Route path="/tasks" element={<Tasks />} />
+              <Route path="/leads" element={<Leads />} />
               <Route path="/residents" element={<Residents />} />
               <Route path="/residents/:id" element={<ResidentDetail />} />
               <Route path="/rooms" element={<Rooms />} />
