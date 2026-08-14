@@ -1,0 +1,1 @@
+REVOKE ALL ON FUNCTION public.lead_log_status_change() FROM PUBLIC, anon, authenticated;
