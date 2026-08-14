@@ -202,7 +202,10 @@ export const useUpdateCleaningTask = () => {
       const { error } = await supabase.from("cleaning_tasks").update(dbPatch).eq("id", id);
       if (error) throw error;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["cleaning_tasks"] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["cleaning_tasks"] });
+      qc.invalidateQueries({ queryKey: ["rooms"] });
+    },
   });
 };
 
