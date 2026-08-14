@@ -94,8 +94,15 @@ export const useCreateBooking = () => {
         })
         .select("*")
         .single();
-      if (error) throw error;
+      if (error) {
+        const msg = `${error.message} ${error.details ?? ""} ${error.code ?? ""}`.toLowerCase();
+        if (msg.includes("exclusion") || msg.includes("overlap") || msg.includes("bookings_no_overlap") || error.code === "23P01") {
+          throw new Error("Este espaço já está reservado para este horário.");
+        }
+        throw error;
+      }
       return data;
+
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["my_bookings"] });
