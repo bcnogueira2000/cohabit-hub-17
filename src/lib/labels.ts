@@ -116,3 +116,34 @@ export const requestActivityLabels: Record<string, string> = {
   cost_updated: "Custo atualizado",
   location_changed: "Local alterado",
 };
+
+export const leadStatusLabels: Record<string, string> = {
+  new: "Novo",
+  contacted: "Contactado",
+  visit_scheduled: "Visita agendada",
+  visited: "Visitou",
+  proposal_sent: "Proposta enviada",
+  negotiating: "Em negociação",
+  won: "Ganho",
+  lost: "Perdido",
+  archived: "Arquivado",
+};
+
+export const leadSourceLabels: Record<string, string> = {
+  website_form: "Site",
+  idealista: "Idealista",
+  instagram: "Instagram",
+  linkedin: "LinkedIn",
+  referral: "Referência",
+  walk_in: "Visita espontânea",
+  email: "Email",
+  phone: "Telefone",
+  other: "Outro",
+};
+
+export const leadProfileLabels: Record<string, string> = {
+  student: "Estudante",
+  professional: "Trabalhador",
+  digital_nomad: "Nómada digital",
+  other: "Outro",
+};
