@@ -1,6 +1,6 @@
 import { Card } from "@/components/ui/card";
 import { Link } from "react-router-dom";
-import { Inbox, CalendarRange, Sparkles, PartyPopper, ArrowRight, Plus, BedDouble } from "lucide-react";
+import { Inbox, CalendarRange, Plus, ArrowRight, BedDouble, User } from "lucide-react";
 import { useLang } from "@/lib/i18n";
 import { useProfile } from "@/hooks/useProfile";
 import { useMyRequests, isActiveRequest } from "@/hooks/useResidentRequests";

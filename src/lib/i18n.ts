@@ -44,8 +44,8 @@ const dict: Record<string, { pt: string; en: string }> = {
   "home.welcome": { pt: "Bem-vindo ao teu espaço Living Colours.", en: "Welcome to your Living Colours space." },
   "home.new_request": { pt: "Novo pedido", en: "New request" },
   "home.book_space": { pt: "Reservar espaço", en: "Book a space" },
-  "home.services": { pt: "Serviços", en: "Services" },
-  "home.events": { pt: "Eventos", en: "Events" },
+  "home.my_stay": { pt: "A minha estadia", en: "My stay" },
+  "home.profile": { pt: "Perfil", en: "Profile" },
   "home.active_requests": { pt: "Pedidos ativos", en: "Active requests" },
   "home.next_booking": { pt: "Próxima reserva de espaço", en: "Next space booking" },
 };
