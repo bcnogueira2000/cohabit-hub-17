@@ -99,9 +99,8 @@ const Leads = () => {
             {leads.length} {leads.length === 1 ? "lead" : "leads"} · pipeline de prospecção
           </p>
         </div>
-        <Button className="rounded-full gradient-warm border-0 shadow-elegant" disabled>
-          <Plus className="h-4 w-4 mr-1.5" strokeWidth={1.5} /> Novo lead
-        </Button>
+        <NewLeadDialog />
+
       </div>
 
       <Tabs value={filter} onValueChange={(v) => setFilter(v as Filter)} className="mb-4">
