@@ -233,6 +233,148 @@ export type Database = {
           },
         ]
       }
+      lead_activity: {
+        Row: {
+          actor_name: string | null
+          actor_user_id: string | null
+          created_at: string
+          id: string
+          kind: string
+          lead_id: string
+          payload: Json
+        }
+        Insert: {
+          actor_name?: string | null
+          actor_user_id?: string | null
+          created_at?: string
+          id?: string
+          kind: string
+          lead_id: string
+          payload?: Json
+        }
+        Update: {
+          actor_name?: string | null
+          actor_user_id?: string | null
+          created_at?: string
+          id?: string
+          kind?: string
+          lead_id?: string
+          payload?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lead_activity_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      leads: {
+        Row: {
+          age: string | null
+          assigned_to: string | null
+          assigned_to_user_id: string | null
+          budget_range: string | null
+          created_at: string
+          email: string
+          external_ref: string | null
+          full_name: string
+          gdpr_consent: boolean
+          gender: string | null
+          id: string
+          language: string | null
+          lost_reason: string | null
+          nationality: string | null
+          next_action: string | null
+          next_action_date: string | null
+          notes: string | null
+          phone: string | null
+          preferred_move_in: string | null
+          preferred_room_type: string | null
+          profile: string | null
+          profile_other: string | null
+          source: Database["public"]["Enums"]["lead_source"]
+          source_detail: string | null
+          status: Database["public"]["Enums"]["lead_status"]
+          stay_duration: string | null
+          stay_id: string | null
+          updated_at: string
+          what_brings_them: string | null
+        }
+        Insert: {
+          age?: string | null
+          assigned_to?: string | null
+          assigned_to_user_id?: string | null
+          budget_range?: string | null
+          created_at?: string
+          email: string
+          external_ref?: string | null
+          full_name: string
+          gdpr_consent?: boolean
+          gender?: string | null
+          id?: string
+          language?: string | null
+          lost_reason?: string | null
+          nationality?: string | null
+          next_action?: string | null
+          next_action_date?: string | null
+          notes?: string | null
+          phone?: string | null
+          preferred_move_in?: string | null
+          preferred_room_type?: string | null
+          profile?: string | null
+          profile_other?: string | null
+          source?: Database["public"]["Enums"]["lead_source"]
+          source_detail?: string | null
+          status?: Database["public"]["Enums"]["lead_status"]
+          stay_duration?: string | null
+          stay_id?: string | null
+          updated_at?: string
+          what_brings_them?: string | null
+        }
+        Update: {
+          age?: string | null
+          assigned_to?: string | null
+          assigned_to_user_id?: string | null
+          budget_range?: string | null
+          created_at?: string
+          email?: string
+          external_ref?: string | null
+          full_name?: string
+          gdpr_consent?: boolean
+          gender?: string | null
+          id?: string
+          language?: string | null
+          lost_reason?: string | null
+          nationality?: string | null
+          next_action?: string | null
+          next_action_date?: string | null
+          notes?: string | null
+          phone?: string | null
+          preferred_move_in?: string | null
+          preferred_room_type?: string | null
+          profile?: string | null
+          profile_other?: string | null
+          source?: Database["public"]["Enums"]["lead_source"]
+          source_detail?: string | null
+          status?: Database["public"]["Enums"]["lead_status"]
+          stay_duration?: string | null
+          stay_id?: string | null
+          updated_at?: string
+          what_brings_them?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "leads_stay_id_fkey"
+            columns: ["stay_id"]
+            isOneToOne: false
+            referencedRelation: "stays"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       locations: {
         Row: {
           apartment: string | null
@@ -942,6 +1084,26 @@ export type Database = {
         | "kitchen"
         | "common"
         | "checkout_inspection"
+      lead_source:
+        | "website_form"
+        | "idealista"
+        | "instagram"
+        | "linkedin"
+        | "referral"
+        | "walk_in"
+        | "email"
+        | "phone"
+        | "other"
+      lead_status:
+        | "new"
+        | "contacted"
+        | "visit_scheduled"
+        | "visited"
+        | "proposal_sent"
+        | "negotiating"
+        | "won"
+        | "lost"
+        | "archived"
       location_kind:
         | "room"
         | "shared_bathroom"
@@ -1160,6 +1322,28 @@ export const Constants = {
         "kitchen",
         "common",
         "checkout_inspection",
+      ],
+      lead_source: [
+        "website_form",
+        "idealista",
+        "instagram",
+        "linkedin",
+        "referral",
+        "walk_in",
+        "email",
+        "phone",
+        "other",
+      ],
+      lead_status: [
+        "new",
+        "contacted",
+        "visit_scheduled",
+        "visited",
+        "proposal_sent",
+        "negotiating",
+        "won",
+        "lost",
+        "archived",
       ],
       location_kind: [
         "room",
