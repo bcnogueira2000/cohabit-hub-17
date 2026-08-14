@@ -1,13 +1,26 @@
 import { Link, useParams } from "react-router-dom";
-import { ArrowLeft, Mail, Phone, DoorClosed, Calendar, Check, Globe, Heart, AlertTriangle, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, Mail, Phone, DoorClosed, Calendar, Check, Globe, Heart, AlertTriangle, CheckCircle2, FileText, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Progress } from "@/components/ui/progress";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { useResidents, useRooms, useRequests, useUpdateResidentChecklist } from "@/hooks/useData";
-import { useProfileByResidentId } from "@/hooks/useProfile";
+import { useProfileByResidentId, useUpdateProfileByUserId } from "@/hooks/useProfile";
 import { StatusBadge, PriorityBadge } from "@/components/ui/StatusBadge";
+import ResidentFileUpload from "@/components/ResidentFileUpload";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import type { ChecklistItem } from "@/lib/types";
 
@@ -31,6 +44,30 @@ const ResidentDetail = () => {
   const resident = residents.find((r) => r.id === id);
   const { data: profile } = useProfileByResidentId(resident?.id);
   const updateChecklist = useUpdateResidentChecklist();
+  const updateProfile = useUpdateProfileByUserId();
+
+  const documentPath = profile?.document_url ?? null;
+
+  const saveDocument = (path: string | null) => {
+    if (!profile?.user_id) {
+      toast.error("Este residente ainda não tem conta associada");
+      return;
+    }
+    updateProfile.mutate(
+      { userId: profile.user_id, values: { document_url: path } },
+      {
+        onSuccess: () => toast.success(path ? "Contrato guardado" : "Contrato removido"),
+        onError: (e: any) => toast.error(e?.message ?? "Não foi possível guardar o documento"),
+      },
+    );
+  };
+
+  const removeDocument = async () => {
+    if (documentPath) {
+      await supabase.storage.from("resident-documents").remove([documentPath]);
+    }
+    saveDocument(null);
+  };
 
   const checklist: ChecklistItem[] =
     resident?.checkinChecklist && resident.checkinChecklist.length > 0
@@ -99,6 +136,53 @@ const ResidentDetail = () => {
               </div>
             </Card>
           </div>
+
+          <Card className="p-4 border-border/60 shadow-card space-y-3">
+            <h3 className="font-display text-lg font-semibold">Documentos</h3>
+            {!profile ? (
+              <p className="text-sm text-muted-foreground">
+                Este residente ainda não tem conta associada, por isso não é possível anexar documentos.
+              </p>
+            ) : (
+              <div className="space-y-3">
+                <ResidentFileUpload
+                  accept="pdf"
+                  label="Contrato assinado"
+                  path={documentPath}
+                  onChange={saveDocument}
+                />
+                {documentPath && (
+                  <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
+                    <span className="flex items-center gap-1.5">
+                      <FileText className="h-3.5 w-3.5" strokeWidth={1.5} />
+                      Último carregamento:{" "}
+                      {profile.updated_at ? new Date(profile.updated_at).toLocaleDateString("pt-PT") : "—"}
+                    </span>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button variant="outline" size="sm" className="h-7 text-xs">
+                          <Trash2 className="h-3.5 w-3.5 mr-1.5" strokeWidth={1.5} /> Remover
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Remover contrato?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            O ficheiro será apagado permanentemente do armazenamento.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                          <AlertDialogAction onClick={removeDocument}>Remover</AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </div>
+                )}
+              </div>
+            )}
+          </Card>
+
           <Card className="p-4 border-border/60 shadow-card space-y-3">
             <h3 className="font-display text-lg font-semibold">Informação pessoal</h3>
             <div className="grid sm:grid-cols-2 gap-3 text-sm">
