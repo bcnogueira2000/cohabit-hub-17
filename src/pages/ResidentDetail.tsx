@@ -136,19 +136,36 @@ const ResidentDetail = () => {
         <TabsContent value="checkin">
           <Card className="p-5 border-border/60 shadow-card">
             <h3 className="font-display text-lg font-semibold mb-3">Check-in checklist</h3>
+
+            <div className="mb-4">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium">
+                  {doneCount}/{checklist.length} concluídos
+                </span>
+                {allDone && (
+                  <span className="flex items-center gap-1.5 text-xs font-medium text-success">
+                    <CheckCircle2 className="h-4 w-4" strokeWidth={1.5} /> Check-in completo
+                  </span>
+                )}
+              </div>
+              <Progress value={(doneCount / checklist.length) * 100} className="h-2" />
+            </div>
+
             <div className="space-y-1">
-              {checkInItems.map((item, i) => (
-                <label key={i} className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-muted/40 cursor-pointer">
-                  <Checkbox checked={checks[i]} onCheckedChange={(c) => setChecks((prev) => prev.map((v, idx) => (idx === i ? !!c : v)))} />
-                  <span className={checks[i] ? "line-through text-muted-foreground text-sm" : "text-sm"}>{item}</span>
-                  {checks[i] && <Check className="h-4 w-4 text-success ml-auto" />}
+              {checklist.map((item, i) => (
+                <label key={item.label} className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-muted/40 cursor-pointer">
+                  <Checkbox
+                    checked={item.done}
+                    onCheckedChange={(c) => toggleItem(i, !!c)}
+                  />
+                  <span className={item.done ? "line-through text-muted-foreground text-sm" : "text-sm"}>{item.label}</span>
+                  {item.done && <Check className="h-4 w-4 text-success ml-auto" strokeWidth={1.5} />}
                 </label>
               ))}
             </div>
-            <div className="mt-4 pt-4 border-t border-border text-xs text-muted-foreground">
-              {checks.filter(Boolean).length} de {checkInItems.length} concluídos
-            </div>
           </Card>
+        </TabsContent>
+
         </TabsContent>
 
         <TabsContent value="requests" className="space-y-2">
