@@ -1,13 +1,15 @@
 import { Link, useParams } from "react-router-dom";
-import { ArrowLeft, Mail, Phone, DoorClosed, Calendar, Check, Globe, Heart, AlertTriangle } from "lucide-react";
+import { ArrowLeft, Mail, Phone, DoorClosed, Calendar, Check, Globe, Heart, AlertTriangle, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
-import { useResidents, useRooms, useRequests } from "@/hooks/useData";
+import { Progress } from "@/components/ui/progress";
+import { useResidents, useRooms, useRequests, useUpdateResidentChecklist } from "@/hooks/useData";
 import { useProfileByResidentId } from "@/hooks/useProfile";
 import { StatusBadge, PriorityBadge } from "@/components/ui/StatusBadge";
-import { useState } from "react";
+import { toast } from "sonner";
+import type { ChecklistItem } from "@/lib/types";
 
 const checkInItems = [
   "Documento de identificação verificado",
@@ -19,6 +21,8 @@ const checkInItems = [
   "Kit de boas-vindas entregue",
 ];
 
+const defaultChecklist = (): ChecklistItem[] => checkInItems.map((label) => ({ label, done: false }));
+
 const ResidentDetail = () => {
   const { id } = useParams();
   const { data: residents = [] } = useResidents();
@@ -26,7 +30,24 @@ const ResidentDetail = () => {
   const { data: requests = [] } = useRequests();
   const resident = residents.find((r) => r.id === id);
   const { data: profile } = useProfileByResidentId(resident?.id);
-  const [checks, setChecks] = useState<boolean[]>(checkInItems.map((_, i) => i < 3));
+  const updateChecklist = useUpdateResidentChecklist();
+
+  const checklist: ChecklistItem[] =
+    resident?.checkinChecklist && resident.checkinChecklist.length > 0
+      ? resident.checkinChecklist
+      : defaultChecklist();
+  const doneCount = checklist.filter((c) => c.done).length;
+  const allDone = doneCount === checklist.length;
+
+  const toggleItem = (index: number, done: boolean) => {
+    if (!resident) return;
+    const next = checklist.map((item, i) => (i === index ? { ...item, done } : item));
+    updateChecklist.mutate(
+      { id: resident.id, checklist: next },
+      { onError: (e: any) => toast.error(e?.message ?? "Não foi possível guardar a checklist") },
+    );
+  };
+
 
   if (!resident) {
     return (
