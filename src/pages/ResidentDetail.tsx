@@ -44,6 +44,30 @@ const ResidentDetail = () => {
   const resident = residents.find((r) => r.id === id);
   const { data: profile } = useProfileByResidentId(resident?.id);
   const updateChecklist = useUpdateResidentChecklist();
+  const updateProfile = useUpdateProfileByUserId();
+
+  const documentPath = profile?.document_url ?? null;
+
+  const saveDocument = (path: string | null) => {
+    if (!profile?.user_id) {
+      toast.error("Este residente ainda não tem conta associada");
+      return;
+    }
+    updateProfile.mutate(
+      { userId: profile.user_id, values: { document_url: path } },
+      {
+        onSuccess: () => toast.success(path ? "Contrato guardado" : "Contrato removido"),
+        onError: (e: any) => toast.error(e?.message ?? "Não foi possível guardar o documento"),
+      },
+    );
+  };
+
+  const removeDocument = async () => {
+    if (documentPath) {
+      await supabase.storage.from("resident-documents").remove([documentPath]);
+    }
+    saveDocument(null);
+  };
 
   const checklist: ChecklistItem[] =
     resident?.checkinChecklist && resident.checkinChecklist.length > 0
