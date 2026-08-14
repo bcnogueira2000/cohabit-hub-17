@@ -166,8 +166,6 @@ const ResidentDetail = () => {
           </Card>
         </TabsContent>
 
-        </TabsContent>
-
         <TabsContent value="requests" className="space-y-2">
           {myRequests.length === 0 && <Card className="p-8 text-center text-muted-foreground border-dashed">Sem pedidos.</Card>}
           {myRequests.map((r) => (
