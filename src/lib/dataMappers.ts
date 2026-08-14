@@ -22,6 +22,7 @@ export const mapResident = (r: any): Resident => ({
   moveOut: r.move_out,
   status: r.status,
   avatarColor: r.avatar_color ?? "hsl(110 25% 40%)",
+  checkinChecklist: Array.isArray(r.checkin_checklist) ? r.checkin_checklist : [],
 });
 
 export const mapRequest = (r: any): Request => ({
