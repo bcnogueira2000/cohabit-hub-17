@@ -34,20 +34,17 @@ import {
 import { useLeads, useUpdateLead, useDeleteLead, useLeadActivity, type Lead, type LeadStatus } from "@/hooks/useLeads";
 import { useStaffUsers } from "@/hooks/useStaffUsers";
 import { NewLeadDialog } from "@/components/leads/NewLeadDialog";
+import {
+  LeadsPipeline,
+  LeadChips,
+  statusTone,
+  sortByUrgency,
+  urgencyBorder,
+  isOverdue,
+} from "@/components/leads/LeadsPipeline";
 import { leadStatusLabels, leadSourceLabels, leadProfileLabels } from "@/lib/labels";
 import { toast } from "sonner";
 
-const statusTone: Record<LeadStatus, string> = {
-  new: "bg-muted text-muted-foreground",
-  contacted: "bg-info/10 text-info",
-  visit_scheduled: "bg-info/10 text-info",
-  visited: "bg-info/10 text-info",
-  proposal_sent: "bg-warning/10 text-warning",
-  negotiating: "bg-warning/10 text-warning",
-  won: "bg-success/10 text-success",
-  lost: "bg-destructive/10 text-destructive",
-  archived: "bg-secondary text-secondary-foreground",
-};
 
 type Filter = "new" | "contact" | "negotiation" | "won" | "lost" | "all";
 
