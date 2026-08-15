@@ -368,23 +368,105 @@ const Leads = () => {
 
               <Section title="Seguimento">
                 <div className="space-y-3">
-                  <div className="flex items-center gap-2">
-                    <Badge variant="outline" className={statusTone[selected.status]}>{leadStatusLabels[selected.status]}</Badge>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="space-y-1">
+                      <label className="text-[11px] uppercase tracking-wide text-muted-foreground">Estado</label>
+                      <Select value={editStatus} onValueChange={(v) => setEditStatus(v as LeadStatus)}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {(Object.keys(leadStatusLabels) as LeadStatus[]).map((s) => (
+                            <SelectItem key={s} value={s}>{leadStatusLabels[s]}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[11px] uppercase tracking-wide text-muted-foreground">Responsável</label>
+                      <Select value={editOwnerId} onValueChange={setEditOwnerId}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Sem responsável" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="">Sem responsável</SelectItem>
+                          {staff.map((s) => (
+                            <SelectItem key={s.user_id} value={s.user_id}>{s.full_name || s.email}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[11px] uppercase tracking-wide text-muted-foreground">Próxima ação</label>
+                      <Input
+                        value={editNextAction}
+                        onChange={(e) => setEditNextAction(e.target.value)}
+                        placeholder="Ex: Ligar amanhã"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[11px] uppercase tracking-wide text-muted-foreground">Data da próxima ação</label>
+                      <Input
+                        type="date"
+                        value={editNextActionDate}
+                        onChange={(e) => setEditNextActionDate(e.target.value)}
+                      />
+                    </div>
                   </div>
-                  <div className="grid grid-cols-2 gap-3">
-                    <Field label="Responsável" value={ownerName(selected)} />
-                    <Field
-                      label="Próxima ação"
-                      value={
-                        selected.nextAction
-                          ? selected.nextAction + (selected.nextActionDate ? ` · ${fmtDate(selected.nextActionDate)}` : "")
-                          : null
-                      }
+                  <div className="space-y-1">
+                    <label className="text-[11px] uppercase tracking-wide text-muted-foreground">Notas</label>
+                    <Textarea
+                      value={editNotes}
+                      onChange={(e) => setEditNotes(e.target.value)}
+                      rows={4}
+                      placeholder="Notas internas sobre o lead"
                     />
                   </div>
-                  {selected.notes && (
-                    <div className="rounded-xl bg-muted/50 p-3 text-sm whitespace-pre-wrap">{selected.notes}</div>
+                  {(editStatus === "lost" || editStatus === "archived") && (
+                    <div className="space-y-1">
+                      <label className="text-[11px] uppercase tracking-wide text-muted-foreground">Motivo de perda</label>
+                      <Input
+                        value={editLostReason}
+                        onChange={(e) => setEditLostReason(e.target.value)}
+                        placeholder="Ex: Preço, escolheu outro projeto, não respondeu"
+                      />
+                    </div>
                   )}
+                  <Button
+                    className="w-full rounded-full gradient-warm text-white"
+                    onClick={() => {
+                      if (!selected) return;
+                      const assignedStaff = staff.find((s) => s.user_id === editOwnerId);
+                      const patch = {
+                        status: editStatus,
+                        assignedToUserId: editOwnerId || null,
+                        assignedTo: assignedStaff?.full_name || assignedStaff?.email || null,
+                        nextAction: editNextAction || null,
+                        nextActionDate: editNextActionDate || null,
+                        notes: editNotes || null,
+                        lostReason: (editStatus === "lost" || editStatus === "archived") ? (editLostReason || null) : null,
+                      };
+                      updateLead.mutate(
+                        { id: selected.id, patch },
+                        {
+                          onSuccess: () => {
+                            setSelected((prev) =>
+                              prev
+                                ? {
+                                    ...prev,
+                                    ...patch,
+                                    assignedTo: patch.assignedTo ?? null,
+                                  }
+                                : null
+                            );
+                            toast.success("Lead atualizado");
+                          },
+                        }
+                      );
+                    }}
+                  >
+                    Guardar alterações
+                  </Button>
                 </div>
               </Section>
             </div>
