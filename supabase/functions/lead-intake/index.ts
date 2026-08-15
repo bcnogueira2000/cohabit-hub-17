@@ -49,7 +49,9 @@ const rateLimited = (ip: string) => {
 };
 
 const KNOWN = new Set([
-  ...Object.keys(BodySchema._def.shape()),
+  "fullName", "email", "phone", "nationality", "gender", "age", "profile", "profileOther",
+  "preferredRoomType", "preferredMoveIn", "stayDuration", "whatBringsThem", "budgetRange",
+  "language", "message", "gdprConsent", "source", "sourceDetail", "externalRef", "honeypot",
 ]);
 
 Deno.serve(async (req) => {
