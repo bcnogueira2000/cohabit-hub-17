@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
-import { Search, Clock, User as UserIcon, X, ChevronDown, Trash2, LayoutList, Columns3 } from "lucide-react";
+import { Search, Clock, User as UserIcon, X, ChevronDown, Trash2, LayoutList, Columns3, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -173,6 +173,55 @@ const Leads = () => {
     return c;
   }, [leads]);
 
+  const todayStr = useMemo(() => new Date().toISOString().slice(0, 10), []);
+
+  const urgentLeads = useMemo(() => {
+    const threeDaysAgo = Date.now() - 3 * 86400000;
+    return leads
+      .filter((l) => {
+        const isOverdue =
+          !!l.nextActionDate &&
+          l.nextActionDate.slice(0, 10) <= todayStr &&
+          !["won", "lost", "archived"].includes(l.status);
+        const isAbandoned =
+          (!l.assignedToUserId || l.assignedToUserId === "") &&
+          l.status === "new" &&
+          new Date(l.createdAt).getTime() < threeDaysAgo;
+        return isOverdue || isAbandoned;
+      })
+      .sort((a, b) => {
+        if (!a.nextActionDate && !b.nextActionDate) return 0;
+        if (!a.nextActionDate) return 1;
+        if (!b.nextActionDate) return -1;
+        return a.nextActionDate.localeCompare(b.nextActionDate);
+      });
+  }, [leads, todayStr]);
+
+  const urgentReason = (l: Lead) => {
+    const datePart = l.nextActionDate ? l.nextActionDate.slice(0, 10) : null;
+    const isOverdue =
+      !!datePart &&
+      datePart <= todayStr &&
+      !["won", "lost", "archived"].includes(l.status);
+
+    if (isOverdue) {
+      if (datePart && datePart < todayStr) {
+        const days = Math.floor(
+          (new Date(todayStr).getTime() - new Date(datePart).getTime()) / 86400000
+        );
+        return l.nextAction?.trim()
+          ? `Acção em atraso: ${l.nextAction} — há ${days} dias`
+          : `Acção pendente em atraso — há ${days} dias`;
+      }
+      return l.nextAction?.trim()
+        ? `Acção em atraso: ${l.nextAction}`
+        : "Acção pendente em atraso";
+    }
+
+    const days = Math.floor((Date.now() - new Date(l.createdAt).getTime()) / 86400000);
+    return `Sem responsável há ${days} dias`;
+  };
+
   const ownerName = (l: Lead) =>
     l.assignedTo ||
     staff.find((s) => s.user_id === l.assignedToUserId)?.full_name ||
@@ -227,6 +276,39 @@ const Leads = () => {
           <NewLeadDialog />
         </div>
       </div>
+
+      {urgentLeads.length > 0 && (
+        <Card className="bg-destructive/5 border-destructive/20 p-4 mb-5">
+          <div className="flex items-center gap-2 mb-3">
+            <AlertTriangle className="h-4 w-4 text-destructive" strokeWidth={1.5} />
+            <span className="font-display font-semibold text-sm">
+              {urgentLeads.length} {urgentLeads.length === 1 ? "lead" : "leads"} precisa{urgentLeads.length === 1 ? "" : "m"} de atenção
+            </span>
+          </div>
+          <div>
+            {urgentLeads.slice(0, 5).map((l) => (
+              <div
+                key={l.id}
+                onClick={() => setSelected(l)}
+                className="flex items-center justify-between cursor-pointer hover:bg-muted/40 rounded-lg p-2 -mx-1 transition-smooth"
+              >
+                <div className="min-w-0 flex-1 mr-3">
+                  <div className="text-sm font-medium truncate">{l.fullName}</div>
+                  <div className="text-xs text-muted-foreground truncate">{urgentReason(l)}</div>
+                </div>
+                <Badge variant="outline" className={`${statusTone[l.status]} text-xs shrink-0`}>
+                  {leadStatusLabels[l.status]}
+                </Badge>
+              </div>
+            ))}
+            {urgentLeads.length > 5 && (
+              <div className="text-xs text-muted-foreground mt-2">
+                + {urgentLeads.length - 5} mais...
+              </div>
+            )}
+          </div>
+        </Card>
+      )}
 
       {viewMode === "list" && (
         <Tabs value={filter} onValueChange={(v) => setFilter(v as Filter)} className="mb-4">
