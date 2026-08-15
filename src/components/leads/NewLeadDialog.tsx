@@ -44,6 +44,7 @@ export const NewLeadDialog = () => {
   const [open, setOpen] = useState(false);
 
   const [gender, setGender] = useState("");
+  const [language, setLanguage] = useState("");
   const [profile, setProfile] = useState("");
   const [source, setSource] = useState<LeadSource>("website_form");
   const [roomType, setRoomType] = useState("");
@@ -53,7 +54,7 @@ export const NewLeadDialog = () => {
   const [gdpr, setGdpr] = useState(false);
 
   const reset = () => {
-    setGender(""); setProfile(""); setSource("website_form"); setRoomType("");
+    setGender(""); setLanguage(""); setProfile(""); setSource("website_form"); setRoomType("");
     setDuration(""); setStatus("new"); setOwnerId(""); setGdpr(false);
   };
 
