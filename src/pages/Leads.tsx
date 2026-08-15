@@ -272,7 +272,17 @@ const Leads = () => {
         </Select>
       </div>
 
-      <div className="space-y-3">
+      {viewMode === "pipeline" && (
+        <LeadsPipeline
+          columns={columns}
+          staff={staff}
+          onSelectLead={setSelected}
+          onStatusChange={changeStatus}
+          isPending={updateLead.isPending}
+        />
+      )}
+
+      <div className={`space-y-3 ${viewMode === "pipeline" ? "lg:hidden" : ""}`}>
         {isLoading && <div className="text-sm text-muted-foreground">A carregar…</div>}
         {!isLoading && filtered.length === 0 && (
           <Card className="p-8 text-center text-muted-foreground border-dashed">
@@ -280,27 +290,13 @@ const Leads = () => {
           </Card>
         )}
         {filtered.map((l) => {
-          const overdue = !!l.nextActionDate && new Date(l.nextActionDate).getTime() < Date.now();
-          const handleStatusChange = (newStatus: LeadStatus) => {
-            if (newStatus === "lost") {
-              const reason = window.prompt("Motivo de perda:");
-              if (reason === null) return;
-              updateLead.mutate(
-                { id: l.id, patch: { status: newStatus, lostReason: reason || undefined } },
-                { onSuccess: () => toast.success("Estado atualizado") }
-              );
-              return;
-            }
-            updateLead.mutate(
-              { id: l.id, patch: { status: newStatus } },
-              { onSuccess: () => toast.success("Estado atualizado") }
-            );
-          };
+          const overdue = isOverdue(l);
+          const handleStatusChange = (newStatus: LeadStatus) => changeStatus(l.id, newStatus);
           return (
             <Card
               key={l.id}
               onClick={() => setSelected(l)}
-              className="p-4 lg:p-5 shadow-card border-border/60 hover:shadow-elegant transition-smooth cursor-pointer"
+              className={`p-4 lg:p-5 shadow-card border-border/60 hover:shadow-elegant transition-smooth cursor-pointer ${urgencyBorder(l)}`}
             >
               <div className="flex flex-col sm:flex-row sm:items-center gap-3">
                 <div className="flex-1 min-w-0">
@@ -335,6 +331,7 @@ const Leads = () => {
                   </div>
                   <div className="font-display text-lg font-semibold truncate">{l.fullName}</div>
                   <div className="text-xs text-muted-foreground truncate">{l.email}</div>
+                  <LeadChips lead={l} />
                   {l.nextAction && (
                     <div className={`flex items-center gap-1.5 mt-2 text-xs ${overdue ? "text-destructive" : "text-muted-foreground"}`}>
                       <Clock className="h-3.5 w-3.5" strokeWidth={1.5} />
@@ -356,6 +353,7 @@ const Leads = () => {
           );
         })}
       </div>
+
 
       <Dialog open={!!selected} onOpenChange={(o) => !o && setSelected(null)}>
         <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
