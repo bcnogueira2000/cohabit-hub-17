@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
-import { Search, Clock, User as UserIcon, X, ChevronDown, Trash2 } from "lucide-react";
+import { Search, Clock, User as UserIcon, X, ChevronDown, Trash2, LayoutList, Columns3 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -34,20 +34,17 @@ import {
 import { useLeads, useUpdateLead, useDeleteLead, useLeadActivity, type Lead, type LeadStatus } from "@/hooks/useLeads";
 import { useStaffUsers } from "@/hooks/useStaffUsers";
 import { NewLeadDialog } from "@/components/leads/NewLeadDialog";
+import {
+  LeadsPipeline,
+  LeadChips,
+  statusTone,
+  sortByUrgency,
+  urgencyBorder,
+  isOverdue,
+} from "@/components/leads/LeadsPipeline";
 import { leadStatusLabels, leadSourceLabels, leadProfileLabels } from "@/lib/labels";
 import { toast } from "sonner";
 
-const statusTone: Record<LeadStatus, string> = {
-  new: "bg-muted text-muted-foreground",
-  contacted: "bg-info/10 text-info",
-  visit_scheduled: "bg-info/10 text-info",
-  visited: "bg-info/10 text-info",
-  proposal_sent: "bg-warning/10 text-warning",
-  negotiating: "bg-warning/10 text-warning",
-  won: "bg-success/10 text-success",
-  lost: "bg-destructive/10 text-destructive",
-  archived: "bg-secondary text-secondary-foreground",
-};
 
 type Filter = "new" | "contact" | "negotiation" | "won" | "lost" | "all";
 
@@ -58,6 +55,15 @@ const groups: Record<Exclude<Filter, "all">, LeadStatus[]> = {
   won: ["won"],
   lost: ["lost", "archived"],
 };
+
+const groupLabels: Record<Exclude<Filter, "all">, string> = {
+  new: "Novos",
+  contact: "Em contacto",
+  negotiation: "Em negociação",
+  won: "Ganhos",
+  lost: "Perdidos",
+};
+
 
 const relativeDate = (iso: string) => {
   const diff = Date.now() - new Date(iso).getTime();
@@ -108,6 +114,14 @@ const Leads = () => {
   const [editNotes, setEditNotes] = useState<string>("");
   const [editLostReason, setEditLostReason] = useState<string>("");
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const [viewMode, setViewMode] = useState<"list" | "pipeline">(
+    () => ((localStorage.getItem("leads-view") as "list" | "pipeline") || "pipeline")
+  );
+
+  const changeView = (v: "list" | "pipeline") => {
+    setViewMode(v);
+    localStorage.setItem("leads-view", v);
+  };
 
   useEffect(() => {
     if (selected) {
@@ -120,16 +134,34 @@ const Leads = () => {
     }
   }, [selected?.id]);
 
-  const filtered = useMemo(() => {
+  const baseFiltered = useMemo(() => {
     const q = query.trim().toLowerCase();
     return leads.filter((l) => {
-      if (filter !== "all" && !groups[filter].includes(l.status)) return false;
       if (source !== "all" && l.source !== source) return false;
       if (owner !== "all" && l.assignedToUserId !== owner) return false;
       if (q && !l.fullName.toLowerCase().includes(q) && !l.email.toLowerCase().includes(q)) return false;
       return true;
     });
-  }, [leads, filter, source, owner, query]);
+  }, [leads, source, owner, query]);
+
+  const filtered = useMemo(() => {
+    const list =
+      viewMode === "pipeline"
+        ? baseFiltered
+        : baseFiltered.filter((l) => filter === "all" || groups[filter as Exclude<Filter, "all">].includes(l.status));
+    return [...list].sort(sortByUrgency);
+  }, [baseFiltered, filter, viewMode]);
+
+  const columns = useMemo(
+    () =>
+      (Object.keys(groups) as Exclude<Filter, "all">[]).map((k) => ({
+        key: k,
+        label: groupLabels[k],
+        statuses: groups[k],
+        leads: baseFiltered.filter((l) => groups[k].includes(l.status)).sort(sortByUrgency),
+      })),
+    [baseFiltered]
+  );
 
   const counts = useMemo(() => {
     const c = { new: 0, contact: 0, negotiation: 0, won: 0, lost: 0 };
@@ -146,6 +178,22 @@ const Leads = () => {
     staff.find((s) => s.user_id === l.assignedToUserId)?.full_name ||
     null;
 
+  const changeStatus = (leadId: string, newStatus: LeadStatus) => {
+    if (newStatus === "lost") {
+      const reason = window.prompt("Motivo de perda:");
+      if (reason === null) return;
+      updateLead.mutate(
+        { id: leadId, patch: { status: newStatus, lostReason: reason || undefined } },
+        { onSuccess: () => toast.success("Estado atualizado") }
+      );
+      return;
+    }
+    updateLead.mutate(
+      { id: leadId, patch: { status: newStatus } },
+      { onSuccess: () => toast.success("Estado atualizado") }
+    );
+  };
+
   return (
     <div className="px-4 lg:px-10 py-6 lg:py-10 max-w-7xl mx-auto">
       <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-6">
@@ -155,20 +203,44 @@ const Leads = () => {
             {leads.length} {leads.length === 1 ? "lead" : "leads"} · pipeline de prospecção
           </p>
         </div>
-        <NewLeadDialog />
-
+        <div className="flex items-center gap-3">
+          <div className="hidden lg:flex gap-1">
+            <Button
+              variant="ghost"
+              size="icon"
+              className={viewMode === "list" ? "bg-muted" : ""}
+              onClick={() => changeView("list")}
+              aria-label="Vista de lista"
+            >
+              <LayoutList className="h-4 w-4" strokeWidth={1.5} />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className={viewMode === "pipeline" ? "bg-muted" : ""}
+              onClick={() => changeView("pipeline")}
+              aria-label="Vista de pipeline"
+            >
+              <Columns3 className="h-4 w-4" strokeWidth={1.5} />
+            </Button>
+          </div>
+          <NewLeadDialog />
+        </div>
       </div>
 
-      <Tabs value={filter} onValueChange={(v) => setFilter(v as Filter)} className="mb-4">
-        <TabsList>
-          <TabsTrigger value="new">Novos . {counts.new}</TabsTrigger>
-          <TabsTrigger value="contact">Em contacto . {counts.contact}</TabsTrigger>
-          <TabsTrigger value="negotiation">Em negociação . {counts.negotiation}</TabsTrigger>
-          <TabsTrigger value="won">Ganhos . {counts.won}</TabsTrigger>
-          <TabsTrigger value="lost">Perdidos . {counts.lost}</TabsTrigger>
-          <TabsTrigger value="all">Todos</TabsTrigger>
-        </TabsList>
-      </Tabs>
+      {viewMode === "list" && (
+        <Tabs value={filter} onValueChange={(v) => setFilter(v as Filter)} className="mb-4">
+          <TabsList>
+            <TabsTrigger value="new">Novos . {counts.new}</TabsTrigger>
+            <TabsTrigger value="contact">Em contacto . {counts.contact}</TabsTrigger>
+            <TabsTrigger value="negotiation">Em negociação . {counts.negotiation}</TabsTrigger>
+            <TabsTrigger value="won">Ganhos . {counts.won}</TabsTrigger>
+            <TabsTrigger value="lost">Perdidos . {counts.lost}</TabsTrigger>
+            <TabsTrigger value="all">Todos</TabsTrigger>
+          </TabsList>
+        </Tabs>
+      )}
+
 
       <div className="flex flex-col sm:flex-row gap-3 mb-5">
         <div className="relative flex-1">
@@ -200,7 +272,17 @@ const Leads = () => {
         </Select>
       </div>
 
-      <div className="space-y-3">
+      {viewMode === "pipeline" && (
+        <LeadsPipeline
+          columns={columns}
+          staff={staff}
+          onSelectLead={setSelected}
+          onStatusChange={changeStatus}
+          isPending={updateLead.isPending}
+        />
+      )}
+
+      <div className={`space-y-3 ${viewMode === "pipeline" ? "lg:hidden" : ""}`}>
         {isLoading && <div className="text-sm text-muted-foreground">A carregar…</div>}
         {!isLoading && filtered.length === 0 && (
           <Card className="p-8 text-center text-muted-foreground border-dashed">
@@ -208,27 +290,13 @@ const Leads = () => {
           </Card>
         )}
         {filtered.map((l) => {
-          const overdue = !!l.nextActionDate && new Date(l.nextActionDate).getTime() < Date.now();
-          const handleStatusChange = (newStatus: LeadStatus) => {
-            if (newStatus === "lost") {
-              const reason = window.prompt("Motivo de perda:");
-              if (reason === null) return;
-              updateLead.mutate(
-                { id: l.id, patch: { status: newStatus, lostReason: reason || undefined } },
-                { onSuccess: () => toast.success("Estado atualizado") }
-              );
-              return;
-            }
-            updateLead.mutate(
-              { id: l.id, patch: { status: newStatus } },
-              { onSuccess: () => toast.success("Estado atualizado") }
-            );
-          };
+          const overdue = isOverdue(l);
+          const handleStatusChange = (newStatus: LeadStatus) => changeStatus(l.id, newStatus);
           return (
             <Card
               key={l.id}
               onClick={() => setSelected(l)}
-              className="p-4 lg:p-5 shadow-card border-border/60 hover:shadow-elegant transition-smooth cursor-pointer"
+              className={`p-4 lg:p-5 shadow-card border-border/60 hover:shadow-elegant transition-smooth cursor-pointer ${urgencyBorder(l)}`}
             >
               <div className="flex flex-col sm:flex-row sm:items-center gap-3">
                 <div className="flex-1 min-w-0">
@@ -263,6 +331,7 @@ const Leads = () => {
                   </div>
                   <div className="font-display text-lg font-semibold truncate">{l.fullName}</div>
                   <div className="text-xs text-muted-foreground truncate">{l.email}</div>
+                  <LeadChips lead={l} />
                   {l.nextAction && (
                     <div className={`flex items-center gap-1.5 mt-2 text-xs ${overdue ? "text-destructive" : "text-muted-foreground"}`}>
                       <Clock className="h-3.5 w-3.5" strokeWidth={1.5} />
@@ -284,6 +353,7 @@ const Leads = () => {
           );
         })}
       </div>
+
 
       <Dialog open={!!selected} onOpenChange={(o) => !o && setSelected(null)}>
         <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
