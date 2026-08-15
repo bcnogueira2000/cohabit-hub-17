@@ -165,7 +165,10 @@ export const useUpdateLead = () => {
       const { error } = await supabase.from("leads" as any).update(toDbPatch(patch)).eq("id", id);
       if (error) throw error;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["leads"] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["leads"] });
+      qc.invalidateQueries({ queryKey: ["lead_activity"] });
+    },
   });
 };
 
@@ -179,3 +182,36 @@ export const useDeleteLead = () => {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["leads"] }),
   });
 };
+
+export interface LeadActivity {
+  id: string;
+  leadId: string;
+  actorUserId: string | null;
+  actorName: string | null;
+  kind: string;
+  payload: Record<string, any>;
+  createdAt: string;
+}
+
+export const useLeadActivity = (leadId: string | null) =>
+  useQuery({
+    queryKey: ["lead_activity", leadId],
+    enabled: leadId !== null,
+    queryFn: async (): Promise<LeadActivity[]> => {
+      const { data, error } = await supabase
+        .from("lead_activity" as any)
+        .select("*")
+        .eq("lead_id", leadId)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return ((data ?? []) as any[]).map((r) => ({
+        id: r.id,
+        leadId: r.lead_id,
+        actorUserId: r.actor_user_id ?? null,
+        actorName: r.actor_name ?? null,
+        kind: r.kind,
+        payload: r.payload ?? {},
+        createdAt: r.created_at,
+      }));
+    },
+  });
