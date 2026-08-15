@@ -389,7 +389,7 @@ const Leads = () => {
                           <SelectValue placeholder="Sem responsável" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="">Sem responsável</SelectItem>
+                          <SelectItem value="__none__">Sem responsável</SelectItem>
                           {staff.map((s) => (
                             <SelectItem key={s.user_id} value={s.user_id}>{s.full_name || s.email}</SelectItem>
                           ))}
@@ -436,10 +436,11 @@ const Leads = () => {
                     className="w-full rounded-full gradient-warm text-white"
                     onClick={() => {
                       if (!selected) return;
-                      const assignedStaff = staff.find((s) => s.user_id === editOwnerId);
+                      const ownerId = editOwnerId === "__none__" ? "" : editOwnerId;
+                      const assignedStaff = staff.find((s) => s.user_id === ownerId);
                       const patch = {
                         status: editStatus,
-                        assignedToUserId: editOwnerId || null,
+                        assignedToUserId: ownerId || null,
                         assignedTo: assignedStaff?.full_name || assignedStaff?.email || null,
                         nextAction: editNextAction || null,
                         nextActionDate: editNextActionDate || null,
