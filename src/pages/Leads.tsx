@@ -278,9 +278,44 @@ const Leads = () => {
         <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
           <DialogHeader className="flex-row items-start justify-between gap-4 space-y-0">
             <DialogTitle className="font-display">Detalhes do lead</DialogTitle>
-            <Button variant="ghost" size="sm" className="rounded-full -mt-1" onClick={() => setSelected(null)}>
-              <X className="h-4 w-4 mr-1" strokeWidth={1.5} /> Fechar
-            </Button>
+            <div className="flex items-center gap-1 -mt-1">
+              <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+                <AlertDialogTrigger asChild>
+                  <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive rounded-full">
+                    <Trash2 className="h-4 w-4 mr-1" strokeWidth={1.5} /> Eliminar
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Eliminar lead?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Eliminar este lead permanentemente? Esta ação não pode ser desfeita.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel onClick={() => setDeleteOpen(false)}>Cancelar</AlertDialogCancel>
+                    <AlertDialogAction
+                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                      onClick={() => {
+                        if (!selected) return;
+                        deleteLead.mutate(selected.id, {
+                          onSuccess: () => {
+                            setDeleteOpen(false);
+                            setSelected(null);
+                            toast.success("Lead eliminado");
+                          },
+                        });
+                      }}
+                    >
+                      Eliminar
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+              <Button variant="ghost" size="sm" className="rounded-full" onClick={() => setSelected(null)}>
+                <X className="h-4 w-4 mr-1" strokeWidth={1.5} /> Fechar
+              </Button>
+            </div>
           </DialogHeader>
           {selected && (
             <div className="space-y-5">
