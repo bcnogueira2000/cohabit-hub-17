@@ -144,6 +144,8 @@ export const useLeads = () =>
       if (error) throw error;
       return ((data ?? []) as any[]).map(mapLead);
     },
+    refetchInterval: 60_000,
+    refetchOnWindowFocus: true,
   });
 
 export const useCreateLead = () => {
