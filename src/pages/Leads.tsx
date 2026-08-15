@@ -75,6 +75,7 @@ const Section = ({ title, children }: { title: string; children: React.ReactNode
 
 const Leads = () => {
   const { data: leads = [], isLoading } = useLeads();
+  const updateLead = useUpdateLead();
   const { data: staff = [] } = useStaffUsers();
   const [filter, setFilter] = useState<Filter>("new");
   const [query, setQuery] = useState("");
