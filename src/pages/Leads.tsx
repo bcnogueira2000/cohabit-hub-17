@@ -173,6 +173,55 @@ const Leads = () => {
     return c;
   }, [leads]);
 
+  const todayStr = useMemo(() => new Date().toISOString().slice(0, 10), []);
+
+  const urgentLeads = useMemo(() => {
+    const threeDaysAgo = Date.now() - 3 * 86400000;
+    return leads
+      .filter((l) => {
+        const isOverdue =
+          !!l.nextActionDate &&
+          l.nextActionDate.slice(0, 10) <= todayStr &&
+          !["won", "lost", "archived"].includes(l.status);
+        const isAbandoned =
+          (!l.assignedToUserId || l.assignedToUserId === "") &&
+          l.status === "new" &&
+          new Date(l.createdAt).getTime() < threeDaysAgo;
+        return isOverdue || isAbandoned;
+      })
+      .sort((a, b) => {
+        if (!a.nextActionDate && !b.nextActionDate) return 0;
+        if (!a.nextActionDate) return 1;
+        if (!b.nextActionDate) return -1;
+        return a.nextActionDate.localeCompare(b.nextActionDate);
+      });
+  }, [leads, todayStr]);
+
+  const urgentReason = (l: Lead) => {
+    const datePart = l.nextActionDate ? l.nextActionDate.slice(0, 10) : null;
+    const isOverdue =
+      !!datePart &&
+      datePart <= todayStr &&
+      !["won", "lost", "archived"].includes(l.status);
+
+    if (isOverdue) {
+      if (datePart && datePart < todayStr) {
+        const days = Math.floor(
+          (new Date(todayStr).getTime() - new Date(datePart).getTime()) / 86400000
+        );
+        return l.nextAction?.trim()
+          ? `Acção em atraso: ${l.nextAction} — há ${days} dias`
+          : `Acção pendente em atraso — há ${days} dias`;
+      }
+      return l.nextAction?.trim()
+        ? `Acção em atraso: ${l.nextAction}`
+        : "Acção pendente em atraso";
+    }
+
+    const days = Math.floor((Date.now() - new Date(l.createdAt).getTime()) / 86400000);
+    return `Sem responsável há ${days} dias`;
+  };
+
   const ownerName = (l: Lead) =>
     l.assignedTo ||
     staff.find((s) => s.user_id === l.assignedToUserId)?.full_name ||
