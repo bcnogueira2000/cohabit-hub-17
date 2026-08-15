@@ -25,7 +25,6 @@ const schema = z.object({
   notes: z.string().trim().max(2000).optional(),
   nextAction: z.string().trim().max(200).optional(),
   profileOther: z.string().trim().max(120).optional(),
-  budgetRange: z.string().trim().max(80).optional(),
 });
 
 const Section = ({ title, children }: { title: string; children: React.ReactNode }) => (
@@ -38,7 +37,6 @@ const Section = ({ title, children }: { title: string; children: React.ReactNode
 const roomTypes = ["Smart", "Standard", "Premium", "Suite", "Master Suite", "Sem preferência"];
 const durations = ["3-6 meses", "6-12 meses", "12+ meses"];
 const genders = ["Feminino", "Masculino", "Outro", "Prefiro não dizer"];
-const languages = ["Português", "English", "Español", "Français", "Deutsch", "Outro"];
 
 export const NewLeadDialog = () => {
   const createLead = useCreateLead();
@@ -46,7 +44,6 @@ export const NewLeadDialog = () => {
   const [open, setOpen] = useState(false);
 
   const [gender, setGender] = useState("");
-  const [language, setLanguage] = useState("");
   const [profile, setProfile] = useState("");
   const [source, setSource] = useState<LeadSource>("website_form");
   const [roomType, setRoomType] = useState("");
@@ -56,7 +53,7 @@ export const NewLeadDialog = () => {
   const [gdpr, setGdpr] = useState(false);
 
   const reset = () => {
-    setGender(""); setLanguage(""); setProfile(""); setSource("website_form"); setRoomType("");
+    setGender(""); setProfile(""); setSource("website_form"); setRoomType("");
     setDuration(""); setStatus("new"); setOwnerId(""); setGdpr(false);
   };
 
@@ -79,7 +76,6 @@ export const NewLeadDialog = () => {
       notes: String(fd.get("notes") || ""),
       nextAction: String(fd.get("nextAction") || ""),
       profileOther: String(fd.get("profileOther") || ""),
-      budgetRange: String(fd.get("budgetRange") || ""),
     };
     const parsed = schema.safeParse(raw);
     if (!parsed.success) {
@@ -105,7 +101,6 @@ export const NewLeadDialog = () => {
         preferredRoomType: roomType || null,
         preferredMoveIn: v.preferredMoveIn || null,
         stayDuration: duration || null,
-        budgetRange: v.budgetRange || null,
         whatBringsThem: v.whatBringsThem || null,
         status,
         assignedToUserId: ownerId || null,
@@ -113,7 +108,6 @@ export const NewLeadDialog = () => {
         notes: v.notes || null,
         nextAction: v.nextAction || null,
         nextActionDate: nextActionDate || null,
-        language: language || null,
         gdprConsent: true,
       },
       {
@@ -150,15 +144,6 @@ export const NewLeadDialog = () => {
                   <SelectTrigger className="mt-1.5"><SelectValue placeholder="Não indicado" /></SelectTrigger>
                   <SelectContent>
                     {genders.map((g) => <SelectItem key={g} value={g}>{g}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label>Idioma preferido</Label>
-                <Select value={language} onValueChange={setLanguage}>
-                  <SelectTrigger className="mt-1.5"><SelectValue placeholder="Não indicado" /></SelectTrigger>
-                  <SelectContent>
-                    {languages.map((lang) => <SelectItem key={lang} value={lang}>{lang}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>
@@ -232,15 +217,6 @@ export const NewLeadDialog = () => {
                     {durations.map((d) => <SelectItem key={d} value={d}>{d}</SelectItem>)}
                   </SelectContent>
                 </Select>
-              </div>
-              <div className="col-span-2">
-                <Label>Orçamento</Label>
-                <Input
-                  name="budgetRange"
-                  maxLength={80}
-                  placeholder="Ex: 500-700 euros/mês"
-                  className="mt-1.5"
-                />
               </div>
             </div>
             <div>
