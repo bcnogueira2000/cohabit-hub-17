@@ -98,7 +98,9 @@ export interface LeadInput {
   lostReason?: string | null;
   gdprConsent?: boolean;
   language?: string | null;
+  stayId?: string | null;
 }
+
 
 const toDbPatch = (i: Partial<LeadInput>) => {
   const p: any = {};
@@ -126,6 +128,8 @@ const toDbPatch = (i: Partial<LeadInput>) => {
   if (i.lostReason !== undefined) p.lost_reason = i.lostReason;
   if (i.gdprConsent !== undefined) p.gdpr_consent = i.gdprConsent;
   if (i.language !== undefined) p.language = i.language;
+  if (i.stayId !== undefined) p.stay_id = i.stayId;
+
   return p;
 };
 

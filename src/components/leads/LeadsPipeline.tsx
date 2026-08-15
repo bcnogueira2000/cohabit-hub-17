@@ -1,4 +1,4 @@
-import { Clock, ChevronDown, Phone, User as UserIcon } from "lucide-react";
+import { Clock, ChevronDown, Phone, User as UserIcon, CheckCircle2 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -180,6 +180,12 @@ export const LeadsPipeline = ({
                   <Badge variant="outline" className="text-muted-foreground">
                     {leadSourceLabels[l.source]}
                   </Badge>
+                  {l.stayId && (
+                    <Badge variant="outline" className="bg-success/10 text-success border-success/30 gap-1">
+                      <CheckCircle2 className="h-3 w-3" strokeWidth={1.5} /> Convertido
+                    </Badge>
+                  )}
+
                 </div>
                 <div className="font-display text-sm font-semibold truncate">{l.fullName}</div>
                 <div className="text-xs text-muted-foreground truncate">{l.email}</div>

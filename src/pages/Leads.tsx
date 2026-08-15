@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect } from "react";
-import { Search, Clock, User as UserIcon, X, ChevronDown, Trash2, LayoutList, Columns3, AlertTriangle } from "lucide-react";
+import { Link } from "react-router-dom";
+import { Search, Clock, User as UserIcon, X, ChevronDown, Trash2, LayoutList, Columns3, AlertTriangle, UserCheck, CheckCircle2, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -43,6 +44,9 @@ import {
   isOverdue,
 } from "@/components/leads/LeadsPipeline";
 import { leadStatusLabels, leadSourceLabels, leadProfileLabels } from "@/lib/labels";
+import { ConvertLeadDialog } from "@/components/leads/ConvertLeadDialog";
+import { supabase } from "@/integrations/supabase/client";
+import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 
@@ -114,6 +118,8 @@ const Leads = () => {
   const [editNotes, setEditNotes] = useState<string>("");
   const [editLostReason, setEditLostReason] = useState<string>("");
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const [convertOpen, setConvertOpen] = useState(false);
+  const qc = useQueryClient();
   const [viewMode, setViewMode] = useState<"list" | "pipeline">(
     () => ((localStorage.getItem("leads-view") as "list" | "pipeline") || "pipeline")
   );
@@ -410,6 +416,11 @@ const Leads = () => {
                       </DropdownMenuContent>
                     </DropdownMenu>
                     <Badge variant="outline" className="text-muted-foreground">{leadSourceLabels[l.source]}</Badge>
+                    {l.stayId && (
+                      <Badge variant="outline" className="bg-success/10 text-success border-success/30 gap-1">
+                        <CheckCircle2 className="h-3 w-3" strokeWidth={1.5} /> Convertido
+                      </Badge>
+                    )}
                   </div>
                   <div className="font-display text-lg font-semibold truncate">{l.fullName}</div>
                   <div className="text-xs text-muted-foreground truncate">{l.email}</div>
@@ -630,6 +641,22 @@ const Leads = () => {
                   >
                     Guardar alterações
                   </Button>
+                  {selected.status === "won" && !selected.stayId && (
+                    <Button
+                      variant="outline"
+                      className="w-full rounded-full border-success text-success hover:bg-success/10 hover:text-success mt-2"
+                      onClick={() => setConvertOpen(true)}
+                    >
+                      <UserCheck className="h-4 w-4 mr-1.5" strokeWidth={1.5} /> Converter em residente
+                    </Button>
+                  )}
+                  {selected.stayId && (
+                    <Button asChild variant="outline" className="w-full rounded-full mt-2">
+                      <Link to="/stays">
+                        Ver estadia <ArrowRight className="h-4 w-4 ml-1.5" strokeWidth={1.5} />
+                      </Link>
+                    </Button>
+                  )}
                 </div>
               </Section>
 
@@ -638,7 +665,31 @@ const Leads = () => {
           )}
         </DialogContent>
       </Dialog>
+
+      {selected && (
+        <ConvertLeadDialog
+          lead={selected}
+          open={convertOpen}
+          onOpenChange={setConvertOpen}
+          onConverted={async (stayId) => {
+            const leadId = selected.id;
+            updateLead.mutate({ id: leadId, patch: { stayId } });
+            const { data: { user } } = await supabase.auth.getUser();
+            await supabase.from("lead_activity" as any).insert({
+              lead_id: leadId,
+              actor_user_id: user?.id ?? null,
+              actor_name: null,
+              kind: "converted",
+              payload: { stay_id: stayId },
+            } as any);
+            qc.invalidateQueries({ queryKey: ["lead_activity", leadId] });
+            setSelected((prev) => (prev ? { ...prev, stayId } : null));
+            toast.success("Lead convertida em residente");
+          }}
+        />
+      )}
     </div>
+
   );
 };
 
@@ -670,6 +721,13 @@ const LeadHistory = ({ leadId }: { leadId: string }) => {
                     <span className="font-medium">{leadStatusLabels[entry.payload.from] ?? entry.payload.from}</span>
                     {" "}para{" "}
                     <span className="font-medium">{leadStatusLabels[entry.payload.to] ?? entry.payload.to}</span>
+                  </>
+                ) : entry.kind === "converted" ? (
+                  <>
+                    Lead convertida em residente
+                    {entry.payload?.stay_id && (
+                      <span className="text-muted-foreground"> — Estadia criada</span>
+                    )}
                   </>
                 ) : (
                   entry.kind
