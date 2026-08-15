@@ -31,7 +31,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
-import { useLeads, useUpdateLead, useDeleteLead, type Lead, type LeadStatus } from "@/hooks/useLeads";
+import { useLeads, useUpdateLead, useDeleteLead, useLeadActivity, type Lead, type LeadStatus } from "@/hooks/useLeads";
 import { useStaffUsers } from "@/hooks/useStaffUsers";
 import { NewLeadDialog } from "@/components/leads/NewLeadDialog";
 import { leadStatusLabels, leadSourceLabels, leadProfileLabels } from "@/lib/labels";
