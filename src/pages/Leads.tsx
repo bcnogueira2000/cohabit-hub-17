@@ -131,6 +131,16 @@ const Leads = () => {
     });
   }, [leads, filter, source, owner, query]);
 
+  const counts = useMemo(() => {
+    const c = { new: 0, contact: 0, negotiation: 0, won: 0, lost: 0 };
+    leads.forEach((l) => {
+      (Object.keys(groups) as (keyof typeof c)[]).forEach((k) => {
+        if (groups[k].includes(l.status)) c[k]++;
+      });
+    });
+    return c;
+  }, [leads]);
+
   const ownerName = (l: Lead) =>
     l.assignedTo ||
     staff.find((s) => s.user_id === l.assignedToUserId)?.full_name ||
@@ -151,11 +161,11 @@ const Leads = () => {
 
       <Tabs value={filter} onValueChange={(v) => setFilter(v as Filter)} className="mb-4">
         <TabsList>
-          <TabsTrigger value="new">Novos</TabsTrigger>
-          <TabsTrigger value="contact">Em contacto</TabsTrigger>
-          <TabsTrigger value="negotiation">Em negociação</TabsTrigger>
-          <TabsTrigger value="won">Ganhos</TabsTrigger>
-          <TabsTrigger value="lost">Perdidos</TabsTrigger>
+          <TabsTrigger value="new">Novos . {counts.new}</TabsTrigger>
+          <TabsTrigger value="contact">Em contacto . {counts.contact}</TabsTrigger>
+          <TabsTrigger value="negotiation">Em negociação . {counts.negotiation}</TabsTrigger>
+          <TabsTrigger value="won">Ganhos . {counts.won}</TabsTrigger>
+          <TabsTrigger value="lost">Perdidos . {counts.lost}</TabsTrigger>
           <TabsTrigger value="all">Todos</TabsTrigger>
         </TabsList>
       </Tabs>
