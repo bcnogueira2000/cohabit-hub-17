@@ -118,6 +118,8 @@ const Leads = () => {
   const [editNotes, setEditNotes] = useState<string>("");
   const [editLostReason, setEditLostReason] = useState<string>("");
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const [convertOpen, setConvertOpen] = useState(false);
+  const qc = useQueryClient();
   const [viewMode, setViewMode] = useState<"list" | "pipeline">(
     () => ((localStorage.getItem("leads-view") as "list" | "pipeline") || "pipeline")
   );
@@ -414,6 +416,11 @@ const Leads = () => {
                       </DropdownMenuContent>
                     </DropdownMenu>
                     <Badge variant="outline" className="text-muted-foreground">{leadSourceLabels[l.source]}</Badge>
+                    {l.stayId && (
+                      <Badge variant="outline" className="bg-success/10 text-success border-success/30 gap-1">
+                        <CheckCircle2 className="h-3 w-3" strokeWidth={1.5} /> Convertido
+                      </Badge>
+                    )}
                   </div>
                   <div className="font-display text-lg font-semibold truncate">{l.fullName}</div>
                   <div className="text-xs text-muted-foreground truncate">{l.email}</div>
@@ -634,6 +641,22 @@ const Leads = () => {
                   >
                     Guardar alterações
                   </Button>
+                  {selected.status === "won" && !selected.stayId && (
+                    <Button
+                      variant="outline"
+                      className="w-full rounded-full border-success text-success hover:bg-success/10 hover:text-success mt-2"
+                      onClick={() => setConvertOpen(true)}
+                    >
+                      <UserCheck className="h-4 w-4 mr-1.5" strokeWidth={1.5} /> Converter em residente
+                    </Button>
+                  )}
+                  {selected.stayId && (
+                    <Button asChild variant="outline" className="w-full rounded-full mt-2">
+                      <Link to="/stays">
+                        Ver estadia <ArrowRight className="h-4 w-4 ml-1.5" strokeWidth={1.5} />
+                      </Link>
+                    </Button>
+                  )}
                 </div>
               </Section>
 
