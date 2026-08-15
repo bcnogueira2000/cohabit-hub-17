@@ -277,6 +277,39 @@ const Leads = () => {
         </div>
       </div>
 
+      {urgentLeads.length > 0 && (
+        <Card className="bg-destructive/5 border-destructive/20 p-4 mb-5">
+          <div className="flex items-center gap-2 mb-3">
+            <AlertTriangle className="h-4 w-4 text-destructive" strokeWidth={1.5} />
+            <span className="font-display font-semibold text-sm">
+              {urgentLeads.length} {urgentLeads.length === 1 ? "lead" : "leads"} precisa{urgentLeads.length === 1 ? "" : "m"} de atenção
+            </span>
+          </div>
+          <div>
+            {urgentLeads.slice(0, 5).map((l) => (
+              <div
+                key={l.id}
+                onClick={() => setSelected(l)}
+                className="flex items-center justify-between cursor-pointer hover:bg-muted/40 rounded-lg p-2 -mx-1 transition-smooth"
+              >
+                <div className="min-w-0 flex-1 mr-3">
+                  <div className="text-sm font-medium truncate">{l.fullName}</div>
+                  <div className="text-xs text-muted-foreground truncate">{urgentReason(l)}</div>
+                </div>
+                <Badge variant="outline" className={`${statusTone[l.status]} text-xs shrink-0`}>
+                  {leadStatusLabels[l.status]}
+                </Badge>
+              </div>
+            ))}
+            {urgentLeads.length > 5 && (
+              <div className="text-xs text-muted-foreground mt-2">
+                + {urgentLeads.length - 5} mais...
+              </div>
+            )}
+          </div>
+        </Card>
+      )}
+
       {viewMode === "list" && (
         <Tabs value={filter} onValueChange={(v) => setFilter(v as Filter)} className="mb-4">
           <TabsList>
