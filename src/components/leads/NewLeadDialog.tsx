@@ -221,6 +221,15 @@ export const NewLeadDialog = () => {
                   </SelectContent>
                 </Select>
               </div>
+              <div className="col-span-2">
+                <Label>Orçamento</Label>
+                <Input
+                  name="budgetRange"
+                  maxLength={80}
+                  placeholder="Ex: 500-700 euros/mês"
+                  className="mt-1.5"
+                />
+              </div>
             </div>
             <div>
               <Label>O que o traz a Lisboa</Label>
