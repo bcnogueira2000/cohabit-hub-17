@@ -5,7 +5,7 @@ import { z } from "npm:zod@3";
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), {
     status,
-    headers: { ...corsHeaders, "x-api-key": "", "Content-Type": "application/json" },
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
   });
 
 const LEAD_SOURCES = [
