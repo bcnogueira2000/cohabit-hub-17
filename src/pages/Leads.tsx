@@ -729,6 +729,20 @@ const LeadHistory = ({ leadId }: { leadId: string }) => {
                       <span className="text-muted-foreground"> — Estadia criada</span>
                     )}
                   </>
+                ) : entry.kind === "created_from_website" ? (
+                  <>
+                    Lead recebida do site
+                    {entry.payload?.source_detail && (
+                      <span className="text-muted-foreground"> — {entry.payload.source_detail}</span>
+                    )}
+                  </>
+                ) : entry.kind === "duplicate_submission" ? (
+                  <>
+                    Nova submissão do site para esta lead
+                    {entry.payload?.source_detail && (
+                      <span className="text-muted-foreground"> — {entry.payload.source_detail}</span>
+                    )}
+                  </>
                 ) : (
                   entry.kind
                 )}
