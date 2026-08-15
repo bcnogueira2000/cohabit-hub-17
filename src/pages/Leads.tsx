@@ -1,11 +1,29 @@
-import { useState, useMemo } from "react";
-import { Search, Clock, User as UserIcon, X, ChevronDown } from "lucide-react";
+import { useState, useMemo, useEffect } from "react";
+import { Search, Clock, User as UserIcon, X, ChevronDown, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   DropdownMenu,
@@ -13,7 +31,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
-import { useLeads, useUpdateLead, type Lead, type LeadStatus } from "@/hooks/useLeads";
+import { useLeads, useUpdateLead, useDeleteLead, type Lead, type LeadStatus } from "@/hooks/useLeads";
 import { useStaffUsers } from "@/hooks/useStaffUsers";
 import { NewLeadDialog } from "@/components/leads/NewLeadDialog";
 import { leadStatusLabels, leadSourceLabels, leadProfileLabels } from "@/lib/labels";
@@ -76,12 +94,31 @@ const Section = ({ title, children }: { title: string; children: React.ReactNode
 const Leads = () => {
   const { data: leads = [], isLoading } = useLeads();
   const updateLead = useUpdateLead();
+  const deleteLead = useDeleteLead();
   const { data: staff = [] } = useStaffUsers();
   const [filter, setFilter] = useState<Filter>("new");
   const [query, setQuery] = useState("");
   const [source, setSource] = useState("all");
   const [owner, setOwner] = useState("all");
   const [selected, setSelected] = useState<Lead | null>(null);
+  const [editStatus, setEditStatus] = useState<LeadStatus>("new");
+  const [editOwnerId, setEditOwnerId] = useState<string>("");
+  const [editNextAction, setEditNextAction] = useState<string>("");
+  const [editNextActionDate, setEditNextActionDate] = useState<string>("");
+  const [editNotes, setEditNotes] = useState<string>("");
+  const [editLostReason, setEditLostReason] = useState<string>("");
+  const [deleteOpen, setDeleteOpen] = useState(false);
+
+  useEffect(() => {
+    if (selected) {
+      setEditStatus(selected.status);
+      setEditOwnerId(selected.assignedToUserId || "");
+      setEditNextAction(selected.nextAction || "");
+      setEditNextActionDate(selected.nextActionDate || "");
+      setEditNotes(selected.notes || "");
+      setEditLostReason(selected.lostReason || "");
+    }
+  }, [selected?.id]);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -242,9 +279,44 @@ const Leads = () => {
         <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
           <DialogHeader className="flex-row items-start justify-between gap-4 space-y-0">
             <DialogTitle className="font-display">Detalhes do lead</DialogTitle>
-            <Button variant="ghost" size="sm" className="rounded-full -mt-1" onClick={() => setSelected(null)}>
-              <X className="h-4 w-4 mr-1" strokeWidth={1.5} /> Fechar
-            </Button>
+            <div className="flex items-center gap-1 -mt-1">
+              <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+                <AlertDialogTrigger asChild>
+                  <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive rounded-full">
+                    <Trash2 className="h-4 w-4 mr-1" strokeWidth={1.5} /> Eliminar
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Eliminar lead?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Eliminar este lead permanentemente? Esta ação não pode ser desfeita.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel onClick={() => setDeleteOpen(false)}>Cancelar</AlertDialogCancel>
+                    <AlertDialogAction
+                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                      onClick={() => {
+                        if (!selected) return;
+                        deleteLead.mutate(selected.id, {
+                          onSuccess: () => {
+                            setDeleteOpen(false);
+                            setSelected(null);
+                            toast.success("Lead eliminado");
+                          },
+                        });
+                      }}
+                    >
+                      Eliminar
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+              <Button variant="ghost" size="sm" className="rounded-full" onClick={() => setSelected(null)}>
+                <X className="h-4 w-4 mr-1" strokeWidth={1.5} /> Fechar
+              </Button>
+            </div>
           </DialogHeader>
           {selected && (
             <div className="space-y-5">
@@ -296,23 +368,105 @@ const Leads = () => {
 
               <Section title="Seguimento">
                 <div className="space-y-3">
-                  <div className="flex items-center gap-2">
-                    <Badge variant="outline" className={statusTone[selected.status]}>{leadStatusLabels[selected.status]}</Badge>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="space-y-1">
+                      <label className="text-[11px] uppercase tracking-wide text-muted-foreground">Estado</label>
+                      <Select value={editStatus} onValueChange={(v) => setEditStatus(v as LeadStatus)}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {(Object.keys(leadStatusLabels) as LeadStatus[]).map((s) => (
+                            <SelectItem key={s} value={s}>{leadStatusLabels[s]}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[11px] uppercase tracking-wide text-muted-foreground">Responsável</label>
+                      <Select value={editOwnerId} onValueChange={setEditOwnerId}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Sem responsável" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="">Sem responsável</SelectItem>
+                          {staff.map((s) => (
+                            <SelectItem key={s.user_id} value={s.user_id}>{s.full_name || s.email}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[11px] uppercase tracking-wide text-muted-foreground">Próxima ação</label>
+                      <Input
+                        value={editNextAction}
+                        onChange={(e) => setEditNextAction(e.target.value)}
+                        placeholder="Ex: Ligar amanhã"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[11px] uppercase tracking-wide text-muted-foreground">Data da próxima ação</label>
+                      <Input
+                        type="date"
+                        value={editNextActionDate}
+                        onChange={(e) => setEditNextActionDate(e.target.value)}
+                      />
+                    </div>
                   </div>
-                  <div className="grid grid-cols-2 gap-3">
-                    <Field label="Responsável" value={ownerName(selected)} />
-                    <Field
-                      label="Próxima ação"
-                      value={
-                        selected.nextAction
-                          ? selected.nextAction + (selected.nextActionDate ? ` · ${fmtDate(selected.nextActionDate)}` : "")
-                          : null
-                      }
+                  <div className="space-y-1">
+                    <label className="text-[11px] uppercase tracking-wide text-muted-foreground">Notas</label>
+                    <Textarea
+                      value={editNotes}
+                      onChange={(e) => setEditNotes(e.target.value)}
+                      rows={4}
+                      placeholder="Notas internas sobre o lead"
                     />
                   </div>
-                  {selected.notes && (
-                    <div className="rounded-xl bg-muted/50 p-3 text-sm whitespace-pre-wrap">{selected.notes}</div>
+                  {(editStatus === "lost" || editStatus === "archived") && (
+                    <div className="space-y-1">
+                      <label className="text-[11px] uppercase tracking-wide text-muted-foreground">Motivo de perda</label>
+                      <Input
+                        value={editLostReason}
+                        onChange={(e) => setEditLostReason(e.target.value)}
+                        placeholder="Ex: Preço, escolheu outro projeto, não respondeu"
+                      />
+                    </div>
                   )}
+                  <Button
+                    className="w-full rounded-full gradient-warm text-white"
+                    onClick={() => {
+                      if (!selected) return;
+                      const assignedStaff = staff.find((s) => s.user_id === editOwnerId);
+                      const patch = {
+                        status: editStatus,
+                        assignedToUserId: editOwnerId || null,
+                        assignedTo: assignedStaff?.full_name || assignedStaff?.email || null,
+                        nextAction: editNextAction || null,
+                        nextActionDate: editNextActionDate || null,
+                        notes: editNotes || null,
+                        lostReason: (editStatus === "lost" || editStatus === "archived") ? (editLostReason || null) : null,
+                      };
+                      updateLead.mutate(
+                        { id: selected.id, patch },
+                        {
+                          onSuccess: () => {
+                            setSelected((prev) =>
+                              prev
+                                ? {
+                                    ...prev,
+                                    ...patch,
+                                    assignedTo: patch.assignedTo ?? null,
+                                  }
+                                : null
+                            );
+                            toast.success("Lead atualizado");
+                          },
+                        }
+                      );
+                    }}
+                  >
+                    Guardar alterações
+                  </Button>
                 </div>
               </Section>
             </div>
