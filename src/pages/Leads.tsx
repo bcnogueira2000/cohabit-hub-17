@@ -31,7 +31,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
-import { useLeads, useUpdateLead, useDeleteLead, type Lead, type LeadStatus } from "@/hooks/useLeads";
+import { useLeads, useUpdateLead, useDeleteLead, useLeadActivity, type Lead, type LeadStatus } from "@/hooks/useLeads";
 import { useStaffUsers } from "@/hooks/useStaffUsers";
 import { NewLeadDialog } from "@/components/leads/NewLeadDialog";
 import { leadStatusLabels, leadSourceLabels, leadProfileLabels } from "@/lib/labels";
@@ -469,11 +469,57 @@ const Leads = () => {
                   </Button>
                 </div>
               </Section>
+
+              {selected && <LeadHistory leadId={selected.id} />}
             </div>
           )}
         </DialogContent>
       </Dialog>
     </div>
+  );
+};
+
+const LeadHistory = ({ leadId }: { leadId: string }) => {
+  const { data: history } = useLeadActivity(leadId);
+  const fmtDateTime = (iso: string) =>
+    new Date(iso).toLocaleDateString("pt-PT", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+
+  return (
+    <Section title="Histórico">
+      {!history || history.length === 0 ? (
+        <div className="text-sm text-muted-foreground">Sem actividade registada.</div>
+      ) : (
+        <div className="relative border-l-2 border-border pl-4 space-y-4">
+          {history.map((entry) => (
+            <div key={entry.id} className="relative">
+              <span className="absolute -left-[21px] top-1.5 h-2 w-2 rounded-full bg-primary" />
+              <div className="text-xs text-muted-foreground">{fmtDateTime(entry.createdAt)}</div>
+              <div className="text-sm text-foreground">
+                {entry.kind === "status_changed" ? (
+                  <>
+                    Estado mudou de{" "}
+                    <span className="font-medium">{leadStatusLabels[entry.payload.from] ?? entry.payload.from}</span>
+                    {" "}para{" "}
+                    <span className="font-medium">{leadStatusLabels[entry.payload.to] ?? entry.payload.to}</span>
+                  </>
+                ) : (
+                  entry.kind
+                )}
+              </div>
+              <div className="text-xs text-muted-foreground mt-0.5">
+                {entry.actorName || "Sistema"}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </Section>
   );
 };
 
