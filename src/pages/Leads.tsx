@@ -162,6 +162,21 @@ const Leads = () => {
         )}
         {filtered.map((l) => {
           const overdue = !!l.nextActionDate && new Date(l.nextActionDate).getTime() < Date.now();
+          const handleStatusChange = (newStatus: LeadStatus) => {
+            if (newStatus === "lost") {
+              const reason = window.prompt("Motivo de perda:");
+              if (reason === null) return;
+              updateLead.mutate(
+                { id: l.id, patch: { status: newStatus, lostReason: reason || undefined } },
+                { onSuccess: () => toast.success("Estado atualizado") }
+              );
+              return;
+            }
+            updateLead.mutate(
+              { id: l.id, patch: { status: newStatus } },
+              { onSuccess: () => toast.success("Estado atualizado") }
+            );
+          };
           return (
             <Card
               key={l.id}
@@ -171,7 +186,32 @@ const Leads = () => {
               <div className="flex flex-col sm:flex-row sm:items-center gap-3">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap mb-1.5">
-                    <Badge variant="outline" className={statusTone[l.status]}>{leadStatusLabels[l.status]}</Badge>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Badge
+                          variant="outline"
+                          className={`${statusTone[l.status]} cursor-pointer gap-1 pr-1.5`}
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          {leadStatusLabels[l.status]}
+                          <ChevronDown className="h-3 w-3" strokeWidth={1.5} />
+                        </Badge>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="start" onClick={(e) => e.stopPropagation()}>
+                        {(Object.keys(leadStatusLabels) as LeadStatus[]).map((s) => (
+                          <DropdownMenuItem
+                            key={s}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleStatusChange(s);
+                            }}
+                            className={s === l.status ? "bg-muted" : ""}
+                          >
+                            {leadStatusLabels[s]}
+                          </DropdownMenuItem>
+                        ))}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                     <Badge variant="outline" className="text-muted-foreground">{leadSourceLabels[l.source]}</Badge>
                   </div>
                   <div className="font-display text-lg font-semibold truncate">{l.fullName}</div>
