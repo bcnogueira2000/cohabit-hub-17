@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { Search, Clock, User as UserIcon, X } from "lucide-react";
+import { Search, Clock, User as UserIcon, X, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -7,10 +7,17 @@ import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useLeads, type Lead, type LeadStatus } from "@/hooks/useLeads";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from "@/components/ui/dropdown-menu";
+import { useLeads, useUpdateLead, type Lead, type LeadStatus } from "@/hooks/useLeads";
 import { useStaffUsers } from "@/hooks/useStaffUsers";
 import { NewLeadDialog } from "@/components/leads/NewLeadDialog";
 import { leadStatusLabels, leadSourceLabels, leadProfileLabels } from "@/lib/labels";
+import { toast } from "sonner";
 
 const statusTone: Record<LeadStatus, string> = {
   new: "bg-muted text-muted-foreground",
@@ -68,6 +75,7 @@ const Section = ({ title, children }: { title: string; children: React.ReactNode
 
 const Leads = () => {
   const { data: leads = [], isLoading } = useLeads();
+  const updateLead = useUpdateLead();
   const { data: staff = [] } = useStaffUsers();
   const [filter, setFilter] = useState<Filter>("new");
   const [query, setQuery] = useState("");
@@ -154,6 +162,21 @@ const Leads = () => {
         )}
         {filtered.map((l) => {
           const overdue = !!l.nextActionDate && new Date(l.nextActionDate).getTime() < Date.now();
+          const handleStatusChange = (newStatus: LeadStatus) => {
+            if (newStatus === "lost") {
+              const reason = window.prompt("Motivo de perda:");
+              if (reason === null) return;
+              updateLead.mutate(
+                { id: l.id, patch: { status: newStatus, lostReason: reason || undefined } },
+                { onSuccess: () => toast.success("Estado atualizado") }
+              );
+              return;
+            }
+            updateLead.mutate(
+              { id: l.id, patch: { status: newStatus } },
+              { onSuccess: () => toast.success("Estado atualizado") }
+            );
+          };
           return (
             <Card
               key={l.id}
@@ -163,7 +186,32 @@ const Leads = () => {
               <div className="flex flex-col sm:flex-row sm:items-center gap-3">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap mb-1.5">
-                    <Badge variant="outline" className={statusTone[l.status]}>{leadStatusLabels[l.status]}</Badge>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Badge
+                          variant="outline"
+                          className={`${statusTone[l.status]} cursor-pointer gap-1 pr-1.5`}
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          {leadStatusLabels[l.status]}
+                          <ChevronDown className="h-3 w-3" strokeWidth={1.5} />
+                        </Badge>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="start" onClick={(e) => e.stopPropagation()}>
+                        {(Object.keys(leadStatusLabels) as LeadStatus[]).map((s) => (
+                          <DropdownMenuItem
+                            key={s}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleStatusChange(s);
+                            }}
+                            className={s === l.status ? "bg-muted" : ""}
+                          >
+                            {leadStatusLabels[s]}
+                          </DropdownMenuItem>
+                        ))}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                     <Badge variant="outline" className="text-muted-foreground">{leadSourceLabels[l.source]}</Badge>
                   </div>
                   <div className="font-display text-lg font-semibold truncate">{l.fullName}</div>
