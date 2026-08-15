@@ -25,6 +25,7 @@ const schema = z.object({
   notes: z.string().trim().max(2000).optional(),
   nextAction: z.string().trim().max(200).optional(),
   profileOther: z.string().trim().max(120).optional(),
+  budgetRange: z.string().trim().max(80).optional(),
 });
 
 const Section = ({ title, children }: { title: string; children: React.ReactNode }) => (
@@ -37,6 +38,7 @@ const Section = ({ title, children }: { title: string; children: React.ReactNode
 const roomTypes = ["Smart", "Standard", "Premium", "Suite", "Master Suite", "Sem preferência"];
 const durations = ["3-6 meses", "6-12 meses", "12+ meses"];
 const genders = ["Feminino", "Masculino", "Outro", "Prefiro não dizer"];
+const languages = ["Português", "English", "Español", "Français", "Deutsch", "Outro"];
 
 export const NewLeadDialog = () => {
   const createLead = useCreateLead();
