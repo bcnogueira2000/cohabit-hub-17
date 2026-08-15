@@ -100,6 +100,24 @@ const Leads = () => {
   const [source, setSource] = useState("all");
   const [owner, setOwner] = useState("all");
   const [selected, setSelected] = useState<Lead | null>(null);
+  const [editStatus, setEditStatus] = useState<LeadStatus>("new");
+  const [editOwnerId, setEditOwnerId] = useState<string>("");
+  const [editNextAction, setEditNextAction] = useState<string>("");
+  const [editNextActionDate, setEditNextActionDate] = useState<string>("");
+  const [editNotes, setEditNotes] = useState<string>("");
+  const [editLostReason, setEditLostReason] = useState<string>("");
+  const [deleteOpen, setDeleteOpen] = useState(false);
+
+  useEffect(() => {
+    if (selected) {
+      setEditStatus(selected.status);
+      setEditOwnerId(selected.assignedToUserId || "");
+      setEditNextAction(selected.nextAction || "");
+      setEditNextActionDate(selected.nextActionDate || "");
+      setEditNotes(selected.notes || "");
+      setEditLostReason(selected.lostReason || "");
+    }
+  }, [selected?.id]);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
