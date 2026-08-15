@@ -359,14 +359,14 @@ const Leads = () => {
                 </div>
               </Section>
 
-              {(selected.preferredRoomType || selected.preferredMoveIn || selected.stayDuration || selected.budgetRange || selected.whatBringsThem) && (
+              {(selected.preferredRoomType || selected.preferredMoveIn || selected.stayDuration || selected.whatBringsThem) && (
                 <Section title="Preferências">
                   <div className="grid grid-cols-2 gap-3">
                     <Field label="Tipo de quarto" value={selected.preferredRoomType} />
                     <Field label="Quando pensa mudar-se" value={selected.preferredMoveIn} />
                     <Field label="Duração da estadia" value={selected.stayDuration} />
-                    <Field label="Orçamento" value={selected.budgetRange} />
                   </div>
+
                   {selected.whatBringsThem && (
                     <div className="rounded-xl bg-muted/50 p-3 text-sm">
                       <div className="text-[11px] uppercase tracking-wide text-muted-foreground mb-1">O que o traz a Lisboa</div>
