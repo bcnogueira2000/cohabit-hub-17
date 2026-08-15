@@ -665,7 +665,31 @@ const Leads = () => {
           )}
         </DialogContent>
       </Dialog>
+
+      {selected && (
+        <ConvertLeadDialog
+          lead={selected}
+          open={convertOpen}
+          onOpenChange={setConvertOpen}
+          onConverted={async (stayId) => {
+            const leadId = selected.id;
+            updateLead.mutate({ id: leadId, patch: { stayId } });
+            const { data: { user } } = await supabase.auth.getUser();
+            await supabase.from("lead_activity" as any).insert({
+              lead_id: leadId,
+              actor_user_id: user?.id ?? null,
+              actor_name: null,
+              kind: "converted",
+              payload: { stay_id: stayId },
+            } as any);
+            qc.invalidateQueries({ queryKey: ["lead_activity", leadId] });
+            setSelected((prev) => (prev ? { ...prev, stayId } : null));
+            toast.success("Lead convertida em residente");
+          }}
+        />
+      )}
     </div>
+
   );
 };
 
@@ -697,6 +721,13 @@ const LeadHistory = ({ leadId }: { leadId: string }) => {
                     <span className="font-medium">{leadStatusLabels[entry.payload.from] ?? entry.payload.from}</span>
                     {" "}para{" "}
                     <span className="font-medium">{leadStatusLabels[entry.payload.to] ?? entry.payload.to}</span>
+                  </>
+                ) : entry.kind === "converted" ? (
+                  <>
+                    Lead convertida em residente
+                    {entry.payload?.stay_id && (
+                      <span className="text-muted-foreground"> — Estadia criada</span>
+                    )}
                   </>
                 ) : (
                   entry.kind
