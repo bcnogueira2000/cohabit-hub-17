@@ -79,6 +79,7 @@ export const NewLeadDialog = () => {
       notes: String(fd.get("notes") || ""),
       nextAction: String(fd.get("nextAction") || ""),
       profileOther: String(fd.get("profileOther") || ""),
+      budgetRange: String(fd.get("budgetRange") || ""),
     };
     const parsed = schema.safeParse(raw);
     if (!parsed.success) {
@@ -104,6 +105,7 @@ export const NewLeadDialog = () => {
         preferredRoomType: roomType || null,
         preferredMoveIn: v.preferredMoveIn || null,
         stayDuration: duration || null,
+        budgetRange: v.budgetRange || null,
         whatBringsThem: v.whatBringsThem || null,
         status,
         assignedToUserId: ownerId || null,
@@ -111,6 +113,7 @@ export const NewLeadDialog = () => {
         notes: v.notes || null,
         nextAction: v.nextAction || null,
         nextActionDate: nextActionDate || null,
+        language: language || null,
         gdprConsent: true,
       },
       {
