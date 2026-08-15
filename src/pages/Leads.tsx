@@ -114,6 +114,14 @@ const Leads = () => {
   const [editNotes, setEditNotes] = useState<string>("");
   const [editLostReason, setEditLostReason] = useState<string>("");
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const [viewMode, setViewMode] = useState<"list" | "pipeline">(
+    () => ((localStorage.getItem("leads-view") as "list" | "pipeline") || "pipeline")
+  );
+
+  const changeView = (v: "list" | "pipeline") => {
+    setViewMode(v);
+    localStorage.setItem("leads-view", v);
+  };
 
   useEffect(() => {
     if (selected) {
