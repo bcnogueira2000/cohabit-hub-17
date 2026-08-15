@@ -150,6 +150,15 @@ export const NewLeadDialog = () => {
                   </SelectContent>
                 </Select>
               </div>
+              <div>
+                <Label>Idioma preferido</Label>
+                <Select value={language} onValueChange={setLanguage}>
+                  <SelectTrigger className="mt-1.5"><SelectValue placeholder="Não indicado" /></SelectTrigger>
+                  <SelectContent>
+                    {languages.map((lang) => <SelectItem key={lang} value={lang}>{lang}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           </Section>
 
