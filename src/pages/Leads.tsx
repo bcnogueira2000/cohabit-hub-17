@@ -465,16 +465,20 @@ const Leads = () => {
                       );
                     }}
                   >
-                    Guardar alterações
-                  </Button>
-                </div>
-              </Section>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
-    </div>
-  );
+                  Guardar alterações
+                </Button>
+              </div>
+            </Section>
+
+            {selected && (
+              <LeadHistory leadId={selected.id} />
+            )}
+          </div>
+        )}
+      </DialogContent>
+    </Dialog>
+  </div>
+);
 };
 
 export default Leads;
