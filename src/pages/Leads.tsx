@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
-import { Search, Clock, User as UserIcon, X, ChevronDown, Trash2, LayoutList, Columns3 } from "lucide-react";
+import { Search, Clock, User as UserIcon, X, ChevronDown, Trash2, LayoutList, Columns3, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
