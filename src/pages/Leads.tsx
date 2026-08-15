@@ -131,6 +131,16 @@ const Leads = () => {
     });
   }, [leads, filter, source, owner, query]);
 
+  const counts = useMemo(() => {
+    const c = { new: 0, contact: 0, negotiation: 0, won: 0, lost: 0 };
+    leads.forEach((l) => {
+      (Object.keys(groups) as (keyof typeof c)[]).forEach((k) => {
+        if (groups[k].includes(l.status)) c[k]++;
+      });
+    });
+    return c;
+  }, [leads]);
+
   const ownerName = (l: Lead) =>
     l.assignedTo ||
     staff.find((s) => s.user_id === l.assignedToUserId)?.full_name ||
