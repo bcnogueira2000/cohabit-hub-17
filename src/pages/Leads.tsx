@@ -126,16 +126,34 @@ const Leads = () => {
     }
   }, [selected?.id]);
 
-  const filtered = useMemo(() => {
+  const baseFiltered = useMemo(() => {
     const q = query.trim().toLowerCase();
     return leads.filter((l) => {
-      if (filter !== "all" && !groups[filter].includes(l.status)) return false;
       if (source !== "all" && l.source !== source) return false;
       if (owner !== "all" && l.assignedToUserId !== owner) return false;
       if (q && !l.fullName.toLowerCase().includes(q) && !l.email.toLowerCase().includes(q)) return false;
       return true;
     });
-  }, [leads, filter, source, owner, query]);
+  }, [leads, source, owner, query]);
+
+  const filtered = useMemo(() => {
+    const list =
+      viewMode === "pipeline"
+        ? baseFiltered
+        : baseFiltered.filter((l) => filter === "all" || groups[filter as Exclude<Filter, "all">].includes(l.status));
+    return [...list].sort(sortByUrgency);
+  }, [baseFiltered, filter, viewMode]);
+
+  const columns = useMemo(
+    () =>
+      (Object.keys(groups) as Exclude<Filter, "all">[]).map((k) => ({
+        key: k,
+        label: groupLabels[k],
+        statuses: groups[k],
+        leads: baseFiltered.filter((l) => groups[k].includes(l.status)).sort(sortByUrgency),
+      })),
+    [baseFiltered]
+  );
 
   const counts = useMemo(() => {
     const c = { new: 0, contact: 0, negotiation: 0, won: 0, lost: 0 };
@@ -152,6 +170,22 @@ const Leads = () => {
     staff.find((s) => s.user_id === l.assignedToUserId)?.full_name ||
     null;
 
+  const changeStatus = (leadId: string, newStatus: LeadStatus) => {
+    if (newStatus === "lost") {
+      const reason = window.prompt("Motivo de perda:");
+      if (reason === null) return;
+      updateLead.mutate(
+        { id: leadId, patch: { status: newStatus, lostReason: reason || undefined } },
+        { onSuccess: () => toast.success("Estado atualizado") }
+      );
+      return;
+    }
+    updateLead.mutate(
+      { id: leadId, patch: { status: newStatus } },
+      { onSuccess: () => toast.success("Estado atualizado") }
+    );
+  };
+
   return (
     <div className="px-4 lg:px-10 py-6 lg:py-10 max-w-7xl mx-auto">
       <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-6">
@@ -161,20 +195,44 @@ const Leads = () => {
             {leads.length} {leads.length === 1 ? "lead" : "leads"} · pipeline de prospecção
           </p>
         </div>
-        <NewLeadDialog />
-
+        <div className="flex items-center gap-3">
+          <div className="hidden lg:flex gap-1">
+            <Button
+              variant="ghost"
+              size="icon"
+              className={viewMode === "list" ? "bg-muted" : ""}
+              onClick={() => changeView("list")}
+              aria-label="Vista de lista"
+            >
+              <LayoutList className="h-4 w-4" strokeWidth={1.5} />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className={viewMode === "pipeline" ? "bg-muted" : ""}
+              onClick={() => changeView("pipeline")}
+              aria-label="Vista de pipeline"
+            >
+              <Columns3 className="h-4 w-4" strokeWidth={1.5} />
+            </Button>
+          </div>
+          <NewLeadDialog />
+        </div>
       </div>
 
-      <Tabs value={filter} onValueChange={(v) => setFilter(v as Filter)} className="mb-4">
-        <TabsList>
-          <TabsTrigger value="new">Novos . {counts.new}</TabsTrigger>
-          <TabsTrigger value="contact">Em contacto . {counts.contact}</TabsTrigger>
-          <TabsTrigger value="negotiation">Em negociação . {counts.negotiation}</TabsTrigger>
-          <TabsTrigger value="won">Ganhos . {counts.won}</TabsTrigger>
-          <TabsTrigger value="lost">Perdidos . {counts.lost}</TabsTrigger>
-          <TabsTrigger value="all">Todos</TabsTrigger>
-        </TabsList>
-      </Tabs>
+      {viewMode === "list" && (
+        <Tabs value={filter} onValueChange={(v) => setFilter(v as Filter)} className="mb-4">
+          <TabsList>
+            <TabsTrigger value="new">Novos . {counts.new}</TabsTrigger>
+            <TabsTrigger value="contact">Em contacto . {counts.contact}</TabsTrigger>
+            <TabsTrigger value="negotiation">Em negociação . {counts.negotiation}</TabsTrigger>
+            <TabsTrigger value="won">Ganhos . {counts.won}</TabsTrigger>
+            <TabsTrigger value="lost">Perdidos . {counts.lost}</TabsTrigger>
+            <TabsTrigger value="all">Todos</TabsTrigger>
+          </TabsList>
+        </Tabs>
+      )}
+
 
       <div className="flex flex-col sm:flex-row gap-3 mb-5">
         <div className="relative flex-1">
