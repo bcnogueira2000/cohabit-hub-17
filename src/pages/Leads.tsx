@@ -56,6 +56,15 @@ const groups: Record<Exclude<Filter, "all">, LeadStatus[]> = {
   lost: ["lost", "archived"],
 };
 
+const groupLabels: Record<Exclude<Filter, "all">, string> = {
+  new: "Novos",
+  contact: "Em contacto",
+  negotiation: "Em negociação",
+  won: "Ganhos",
+  lost: "Perdidos",
+};
+
+
 const relativeDate = (iso: string) => {
   const diff = Date.now() - new Date(iso).getTime();
   const days = Math.floor(diff / 86400000);
