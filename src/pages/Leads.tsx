@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect } from "react";
-import { Search, Clock, User as UserIcon, X, ChevronDown, Trash2, LayoutList, Columns3, AlertTriangle } from "lucide-react";
+import { Link } from "react-router-dom";
+import { Search, Clock, User as UserIcon, X, ChevronDown, Trash2, LayoutList, Columns3, AlertTriangle, UserCheck, CheckCircle2, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -43,6 +44,9 @@ import {
   isOverdue,
 } from "@/components/leads/LeadsPipeline";
 import { leadStatusLabels, leadSourceLabels, leadProfileLabels } from "@/lib/labels";
+import { ConvertLeadDialog } from "@/components/leads/ConvertLeadDialog";
+import { supabase } from "@/integrations/supabase/client";
+import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 
