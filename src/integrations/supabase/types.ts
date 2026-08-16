@@ -243,6 +243,110 @@ export type Database = {
           },
         ]
       }
+      contract_rent_periods: {
+        Row: {
+          contract_id: string
+          created_at: string
+          id: string
+          monthly_amount: number
+          reason: string | null
+          valid_from: string
+        }
+        Insert: {
+          contract_id: string
+          created_at?: string
+          id?: string
+          monthly_amount: number
+          reason?: string | null
+          valid_from: string
+        }
+        Update: {
+          contract_id?: string
+          created_at?: string
+          id?: string
+          monthly_amount?: number
+          reason?: string | null
+          valid_from?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contract_rent_periods_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "contracts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contracts: {
+        Row: {
+          actual_end_date: string | null
+          auto_renew: boolean
+          created_at: string
+          deposit_due: number
+          deposit_received: number
+          deposit_returned: number
+          end_date: string
+          id: string
+          lead_id: string | null
+          notes: string | null
+          payment_day: number
+          resident_id: string
+          start_date: string
+          status: Database["public"]["Enums"]["contract_status"]
+          updated_at: string
+        }
+        Insert: {
+          actual_end_date?: string | null
+          auto_renew?: boolean
+          created_at?: string
+          deposit_due?: number
+          deposit_received?: number
+          deposit_returned?: number
+          end_date: string
+          id?: string
+          lead_id?: string | null
+          notes?: string | null
+          payment_day?: number
+          resident_id: string
+          start_date: string
+          status?: Database["public"]["Enums"]["contract_status"]
+          updated_at?: string
+        }
+        Update: {
+          actual_end_date?: string | null
+          auto_renew?: boolean
+          created_at?: string
+          deposit_due?: number
+          deposit_received?: number
+          deposit_returned?: number
+          end_date?: string
+          id?: string
+          lead_id?: string | null
+          notes?: string | null
+          payment_day?: number
+          resident_id?: string
+          start_date?: string
+          status?: Database["public"]["Enums"]["contract_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contracts_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contracts_resident_id_fkey"
+            columns: ["resident_id"]
+            isOneToOne: false
+            referencedRelation: "residents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lead_activity: {
         Row: {
           actor_name: string | null
@@ -997,6 +1101,7 @@ export type Database = {
         Row: {
           check_in: string
           check_out: string
+          contract_id: string | null
           created_at: string
           email: string
           full_name: string
@@ -1012,6 +1117,7 @@ export type Database = {
         Insert: {
           check_in: string
           check_out: string
+          contract_id?: string | null
           created_at?: string
           email: string
           full_name: string
@@ -1027,6 +1133,7 @@ export type Database = {
         Update: {
           check_in?: string
           check_out?: string
+          contract_id?: string | null
           created_at?: string
           email?: string
           full_name?: string
@@ -1039,7 +1146,15 @@ export type Database = {
           status?: Database["public"]["Enums"]["stay_status"]
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "stays_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "contracts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       suppliers: {
         Row: {
@@ -1169,6 +1284,7 @@ export type Database = {
           user_id: string
         }[]
       }
+      stay_daterange: { Args: { _in: string; _out: string }; Returns: unknown }
     }
     Enums: {
       account_status: "pending_approval" | "active" | "rejected" | "disabled"
@@ -1184,6 +1300,7 @@ export type Database = {
         | "kitchen"
         | "common"
         | "checkout_inspection"
+      contract_status: "reserved" | "active" | "terminated" | "cancelled"
       lead_source:
         | "website_form"
         | "idealista"
@@ -1424,6 +1541,7 @@ export const Constants = {
         "common",
         "checkout_inspection",
       ],
+      contract_status: ["reserved", "active", "terminated", "cancelled"],
       lead_source: [
         "website_form",
         "idealista",
