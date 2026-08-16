@@ -38,7 +38,7 @@ const Bookings = () => {
         : +new Date(b.start_at) - +new Date(a.start_at),
     );
 
-  const spaceName = (id: string) => spaces.find((s) => s.id === id)?.name ?? "—";
+  const spaceName = (id: string | null) => spaces.find((s) => s.id === id)?.name ?? "—";
 
   const handleConfirmCancel = async () => {
     if (!cancelId) return;
@@ -113,7 +113,7 @@ const Bookings = () => {
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0 flex-1">
                     <p className="text-[11px] uppercase tracking-wider text-primary font-semibold">
-                      {spaceName(b.space_id)}
+                      {spaceName(b.location_id)}
                     </p>
                     <p className="font-medium text-sm mt-0.5 truncate">{b.title}</p>
                     <p className="text-xs text-muted-foreground mt-1">

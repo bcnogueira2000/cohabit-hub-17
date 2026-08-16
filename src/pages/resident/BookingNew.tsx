@@ -39,7 +39,7 @@ const BookingNew = () => {
   const navigate = useNavigate();
   const { t, lang } = useLang();
   const { data: allSpaces = [], isLoading: spacesLoading } = useSpaces();
-  const spaces = useMemo(() => allSpaces.filter((s: any) => s.active !== false), [allSpaces]);
+  const spaces = useMemo(() => allSpaces.filter((s: any) => s.status !== "out_of_service"), [allSpaces]);
   const create = useCreateBooking();
 
   const [spaceId, setSpaceId] = useState<string | null>(null);
@@ -85,7 +85,7 @@ const BookingNew = () => {
     }
     try {
       await create.mutateAsync({
-        space_id: spaceId,
+        location_id: spaceId,
         start_at: startISO,
         end_at: endISO,
         title: title.trim() || (lang === "pt" ? "Reserva" : "Booking"),
@@ -133,7 +133,7 @@ const BookingNew = () => {
                 >
                   <p className="font-medium text-sm">{s.name}</p>
                   <p className="text-[11px] text-muted-foreground flex items-center gap-1 mt-1">
-                    <Users className="h-3 w-3" strokeWidth={ICON_STROKE} /> {s.capacity}
+                    <Users className="h-3 w-3" strokeWidth={ICON_STROKE} /> {s.capacity ?? "—"}
                   </p>
                 </button>
               ))}

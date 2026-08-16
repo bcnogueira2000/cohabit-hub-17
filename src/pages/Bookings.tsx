@@ -121,7 +121,7 @@ const Bookings = () => {
                   <h2 className="font-display text-xl font-semibold flex items-center gap-2">
                     <CalendarRange className="h-5 w-5 text-primary" /> {space.name}
                   </h2>
-                  <p className="text-sm text-muted-foreground">{space.description} · até {space.capacity} pessoas</p>
+                  <p className="text-sm text-muted-foreground">{space.description}{space.capacity ? ` · até ${space.capacity} pessoas` : ""}</p>
                 </div>
               </div>
               <div className="grid grid-cols-7 gap-2">
