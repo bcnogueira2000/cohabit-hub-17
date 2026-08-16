@@ -32,7 +32,7 @@ const Contracts = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
 
   const typologies = useMemo(
-    () => Array.from(new Set(rooms.map((r) => r.typology).filter(Boolean))).sort(),
+    () => Array.from(new Set(rooms.map((r) => String(r.typology)).filter(Boolean))).sort() as string[],
     [rooms]
   );
 
