@@ -5,6 +5,7 @@ import { Card } from "@/components/ui/card";
 import { useContract, useContractStays } from "@/hooks/useContracts";
 import { ContractStatusBadge } from "@/components/contracts/ContractStatusBadge";
 import { useRooms } from "@/hooks/useData";
+import { RentPeriodsSection } from "@/components/contracts/RentPeriodsSection";
 
 const eur = (v: number | null | undefined) =>
   v == null ? "—" : new Intl.NumberFormat("pt-PT", { style: "currency", currency: "EUR" }).format(v);
@@ -102,6 +103,12 @@ const ContractDetail = () => {
           </div>
         )}
       </Card>
+
+      <RentPeriodsSection
+        contractId={contract.id}
+        startDate={contract.startDate}
+        periods={contract.rentPeriods}
+      />
 
       <Card className="p-5 border-border/60 shadow-card">
         <h3 className="font-display text-lg font-semibold mb-3">Estadias ({stays.length})</h3>

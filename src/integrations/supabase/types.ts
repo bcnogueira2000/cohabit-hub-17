@@ -1436,9 +1436,17 @@ export type Database = {
       }
     }
     Functions: {
+      compute_rent_for_month: {
+        Args: { p_contract_id: string; p_month: number; p_year: number }
+        Returns: Record<string, unknown>
+      }
       current_resident_id: { Args: never; Returns: string }
       generate_cleaning_instances: {
         Args: { p_count?: number; p_schedule_id: string }
+        Returns: number
+      }
+      generate_rent_charges: {
+        Args: { p_contract_id: string }
         Returns: number
       }
       has_role: {
@@ -1457,6 +1465,10 @@ export type Database = {
           role: Database["public"]["Enums"]["app_role"]
           user_id: string
         }[]
+      }
+      recalculate_rent_charges: {
+        Args: { p_contract_id: string }
+        Returns: Json
       }
       stay_daterange: { Args: { _in: string; _out: string }; Returns: unknown }
     }
