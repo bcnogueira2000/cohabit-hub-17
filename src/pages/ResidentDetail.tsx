@@ -266,6 +266,84 @@ const ResidentDetail = () => {
               </div>
             </div>
           </Card>
+
+          {isStaff && (
+            <Card className="p-4 border-border/60 shadow-card">
+              <div className="flex items-center gap-2 mb-3">
+                <ShieldCheck className="h-4 w-4 text-primary" strokeWidth={1.5} />
+                <h3 className="font-display text-lg font-semibold">Dados legais</h3>
+              </div>
+              <p className="text-xs text-muted-foreground mb-4">
+                Apenas visível e editável pela equipa. O residente não altera estes dados no portal.
+              </p>
+              <form onSubmit={saveLegal} className="grid sm:grid-cols-2 gap-3">
+                <div>
+                  <Label htmlFor="legal-nationality">Nacionalidade</Label>
+                  <Input
+                    id="legal-nationality"
+                    className="mt-1.5"
+                    value={legal.nationality ?? ""}
+                    onChange={(e) => setLegal((s) => ({ ...s, nationality: e.target.value }))}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="legal-dob">Data de nascimento</Label>
+                  <Input
+                    id="legal-dob"
+                    type="date"
+                    className="mt-1.5"
+                    value={legal.dateOfBirth ?? ""}
+                    onChange={(e) => setLegal((s) => ({ ...s, dateOfBirth: e.target.value }))}
+                  />
+                </div>
+                <div>
+                  <Label>Tipo de documento</Label>
+                  <Select
+                    value={legal.documentType ?? NONE}
+                    onValueChange={(v) => setLegal((s) => ({ ...s, documentType: v === NONE ? null : v }))}
+                  >
+                    <SelectTrigger className="mt-1.5"><SelectValue placeholder="Escolher" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value={NONE}>Sem indicação</SelectItem>
+                      {DOC_TYPES.map((d) => <SelectItem key={d} value={d}>{d}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="legal-docnum">Número de documento</Label>
+                  <Input
+                    id="legal-docnum"
+                    className="mt-1.5"
+                    value={legal.documentNumber ?? ""}
+                    onChange={(e) => setLegal((s) => ({ ...s, documentNumber: e.target.value }))}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="legal-nif">NIF</Label>
+                  <Input
+                    id="legal-nif"
+                    className="mt-1.5"
+                    value={legal.taxNumber ?? ""}
+                    onChange={(e) => setLegal((s) => ({ ...s, taxNumber: e.target.value }))}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="legal-employer">Empresa / escola</Label>
+                  <Input
+                    id="legal-employer"
+                    className="mt-1.5"
+                    value={legal.employerOrSchool ?? ""}
+                    onChange={(e) => setLegal((s) => ({ ...s, employerOrSchool: e.target.value }))}
+                  />
+                </div>
+                <div className="sm:col-span-2 flex justify-end">
+                  <Button type="submit" disabled={updateLegal.isPending} className="rounded-full">
+                    {updateLegal.isPending ? "A guardar…" : "Guardar dados legais"}
+                  </Button>
+                </div>
+              </form>
+            </Card>
+          )}
           <Card className="p-4 border-border/60 shadow-card">
             <h3 className="font-display text-lg font-semibold mb-2">Notas internas</h3>
             <p className="text-sm text-muted-foreground">Sem notas. Adicionar contexto sobre o residente para a equipa de operações.</p>
