@@ -398,6 +398,7 @@ export type Database = {
           assigned_to: string | null
           assigned_to_user_id: string | null
           budget_range: string | null
+          contract_id: string | null
           created_at: string
           email: string
           external_ref: string | null
@@ -429,6 +430,7 @@ export type Database = {
           assigned_to?: string | null
           assigned_to_user_id?: string | null
           budget_range?: string | null
+          contract_id?: string | null
           created_at?: string
           email: string
           external_ref?: string | null
@@ -460,6 +462,7 @@ export type Database = {
           assigned_to?: string | null
           assigned_to_user_id?: string | null
           budget_range?: string | null
+          contract_id?: string | null
           created_at?: string
           email?: string
           external_ref?: string | null
@@ -487,6 +490,20 @@ export type Database = {
           what_brings_them?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "leads_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "contract_balance"
+            referencedColumns: ["contract_id"]
+          },
+          {
+            foreignKeyName: "leads_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "contracts"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "leads_stay_id_fkey"
             columns: ["stay_id"]
