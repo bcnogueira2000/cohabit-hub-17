@@ -23,13 +23,18 @@ const Settings = () => {
   const qc = useQueryClient();
   const toggleSpace = useMutation({
     mutationFn: async ({ id, active }: { id: string; active: boolean }) => {
-      const { error } = await supabase.from("spaces").update({ active }).eq("id", id);
+      const { error } = await supabase
+        .from("locations")
+        .update({ status: active ? "active" : "out_of_service" })
+        .eq("id", id);
       if (error) throw error;
     },
     onSuccess: (_d, vars) => {
-      qc.invalidateQueries({ queryKey: ["spaces"] });
+      qc.invalidateQueries({ queryKey: ["bookable_locations"] });
+      qc.invalidateQueries({ queryKey: ["locations"] });
       toast.success(vars.active ? "Espaço ativado" : "Espaço desativado");
     },
+
     onError: (e: any) => toast.error(e.message ?? "Erro ao atualizar"),
   });
 
