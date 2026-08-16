@@ -1219,6 +1219,8 @@ export type Database = {
         | "cinema"
         | "technical"
         | "other"
+        | "apartment"
+        | "floor"
       location_status: "active" | "out_of_service" | "under_maintenance"
       permission_to_enter: "yes" | "no" | "with_notice"
       request_activity_kind:
@@ -1459,6 +1461,8 @@ export const Constants = {
         "cinema",
         "technical",
         "other",
+        "apartment",
+        "floor",
       ],
       location_status: ["active", "out_of_service", "under_maintenance"],
       permission_to_enter: ["yes", "no", "with_notice"],
