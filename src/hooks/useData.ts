@@ -52,6 +52,28 @@ export const useUpdateResidentChecklist = () => {
   });
 };
 
+export const useUpdateResidentLegal = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, values }: { id: string; values: ResidentLegalFields }) => {
+      const { error } = await supabase
+        .from("residents")
+        .update({
+          nationality: values.nationality,
+          document_type: values.documentType,
+          document_number: values.documentNumber,
+          tax_number: values.taxNumber,
+          employer_or_school: values.employerOrSchool,
+          date_of_birth: values.dateOfBirth,
+        } as any)
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["residents"] }),
+  });
+};
+
+
 export const useRequests = () =>
   useQuery({
     queryKey: ["requests"],
