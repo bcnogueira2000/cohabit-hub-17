@@ -806,14 +806,20 @@ export type Database = {
           avatar_color: string | null
           checkin_checklist: Json
           created_at: string
+          date_of_birth: string | null
+          document_number: string | null
+          document_type: string | null
           email: string
+          employer_or_school: string | null
           full_name: string
           id: string
           move_in: string | null
           move_out: string | null
+          nationality: string | null
           phone: string | null
           room_id: string | null
           status: Database["public"]["Enums"]["resident_status"]
+          tax_number: string | null
           updated_at: string
           user_id: string | null
         }
@@ -821,14 +827,20 @@ export type Database = {
           avatar_color?: string | null
           checkin_checklist?: Json
           created_at?: string
+          date_of_birth?: string | null
+          document_number?: string | null
+          document_type?: string | null
           email: string
+          employer_or_school?: string | null
           full_name: string
           id?: string
           move_in?: string | null
           move_out?: string | null
+          nationality?: string | null
           phone?: string | null
           room_id?: string | null
           status?: Database["public"]["Enums"]["resident_status"]
+          tax_number?: string | null
           updated_at?: string
           user_id?: string | null
         }
@@ -836,14 +848,20 @@ export type Database = {
           avatar_color?: string | null
           checkin_checklist?: Json
           created_at?: string
+          date_of_birth?: string | null
+          document_number?: string | null
+          document_type?: string | null
           email?: string
+          employer_or_school?: string | null
           full_name?: string
           id?: string
           move_in?: string | null
           move_out?: string | null
+          nationality?: string | null
           phone?: string | null
           room_id?: string | null
           status?: Database["public"]["Enums"]["resident_status"]
+          tax_number?: string | null
           updated_at?: string
           user_id?: string | null
         }
