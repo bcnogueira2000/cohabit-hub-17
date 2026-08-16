@@ -23,6 +23,12 @@ export const mapResident = (r: any): Resident => ({
   status: r.status,
   avatarColor: r.avatar_color ?? "hsl(110 25% 40%)",
   checkinChecklist: Array.isArray(r.checkin_checklist) ? r.checkin_checklist : [],
+  nationality: r.nationality ?? null,
+  documentType: r.document_type ?? null,
+  documentNumber: r.document_number ?? null,
+  taxNumber: r.tax_number ?? null,
+  employerOrSchool: r.employer_or_school ?? null,
+  dateOfBirth: r.date_of_birth ?? null,
 });
 
 export const mapRequest = (r: any): Request => ({
