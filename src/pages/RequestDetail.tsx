@@ -32,16 +32,13 @@ const RequestDetail = () => {
   const { data: linkedSupplier } = useSupplier(request?.supplierId ?? undefined);
   const { data: linkedLocation } = useLocationData(request?.locationId ?? undefined);
   const [assigneeUserId, setAssigneeUserId] = useState<string>("__none__");
-  const [estimatedCost, setEstimatedCost] = useState<string>("");
-  const [finalCost, setFinalCost] = useState<string>("");
 
   useEffect(() => {
     if (request) {
       setAssigneeUserId(request.assignedToUserId ?? "__none__");
-      setEstimatedCost(request.estimatedCost != null ? String(request.estimatedCost) : "");
-      setFinalCost(request.finalCost != null ? String(request.finalCost) : "");
     }
-  }, [request?.id, request?.assignedToUserId, request?.estimatedCost, request?.finalCost]);
+  }, [request?.id, request?.assignedToUserId]);
+
 
   if (!request) {
     return (
