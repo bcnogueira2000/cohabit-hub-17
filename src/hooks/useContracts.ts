@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
 export type ContractStatus = "reserved" | "active" | "terminated" | "cancelled";
@@ -182,3 +182,49 @@ export const useCurrentMonthRent = () =>
       };
     },
   });
+
+/** Adenda de valor: cria um novo escalão e recalcula as rendas do contrato */
+export const useAddRentPeriod = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: {
+      contractId: string;
+      validFrom: string;
+      monthlyAmount: number;
+      reason?: string | null;
+    }) => {
+      const { error } = await supabase.from("contract_rent_periods" as any).insert({
+        contract_id: input.contractId,
+        valid_from: input.validFrom,
+        monthly_amount: input.monthlyAmount,
+        reason: input.reason?.trim() || null,
+      } as any);
+      if (error) throw error;
+
+      const { data, error: rpcErr } = await supabase.rpc("recalculate_rent_charges" as any, {
+        p_contract_id: input.contractId,
+      });
+      if (rpcErr) throw rpcErr;
+      return (data ?? null) as RecalculationResult | null;
+    },
+    onSuccess: (_d, input) => {
+      qc.invalidateQueries({ queryKey: ["contract", input.contractId] });
+      qc.invalidateQueries({ queryKey: ["contracts"] });
+      qc.invalidateQueries({ queryKey: ["rent-charges", input.contractId] });
+      qc.invalidateQueries({ queryKey: ["rent-current-month"] });
+    },
+  });
+};
+
+export interface RecalculationResult {
+  created: number;
+  updated: number;
+  locked_count: number;
+  locked: Array<{
+    id: string;
+    year: number;
+    month: number;
+    current_amount: number;
+    expected_amount: number | null;
+  }>;
+}
