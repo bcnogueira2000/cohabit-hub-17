@@ -22,6 +22,21 @@ export interface Resident {
   status: "upcoming" | "active" | "checking_out" | "past";
   avatarColor: string;
   checkinChecklist: ChecklistItem[];
+  nationality: string | null;
+  documentType: string | null;
+  documentNumber: string | null;
+  taxNumber: string | null;
+  employerOrSchool: string | null;
+  dateOfBirth: string | null;
+}
+
+export interface ResidentLegalFields {
+  nationality: string | null;
+  documentType: string | null;
+  documentNumber: string | null;
+  taxNumber: string | null;
+  employerOrSchool: string | null;
+  dateOfBirth: string | null;
 }
 
 export interface ChecklistItem {
