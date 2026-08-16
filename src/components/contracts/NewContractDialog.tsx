@@ -115,8 +115,11 @@ export const NewContractDialog = ({ open, onOpenChange, defaults, leadId, onCrea
         } as any);
       if (periodErr) throw periodErr;
 
-      // 5. TODO: gerar mensalidades quando a função existir (Prompt 2.3)
-      // await supabase.rpc("generate_rent_charges", { p_contract_id: contractId });
+      // 5. Gerar as mensalidades (pró-rata por dias nos meses parciais)
+      const { error: genErr } = await supabase.rpc("generate_rent_charges" as any, {
+        p_contract_id: contractId,
+      });
+      if (genErr) throw genErr;
 
       qc.invalidateQueries({ queryKey: ["stays"] });
       qc.invalidateQueries({ queryKey: ["contracts"] });
