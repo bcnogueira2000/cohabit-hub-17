@@ -40,9 +40,10 @@ export type Database = {
           created_at: string
           end_at: string
           id: string
+          location_id: string | null
           notes: string | null
           resident_id: string | null
-          space_id: string
+          space_id: string | null
           start_at: string
           title: string
         }
@@ -50,9 +51,10 @@ export type Database = {
           created_at?: string
           end_at: string
           id?: string
+          location_id?: string | null
           notes?: string | null
           resident_id?: string | null
-          space_id: string
+          space_id?: string | null
           start_at: string
           title: string
         }
@@ -60,13 +62,21 @@ export type Database = {
           created_at?: string
           end_at?: string
           id?: string
+          location_id?: string | null
           notes?: string | null
           resident_id?: string | null
-          space_id?: string
+          space_id?: string | null
           start_at?: string
           title?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "bookings_location_id_fkey"
+            columns: ["location_id"]
+            isOneToOne: false
+            referencedRelation: "locations"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "bookings_resident_id_fkey"
             columns: ["resident_id"]
@@ -378,10 +388,13 @@ export type Database = {
       locations: {
         Row: {
           apartment: string | null
+          capacity: number | null
           created_at: string
           floor: number | null
           id: string
+          is_bookable: boolean
           kind: Database["public"]["Enums"]["location_kind"]
+          legacy_space_id: string | null
           name: string
           notes: string | null
           parent_location_id: string | null
@@ -390,10 +403,13 @@ export type Database = {
         }
         Insert: {
           apartment?: string | null
+          capacity?: number | null
           created_at?: string
           floor?: number | null
           id?: string
+          is_bookable?: boolean
           kind?: Database["public"]["Enums"]["location_kind"]
+          legacy_space_id?: string | null
           name: string
           notes?: string | null
           parent_location_id?: string | null
@@ -402,10 +418,13 @@ export type Database = {
         }
         Update: {
           apartment?: string | null
+          capacity?: number | null
           created_at?: string
           floor?: number | null
           id?: string
+          is_bookable?: boolean
           kind?: Database["public"]["Enums"]["location_kind"]
+          legacy_space_id?: string | null
           name?: string
           notes?: string | null
           parent_location_id?: string | null
