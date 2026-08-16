@@ -120,6 +120,7 @@ const Leads = () => {
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [convertOpen, setConvertOpen] = useState(false);
   const qc = useQueryClient();
+  const navigate = useNavigate();
   const [viewMode, setViewMode] = useState<"list" | "pipeline">(
     () => ((localStorage.getItem("leads-view") as "list" | "pipeline") || "pipeline")
   );
