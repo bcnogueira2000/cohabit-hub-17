@@ -25,8 +25,8 @@ const RequestDetail = () => {
   const { data: residents = [] } = useResidents();
   const { data: rooms = [] } = useRooms();
   const { data: staff = [] } = useStaffUsers();
-  const { data: roles = [] } = useMyRoles();
-  const canSeeCosts = roles.includes("admin") || roles.includes("manager");
+
+
   const updateRequest = useUpdateRequest();
   const request = requests.find((r) => r.id === id);
   const { data: linkedSupplier } = useSupplier(request?.supplierId ?? undefined);
