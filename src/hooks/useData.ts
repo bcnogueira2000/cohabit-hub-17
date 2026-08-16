@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import {
   mapBooking, mapCleaning, mapOpsTask, mapRequest, mapResident, mapRoom, mapSpace, mapStay,
 } from "@/lib/dataMappers";
-import type { Booking, CleaningTask, OpsTask, Request, Resident, Room, Space, Stay } from "@/lib/types";
+import type { Booking, CleaningTask, OpsTask, Request, Resident, ResidentLegalFields, Room, Space, Stay } from "@/lib/types";
 
 // ============ READ HOOKS ============
 
@@ -51,6 +51,28 @@ export const useUpdateResidentChecklist = () => {
     onSettled: () => qc.invalidateQueries({ queryKey: ["residents"] }),
   });
 };
+
+export const useUpdateResidentLegal = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, values }: { id: string; values: ResidentLegalFields }) => {
+      const { error } = await supabase
+        .from("residents")
+        .update({
+          nationality: values.nationality,
+          document_type: values.documentType,
+          document_number: values.documentNumber,
+          tax_number: values.taxNumber,
+          employer_or_school: values.employerOrSchool,
+          date_of_birth: values.dateOfBirth,
+        } as any)
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["residents"] }),
+  });
+};
+
 
 export const useRequests = () =>
   useQuery({

@@ -1,7 +1,11 @@
+import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { ArrowLeft, Mail, Phone, DoorClosed, Calendar, Check, Globe, Heart, AlertTriangle, CheckCircle2, FileText, Trash2 } from "lucide-react";
+import { ArrowLeft, Mail, Phone, DoorClosed, Calendar, Check, Globe, Heart, AlertTriangle, CheckCircle2, FileText, Trash2, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Progress } from "@/components/ui/progress";
@@ -16,13 +20,16 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { useResidents, useRooms, useRequests, useUpdateResidentChecklist } from "@/hooks/useData";
-import { useProfileByResidentId, useUpdateProfileByUserId } from "@/hooks/useProfile";
+import { useResidents, useRooms, useRequests, useUpdateResidentChecklist, useUpdateResidentLegal } from "@/hooks/useData";
+import { useProfileByResidentId, useUpdateProfileByUserId, useMyRoles } from "@/hooks/useProfile";
 import { StatusBadge, PriorityBadge } from "@/components/ui/StatusBadge";
 import ResidentFileUpload from "@/components/ResidentFileUpload";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import type { ChecklistItem } from "@/lib/types";
+import type { ChecklistItem, ResidentLegalFields } from "@/lib/types";
+
+const DOC_TYPES = ["Cartão de Cidadão", "Passaporte", "Título de Residência", "Outro"];
+const NONE = "__none__";
 
 const checkInItems = [
   "Documento de identificação verificado",
@@ -45,6 +52,54 @@ const ResidentDetail = () => {
   const { data: profile } = useProfileByResidentId(resident?.id);
   const updateChecklist = useUpdateResidentChecklist();
   const updateProfile = useUpdateProfileByUserId();
+  const updateLegal = useUpdateResidentLegal();
+  const { data: roles = [] } = useMyRoles();
+  const isStaff = roles.some((r) => r === "staff" || r === "manager" || r === "admin");
+
+  const [legal, setLegal] = useState<ResidentLegalFields>({
+    nationality: null,
+    documentType: null,
+    documentNumber: null,
+    taxNumber: null,
+    employerOrSchool: null,
+    dateOfBirth: null,
+  });
+
+  useEffect(() => {
+    if (!resident) return;
+    setLegal({
+      nationality: resident.nationality,
+      documentType: resident.documentType,
+      documentNumber: resident.documentNumber,
+      taxNumber: resident.taxNumber,
+      employerOrSchool: resident.employerOrSchool,
+      dateOfBirth: resident.dateOfBirth,
+    });
+  }, [resident?.id, resident?.nationality, resident?.documentType, resident?.documentNumber, resident?.taxNumber, resident?.employerOrSchool, resident?.dateOfBirth]);
+
+  const saveLegal = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!resident) return;
+    const clean = (v: string | null) => (v && v.trim() !== "" ? v.trim() : null);
+    updateLegal.mutate(
+      {
+        id: resident.id,
+        values: {
+          nationality: clean(legal.nationality),
+          documentType: clean(legal.documentType),
+          documentNumber: clean(legal.documentNumber),
+          taxNumber: clean(legal.taxNumber),
+          employerOrSchool: clean(legal.employerOrSchool),
+          dateOfBirth: clean(legal.dateOfBirth),
+        },
+      },
+      {
+        onSuccess: () => toast.success("Dados legais guardados"),
+        onError: (e: any) => toast.error(e?.message ?? "Não foi possível guardar"),
+      },
+    );
+  };
+
 
   const documentPath = profile?.document_url ?? null;
 
@@ -211,6 +266,84 @@ const ResidentDetail = () => {
               </div>
             </div>
           </Card>
+
+          {isStaff && (
+            <Card className="p-4 border-border/60 shadow-card">
+              <div className="flex items-center gap-2 mb-3">
+                <ShieldCheck className="h-4 w-4 text-primary" strokeWidth={1.5} />
+                <h3 className="font-display text-lg font-semibold">Dados legais</h3>
+              </div>
+              <p className="text-xs text-muted-foreground mb-4">
+                Apenas visível e editável pela equipa. O residente não altera estes dados no portal.
+              </p>
+              <form onSubmit={saveLegal} className="grid sm:grid-cols-2 gap-3">
+                <div>
+                  <Label htmlFor="legal-nationality">Nacionalidade</Label>
+                  <Input
+                    id="legal-nationality"
+                    className="mt-1.5"
+                    value={legal.nationality ?? ""}
+                    onChange={(e) => setLegal((s) => ({ ...s, nationality: e.target.value }))}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="legal-dob">Data de nascimento</Label>
+                  <Input
+                    id="legal-dob"
+                    type="date"
+                    className="mt-1.5"
+                    value={legal.dateOfBirth ?? ""}
+                    onChange={(e) => setLegal((s) => ({ ...s, dateOfBirth: e.target.value }))}
+                  />
+                </div>
+                <div>
+                  <Label>Tipo de documento</Label>
+                  <Select
+                    value={legal.documentType ?? NONE}
+                    onValueChange={(v) => setLegal((s) => ({ ...s, documentType: v === NONE ? null : v }))}
+                  >
+                    <SelectTrigger className="mt-1.5"><SelectValue placeholder="Escolher" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value={NONE}>Sem indicação</SelectItem>
+                      {DOC_TYPES.map((d) => <SelectItem key={d} value={d}>{d}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="legal-docnum">Número de documento</Label>
+                  <Input
+                    id="legal-docnum"
+                    className="mt-1.5"
+                    value={legal.documentNumber ?? ""}
+                    onChange={(e) => setLegal((s) => ({ ...s, documentNumber: e.target.value }))}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="legal-nif">NIF</Label>
+                  <Input
+                    id="legal-nif"
+                    className="mt-1.5"
+                    value={legal.taxNumber ?? ""}
+                    onChange={(e) => setLegal((s) => ({ ...s, taxNumber: e.target.value }))}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="legal-employer">Empresa / escola</Label>
+                  <Input
+                    id="legal-employer"
+                    className="mt-1.5"
+                    value={legal.employerOrSchool ?? ""}
+                    onChange={(e) => setLegal((s) => ({ ...s, employerOrSchool: e.target.value }))}
+                  />
+                </div>
+                <div className="sm:col-span-2 flex justify-end">
+                  <Button type="submit" disabled={updateLegal.isPending} className="rounded-full">
+                    {updateLegal.isPending ? "A guardar…" : "Guardar dados legais"}
+                  </Button>
+                </div>
+              </form>
+            </Card>
+          )}
           <Card className="p-4 border-border/60 shadow-card">
             <h3 className="font-display text-lg font-semibold mb-2">Notas internas</h3>
             <p className="text-sm text-muted-foreground">Sem notas. Adicionar contexto sobre o residente para a equipa de operações.</p>
