@@ -33,6 +33,7 @@ export interface Lead {
   nextAction: string | null;
   nextActionDate: string | null;
   stayId: string | null;
+  contractId: string | null;
   lostReason: string | null;
   externalRef: string | null;
   gdprConsent: boolean;
@@ -65,6 +66,7 @@ export const mapLead = (r: any): Lead => ({
   nextAction: r.next_action ?? null,
   nextActionDate: r.next_action_date ?? null,
   stayId: r.stay_id ?? null,
+  contractId: r.contract_id ?? null,
   lostReason: r.lost_reason ?? null,
   externalRef: r.external_ref ?? null,
   gdprConsent: !!r.gdpr_consent,
@@ -99,6 +101,7 @@ export interface LeadInput {
   gdprConsent?: boolean;
   language?: string | null;
   stayId?: string | null;
+  contractId?: string | null;
 }
 
 
@@ -129,6 +132,7 @@ const toDbPatch = (i: Partial<LeadInput>) => {
   if (i.gdprConsent !== undefined) p.gdpr_consent = i.gdprConsent;
   if (i.language !== undefined) p.language = i.language;
   if (i.stayId !== undefined) p.stay_id = i.stayId;
+  if (i.contractId !== undefined) p.contract_id = i.contractId;
 
   return p;
 };

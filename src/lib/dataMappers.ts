@@ -124,6 +124,7 @@ export const mapStay = (s: any): Stay => ({
   checkOut: s.check_out,
   status: s.status,
   source: s.source,
+  contractId: s.contract_id ?? null,
   notes: s.notes ?? undefined,
   createdAt: s.created_at,
   updatedAt: s.updated_at,

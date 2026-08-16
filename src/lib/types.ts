@@ -158,6 +158,7 @@ export interface Stay {
   checkOut: string;
   status: StayStatus;
   source: StaySource;
+  contractId: string | null;
   notes?: string;
   createdAt: string;
   updatedAt: string;
