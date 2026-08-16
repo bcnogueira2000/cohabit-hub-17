@@ -273,6 +273,13 @@ export type Database = {
             foreignKeyName: "contract_rent_periods_contract_id_fkey"
             columns: ["contract_id"]
             isOneToOne: false
+            referencedRelation: "contract_balance"
+            referencedColumns: ["contract_id"]
+          },
+          {
+            foreignKeyName: "contract_rent_periods_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
             referencedRelation: "contracts"
             referencedColumns: ["id"]
           },
@@ -683,6 +690,74 @@ export type Database = {
           },
         ]
       }
+      payments: {
+        Row: {
+          amount: number
+          contract_id: string
+          created_at: string
+          id: string
+          kind: Database["public"]["Enums"]["payment_kind"]
+          method: Database["public"]["Enums"]["payment_method"] | null
+          notes: string | null
+          paid_at: string
+          reference: string | null
+          rent_charge_id: string | null
+        }
+        Insert: {
+          amount: number
+          contract_id: string
+          created_at?: string
+          id?: string
+          kind?: Database["public"]["Enums"]["payment_kind"]
+          method?: Database["public"]["Enums"]["payment_method"] | null
+          notes?: string | null
+          paid_at?: string
+          reference?: string | null
+          rent_charge_id?: string | null
+        }
+        Update: {
+          amount?: number
+          contract_id?: string
+          created_at?: string
+          id?: string
+          kind?: Database["public"]["Enums"]["payment_kind"]
+          method?: Database["public"]["Enums"]["payment_method"] | null
+          notes?: string | null
+          paid_at?: string
+          reference?: string | null
+          rent_charge_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payments_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "contract_balance"
+            referencedColumns: ["contract_id"]
+          },
+          {
+            foreignKeyName: "payments_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "contracts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payments_rent_charge_id_fkey"
+            columns: ["rent_charge_id"]
+            isOneToOne: false
+            referencedRelation: "rent_charge_balance"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payments_rent_charge_id_fkey"
+            columns: ["rent_charge_id"]
+            isOneToOne: false
+            referencedRelation: "rent_charges"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           account_status: Database["public"]["Enums"]["account_status"]
@@ -754,6 +829,57 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      rent_charges: {
+        Row: {
+          amount: number
+          contract_id: string
+          created_at: string
+          due_date: string
+          id: string
+          month: number
+          notes: string | null
+          prorated: boolean
+          year: number
+        }
+        Insert: {
+          amount: number
+          contract_id: string
+          created_at?: string
+          due_date: string
+          id?: string
+          month: number
+          notes?: string | null
+          prorated?: boolean
+          year: number
+        }
+        Update: {
+          amount?: number
+          contract_id?: string
+          created_at?: string
+          due_date?: string
+          id?: string
+          month?: number
+          notes?: string | null
+          prorated?: boolean
+          year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rent_charges_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "contract_balance"
+            referencedColumns: ["contract_id"]
+          },
+          {
+            foreignKeyName: "rent_charges_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "contracts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       request_activity: {
         Row: {
@@ -1151,6 +1277,13 @@ export type Database = {
             foreignKeyName: "stays_contract_id_fkey"
             columns: ["contract_id"]
             isOneToOne: false
+            referencedRelation: "contract_balance"
+            referencedColumns: ["contract_id"]
+          },
+          {
+            foreignKeyName: "stays_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
             referencedRelation: "contracts"
             referencedColumns: ["id"]
           },
@@ -1259,7 +1392,48 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      contract_balance: {
+        Row: {
+          billed: number | null
+          contract_id: string | null
+          deposit_held: number | null
+          overdue: number | null
+          received: number | null
+        }
+        Relationships: []
+      }
+      rent_charge_balance: {
+        Row: {
+          amount: number | null
+          contract_id: string | null
+          created_at: string | null
+          due_date: string | null
+          id: string | null
+          month: number | null
+          notes: string | null
+          outstanding: number | null
+          paid: number | null
+          payment_state: string | null
+          prorated: boolean | null
+          year: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rent_charges_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "contract_balance"
+            referencedColumns: ["contract_id"]
+          },
+          {
+            foreignKeyName: "rent_charges_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "contracts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       current_resident_id: { Args: never; Returns: string }
@@ -1339,6 +1513,20 @@ export type Database = {
         | "apartment"
         | "floor"
       location_status: "active" | "out_of_service" | "under_maintenance"
+      payment_kind:
+        | "rent"
+        | "deposit"
+        | "deposit_return"
+        | "booking_fee"
+        | "extra"
+        | "other"
+      payment_method:
+        | "transfer"
+        | "mbway"
+        | "direct_debit"
+        | "card"
+        | "cash"
+        | "other"
       permission_to_enter: "yes" | "no" | "with_notice"
       request_activity_kind:
         | "supplier_assigned"
@@ -1583,6 +1771,22 @@ export const Constants = {
         "floor",
       ],
       location_status: ["active", "out_of_service", "under_maintenance"],
+      payment_kind: [
+        "rent",
+        "deposit",
+        "deposit_return",
+        "booking_fee",
+        "extra",
+        "other",
+      ],
+      payment_method: [
+        "transfer",
+        "mbway",
+        "direct_debit",
+        "card",
+        "cash",
+        "other",
+      ],
       permission_to_enter: ["yes", "no", "with_notice"],
       request_activity_kind: [
         "supplier_assigned",
