@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import {
   mapBooking, mapCleaning, mapOpsTask, mapRequest, mapResident, mapRoom, mapSpace, mapStay,
 } from "@/lib/dataMappers";
-import type { Booking, CleaningTask, OpsTask, Request, Resident, Room, Space, Stay } from "@/lib/types";
+import type { Booking, CleaningTask, OpsTask, Request, Resident, ResidentLegalFields, Room, Space, Stay } from "@/lib/types";
 
 // ============ READ HOOKS ============
 
