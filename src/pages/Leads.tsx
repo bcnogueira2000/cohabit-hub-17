@@ -44,7 +44,7 @@ import {
   isOverdue,
 } from "@/components/leads/LeadsPipeline";
 import { leadStatusLabels, leadSourceLabels, leadProfileLabels } from "@/lib/labels";
-import { ConvertLeadDialog } from "@/components/leads/ConvertLeadDialog";
+import { NewContractDialog } from "@/components/contracts/NewContractDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -416,10 +416,18 @@ const Leads = () => {
                       </DropdownMenuContent>
                     </DropdownMenu>
                     <Badge variant="outline" className="text-muted-foreground">{leadSourceLabels[l.source]}</Badge>
-                    {l.stayId && (
-                      <Badge variant="outline" className="bg-success/10 text-success border-success/30 gap-1">
-                        <CheckCircle2 className="h-3 w-3" strokeWidth={1.5} /> Convertido
-                      </Badge>
+                    {(l.contractId || l.stayId) && (
+                      l.contractId ? (
+                        <Link to={`/contracts/${l.contractId}`} onClick={(e) => e.stopPropagation()}>
+                          <Badge variant="outline" className="bg-success/10 text-success border-success/30 gap-1">
+                            <CheckCircle2 className="h-3 w-3" strokeWidth={1.5} /> Convertido
+                          </Badge>
+                        </Link>
+                      ) : (
+                        <Badge variant="outline" className="bg-success/10 text-success border-success/30 gap-1">
+                          <CheckCircle2 className="h-3 w-3" strokeWidth={1.5} /> Convertido
+                        </Badge>
+                      )
                     )}
                   </div>
                   <div className="font-display text-lg font-semibold truncate">{l.fullName}</div>
@@ -641,19 +649,19 @@ const Leads = () => {
                   >
                     Guardar alterações
                   </Button>
-                  {selected.status === "won" && !selected.stayId && (
+                  {selected.status === "won" && !selected.contractId && !selected.stayId && (
                     <Button
                       variant="outline"
                       className="w-full rounded-full border-success text-success hover:bg-success/10 hover:text-success mt-2"
                       onClick={() => setConvertOpen(true)}
                     >
-                      <UserCheck className="h-4 w-4 mr-1.5" strokeWidth={1.5} /> Converter em residente
+                      <UserCheck className="h-4 w-4 mr-1.5" strokeWidth={1.5} /> Criar contrato
                     </Button>
                   )}
-                  {selected.stayId && (
+                  {selected.contractId && (
                     <Button asChild variant="outline" className="w-full rounded-full mt-2">
-                      <Link to="/stays">
-                        Ver estadia <ArrowRight className="h-4 w-4 ml-1.5" strokeWidth={1.5} />
+                      <Link to={`/contracts/${selected.contractId}`}>
+                        Ver contrato <ArrowRight className="h-4 w-4 ml-1.5" strokeWidth={1.5} />
                       </Link>
                     </Button>
                   )}
@@ -667,24 +675,31 @@ const Leads = () => {
       </Dialog>
 
       {selected && (
-        <ConvertLeadDialog
-          lead={selected}
+        <NewContractDialog
           open={convertOpen}
           onOpenChange={setConvertOpen}
-          onConverted={async (stayId) => {
+          leadId={selected.id}
+          defaults={{
+            fullName: selected.fullName,
+            email: selected.email,
+            phone: selected.phone ?? "",
+            preferredRoomType: selected.preferredRoomType,
+          }}
+          onCreated={async ({ contractId, stayId }) => {
             const leadId = selected.id;
-            updateLead.mutate({ id: leadId, patch: { stayId } });
+            updateLead.mutate({ id: leadId, patch: { stayId, contractId } });
             const { data: { user } } = await supabase.auth.getUser();
             await supabase.from("lead_activity" as any).insert({
               lead_id: leadId,
               actor_user_id: user?.id ?? null,
               actor_name: null,
               kind: "converted",
-              payload: { stay_id: stayId },
+              payload: { stay_id: stayId, contract_id: contractId },
             } as any);
             qc.invalidateQueries({ queryKey: ["lead_activity", leadId] });
-            setSelected((prev) => (prev ? { ...prev, stayId } : null));
-            toast.success("Lead convertida em residente");
+            setSelected((prev) => (prev ? { ...prev, stayId, contractId } : null));
+            toast.success("Lead convertida — contrato criado");
+            navigate(`/contracts/${contractId}`);
           }}
         />
       )}
@@ -725,9 +740,13 @@ const LeadHistory = ({ leadId }: { leadId: string }) => {
                 ) : entry.kind === "converted" ? (
                   <>
                     Lead convertida em residente
-                    {entry.payload?.stay_id && (
+                    {entry.payload?.contract_id ? (
+                      <Link to={`/contracts/${entry.payload.contract_id}`} className="text-primary hover:underline">
+                        {" "}— Contrato criado
+                      </Link>
+                    ) : entry.payload?.stay_id ? (
                       <span className="text-muted-foreground"> — Estadia criada</span>
-                    )}
+                    ) : null}
                   </>
                 ) : entry.kind === "created_from_website" ? (
                   <>

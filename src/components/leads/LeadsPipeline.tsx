@@ -180,7 +180,7 @@ export const LeadsPipeline = ({
                   <Badge variant="outline" className="text-muted-foreground">
                     {leadSourceLabels[l.source]}
                   </Badge>
-                  {l.stayId && (
+                  {(l.contractId || l.stayId) && (
                     <Badge variant="outline" className="bg-success/10 text-success border-success/30 gap-1">
                       <CheckCircle2 className="h-3 w-3" strokeWidth={1.5} /> Convertido
                     </Badge>
