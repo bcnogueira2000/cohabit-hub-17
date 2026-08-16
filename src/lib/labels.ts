@@ -113,7 +113,6 @@ export const requestActivityLabels: Record<string, string> = {
   owner_changed: "Responsável alterado",
   supplier_assigned: "Fornecedor atribuído",
   supplier_removed: "Fornecedor removido",
-  cost_updated: "Custo atualizado",
   location_changed: "Local alterado",
 };
 

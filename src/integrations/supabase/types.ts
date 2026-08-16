@@ -706,11 +706,8 @@ export type Database = {
           assigned_to_user_id: string | null
           category: Database["public"]["Enums"]["request_category"]
           code: string
-          cost_currency: string
           created_at: string
           description: string | null
-          estimated_cost: number | null
-          final_cost: number | null
           id: string
           location: string | null
           location_id: string | null
@@ -729,11 +726,8 @@ export type Database = {
           assigned_to_user_id?: string | null
           category: Database["public"]["Enums"]["request_category"]
           code: string
-          cost_currency?: string
           created_at?: string
           description?: string | null
-          estimated_cost?: number | null
-          final_cost?: number | null
           id?: string
           location?: string | null
           location_id?: string | null
@@ -752,11 +746,8 @@ export type Database = {
           assigned_to_user_id?: string | null
           category?: Database["public"]["Enums"]["request_category"]
           code?: string
-          cost_currency?: string
           created_at?: string
           description?: string | null
-          estimated_cost?: number | null
-          final_cost?: number | null
           id?: string
           location?: string | null
           location_id?: string | null
@@ -1216,7 +1207,6 @@ export type Database = {
         | "supplier_removed"
         | "status_changed"
         | "owner_changed"
-        | "cost_updated"
         | "location_changed"
         | "created"
       request_category:
@@ -1458,7 +1448,6 @@ export const Constants = {
         "supplier_removed",
         "status_changed",
         "owner_changed",
-        "cost_updated",
         "location_changed",
         "created",
       ],

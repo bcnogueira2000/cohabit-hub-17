@@ -71,9 +71,6 @@ export interface Request {
   assignedTo: string | null;
   assignedToUserId: string | null;
   supplierId: string | null;
-  estimatedCost: number | null;
-  finalCost: number | null;
-  costCurrency: string;
   createdAt: string;
   updatedAt: string;
   permissionToEnter: "yes" | "no" | "with_notice";
@@ -236,7 +233,6 @@ export type RequestActivityKind =
   | "supplier_removed"
   | "status_changed"
   | "owner_changed"
-  | "cost_updated"
   | "location_changed"
   | "created";
 

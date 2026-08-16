@@ -1,14 +1,12 @@
 import { useState, useEffect } from "react";
 import { Link, useParams } from "react-router-dom";
-import { ArrowLeft, Calendar, MapPin, User, Tag, ShieldCheck, DoorOpen, UserCog, Building2, Euro } from "lucide-react";
+import { ArrowLeft, Calendar, MapPin, User, Tag, ShieldCheck, DoorOpen, UserCog, Building2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RequestPhotoGallery } from "@/components/RequestPhotoGallery";
 import { useRequests, useResidents, useRooms, useUpdateRequest } from "@/hooks/useData";
 import { useStaffUsers } from "@/hooks/useStaffUsers";
-import { useMyRoles } from "@/hooks/useProfile";
 import { useSupplier } from "@/hooks/useSuppliers";
 import { useLocation as useLocationData } from "@/hooks/useLocations";
 import { SupplierCombobox } from "@/components/SupplierCombobox";
@@ -25,23 +23,20 @@ const RequestDetail = () => {
   const { data: residents = [] } = useResidents();
   const { data: rooms = [] } = useRooms();
   const { data: staff = [] } = useStaffUsers();
-  const { data: roles = [] } = useMyRoles();
-  const canSeeCosts = roles.includes("admin") || roles.includes("manager");
+
+
   const updateRequest = useUpdateRequest();
   const request = requests.find((r) => r.id === id);
   const { data: linkedSupplier } = useSupplier(request?.supplierId ?? undefined);
   const { data: linkedLocation } = useLocationData(request?.locationId ?? undefined);
   const [assigneeUserId, setAssigneeUserId] = useState<string>("__none__");
-  const [estimatedCost, setEstimatedCost] = useState<string>("");
-  const [finalCost, setFinalCost] = useState<string>("");
 
   useEffect(() => {
     if (request) {
       setAssigneeUserId(request.assignedToUserId ?? "__none__");
-      setEstimatedCost(request.estimatedCost != null ? String(request.estimatedCost) : "");
-      setFinalCost(request.finalCost != null ? String(request.finalCost) : "");
     }
-  }, [request?.id, request?.assignedToUserId, request?.estimatedCost, request?.finalCost]);
+  }, [request?.id, request?.assignedToUserId]);
+
 
   if (!request) {
     return (
@@ -191,50 +186,8 @@ const RequestDetail = () => {
         )}
       </Card>
 
-      {canSeeCosts && (
-        <Card className="p-5 border-border/60 shadow-card mb-4">
-          <h3 className="font-display text-lg font-semibold mb-3 flex items-center gap-2">
-            <Euro className="h-4 w-4" /> Custos
-            <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-normal ml-1">admin · manager</span>
-          </h3>
-          <div className="grid sm:grid-cols-2 gap-3">
-            <div>
-              <label className="text-xs text-muted-foreground mb-1 block">Custo estimado (€)</label>
-              <Input
-                type="number" step="0.01" inputMode="decimal"
-                value={estimatedCost}
-                onChange={(e) => setEstimatedCost(e.target.value)}
-                onBlur={() => {
-                  const v = estimatedCost === "" ? null : Number(estimatedCost);
-                  if (v !== request.estimatedCost) {
-                    updateRequest.mutate(
-                      { id: request.id, patch: { estimatedCost: v } },
-                      { onSuccess: () => toast.success("Custo estimado atualizado") }
-                    );
-                  }
-                }}
-              />
-            </div>
-            <div>
-              <label className="text-xs text-muted-foreground mb-1 block">Custo final (€)</label>
-              <Input
-                type="number" step="0.01" inputMode="decimal"
-                value={finalCost}
-                onChange={(e) => setFinalCost(e.target.value)}
-                onBlur={() => {
-                  const v = finalCost === "" ? null : Number(finalCost);
-                  if (v !== request.finalCost) {
-                    updateRequest.mutate(
-                      { id: request.id, patch: { finalCost: v } },
-                      { onSuccess: () => toast.success("Custo final atualizado") }
-                    );
-                  }
-                }}
-              />
-            </div>
-          </div>
-        </Card>
-      )}
+
+
 
       <Card className="p-5 border-border/60 shadow-card mb-4">
         <h3 className="font-display text-lg font-semibold mb-3">Ações rápidas</h3>

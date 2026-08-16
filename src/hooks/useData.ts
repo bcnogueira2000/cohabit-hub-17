@@ -168,8 +168,6 @@ export const useUpdateRequest = () => {
       if (patch.priority) dbPatch.priority = patch.priority;
       if (patch.supplierId !== undefined) dbPatch.supplier_id = patch.supplierId;
       if (patch.locationId !== undefined) dbPatch.location_id = patch.locationId;
-      if (patch.estimatedCost !== undefined) dbPatch.estimated_cost = patch.estimatedCost;
-      if (patch.finalCost !== undefined) dbPatch.final_cost = patch.finalCost;
       const { error } = await supabase.from("requests").update(dbPatch).eq("id", id);
       if (error) throw error;
     },
