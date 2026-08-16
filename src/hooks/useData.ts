@@ -106,13 +106,18 @@ export const useCleaningTasks = () =>
 
 export const useSpaces = () =>
   useQuery({
-    queryKey: ["spaces"],
+    queryKey: ["bookable_locations"],
     queryFn: async (): Promise<Space[]> => {
-      const { data, error } = await supabase.from("spaces").select("*").order("name");
+      const { data, error } = await supabase
+        .from("locations")
+        .select("*")
+        .eq("is_bookable", true)
+        .order("name");
       if (error) throw error;
       return (data ?? []).map(mapSpace);
     },
   });
+
 
 export const useBookings = () =>
   useQuery({
@@ -259,7 +264,8 @@ export const useCreateBooking = () => {
   return useMutation({
     mutationFn: async (input: { spaceId: string; residentId: string | null; title: string; start: string; end: string }) => {
       const { error } = await supabase.from("bookings").insert({
-        space_id: input.spaceId,
+        location_id: input.spaceId,
+
         resident_id: input.residentId,
         title: input.title,
         start_at: input.start,

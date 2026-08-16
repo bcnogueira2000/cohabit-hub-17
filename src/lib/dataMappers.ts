@@ -95,18 +95,23 @@ export const mapCleaning = (c: any): CleaningTask => ({
 });
 
 export const mapSpace = (s: any): Space => ({
-  id: s.id, name: s.name, capacity: s.capacity, description: s.description ?? "", active: s.active ?? true,
+  id: s.id,
+  name: s.name,
+  capacity: s.capacity ?? 0,
+  description: s.description ?? s.notes ?? "",
+  active: s.status ? s.status === "active" : (s.active ?? true),
 });
 
 export const mapBooking = (b: any): Booking => ({
   id: b.id,
-  spaceId: b.space_id,
+  spaceId: b.location_id ?? b.space_id,
   residentId: b.resident_id ?? null,
   title: b.title,
   start: b.start_at,
   end: b.end_at,
   notes: b.notes ?? undefined,
 });
+
 
 export const mapStay = (s: any): Stay => ({
   id: s.id,
