@@ -1,0 +1,1 @@
+GRANT EXECUTE ON FUNCTION public.compute_rent_for_month(uuid, int, int) TO supabase_read_only_user;
