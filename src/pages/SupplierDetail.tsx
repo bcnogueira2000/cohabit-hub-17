@@ -5,7 +5,6 @@ import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useSupplier } from "@/hooks/useSuppliers";
 import { useRequests, useOpsTasks, useCleaningTasks } from "@/hooks/useData";
-import { useMyRoles } from "@/hooks/useProfile";
 import { supplierCategoryLabels } from "@/lib/labels";
 import { SupplierDialog } from "@/components/SupplierDialog";
 import { StatusBadge, PriorityBadge } from "@/components/ui/StatusBadge";
@@ -16,8 +15,6 @@ const SupplierDetail = () => {
   const { data: requests = [] } = useRequests();
   const { data: opsTasks = [] } = useOpsTasks();
   const { data: cleaningTasks = [] } = useCleaningTasks();
-  const { data: roles = [] } = useMyRoles();
-  const canSeeCosts = roles.includes("admin") || roles.includes("manager");
 
   if (isLoading) return <div className="p-10"><p className="text-muted-foreground text-sm">A carregar…</p></div>;
   if (!supplier) {
@@ -34,8 +31,6 @@ const SupplierDetail = () => {
   const linkedRequests = requests.filter((r) => r.supplierId === supplier.id);
   const linkedOpsTasks = opsTasks.filter((t) => t.supplierId === supplier.id);
   const linkedCleanings = cleaningTasks.filter((c) => c.supplierId === supplier.id);
-
-  const totalFinalCost = linkedRequests.reduce((sum, r) => sum + (r.finalCost ?? 0), 0);
 
   return (
     <div className="px-4 lg:px-10 py-6 lg:py-10 max-w-5xl mx-auto">
@@ -65,7 +60,6 @@ const SupplierDetail = () => {
           <TabsTrigger value="requests">Pedidos ({linkedRequests.length})</TabsTrigger>
           <TabsTrigger value="tasks">Tarefas ({linkedOpsTasks.length + linkedCleanings.length})</TabsTrigger>
           <TabsTrigger value="contracts" disabled>Contratos</TabsTrigger>
-          {canSeeCosts && <TabsTrigger value="costs">Custos</TabsTrigger>}
         </TabsList>
 
         <TabsContent value="overview" className="space-y-3">
@@ -140,17 +134,6 @@ const SupplierDetail = () => {
           )}
         </TabsContent>
 
-        {canSeeCosts && (
-          <TabsContent value="costs">
-            <Card className="p-5 border-border/60 shadow-card">
-              <h3 className="font-display text-lg font-semibold mb-3">Custos acumulados</h3>
-              <p className="text-3xl font-display font-semibold">
-                {totalFinalCost.toLocaleString("pt-PT", { style: "currency", currency: "EUR" })}
-              </p>
-              <p className="text-xs text-muted-foreground mt-1">Soma dos custos finais em {linkedRequests.length} pedido{linkedRequests.length === 1 ? "" : "s"}.</p>
-            </Card>
-          </TabsContent>
-        )}
       </Tabs>
     </div>
   );
