@@ -71,9 +71,6 @@ export interface Request {
   assignedTo: string | null;
   assignedToUserId: string | null;
   supplierId: string | null;
-  estimatedCost: number | null;
-  finalCost: number | null;
-  costCurrency: string;
   createdAt: string;
   updatedAt: string;
   permissionToEnter: "yes" | "no" | "with_notice";
