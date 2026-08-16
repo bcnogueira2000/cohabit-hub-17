@@ -191,50 +191,8 @@ const RequestDetail = () => {
         )}
       </Card>
 
-      {canSeeCosts && (
-        <Card className="p-5 border-border/60 shadow-card mb-4">
-          <h3 className="font-display text-lg font-semibold mb-3 flex items-center gap-2">
-            <Euro className="h-4 w-4" /> Custos
-            <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-normal ml-1">admin · manager</span>
-          </h3>
-          <div className="grid sm:grid-cols-2 gap-3">
-            <div>
-              <label className="text-xs text-muted-foreground mb-1 block">Custo estimado (€)</label>
-              <Input
-                type="number" step="0.01" inputMode="decimal"
-                value={estimatedCost}
-                onChange={(e) => setEstimatedCost(e.target.value)}
-                onBlur={() => {
-                  const v = estimatedCost === "" ? null : Number(estimatedCost);
-                  if (v !== request.estimatedCost) {
-                    updateRequest.mutate(
-                      { id: request.id, patch: { estimatedCost: v } },
-                      { onSuccess: () => toast.success("Custo estimado atualizado") }
-                    );
-                  }
-                }}
-              />
-            </div>
-            <div>
-              <label className="text-xs text-muted-foreground mb-1 block">Custo final (€)</label>
-              <Input
-                type="number" step="0.01" inputMode="decimal"
-                value={finalCost}
-                onChange={(e) => setFinalCost(e.target.value)}
-                onBlur={() => {
-                  const v = finalCost === "" ? null : Number(finalCost);
-                  if (v !== request.finalCost) {
-                    updateRequest.mutate(
-                      { id: request.id, patch: { finalCost: v } },
-                      { onSuccess: () => toast.success("Custo final atualizado") }
-                    );
-                  }
-                }}
-              />
-            </div>
-          </div>
-        </Card>
-      )}
+
+
 
       <Card className="p-5 border-border/60 shadow-card mb-4">
         <h3 className="font-display text-lg font-semibold mb-3">Ações rápidas</h3>
