@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useParams } from "react-router-dom";
-import { ArrowLeft, Calendar, MapPin, User, Tag, ShieldCheck, DoorOpen, UserCog, Building2, Euro } from "lucide-react";
+import { ArrowLeft, Calendar, MapPin, User, Tag, ShieldCheck, DoorOpen, UserCog, Building2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
