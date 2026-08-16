@@ -3,7 +3,9 @@ import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 
 export type BookingRow = Database["public"]["Tables"]["bookings"]["Row"];
-export type SpaceRow = Database["public"]["Tables"]["spaces"]["Row"];
+export type LocationRow = Database["public"]["Tables"]["locations"]["Row"];
+/** Bookable spaces are now locations with is_bookable = true. */
+export type SpaceRow = LocationRow;
 
 export const useMyBookings = () =>
   useQuery({
@@ -20,24 +22,24 @@ export const useMyBookings = () =>
 
 export const useSpaces = () =>
   useQuery({
-    queryKey: ["spaces", "active"],
-    queryFn: async (): Promise<SpaceRow[]> => {
+    queryKey: ["bookable_locations"],
+    queryFn: async (): Promise<LocationRow[]> => {
       const { data, error } = await supabase
-        .from("spaces")
+        .from("locations")
         .select("*")
-        .eq("active", true)
+        .eq("is_bookable", true)
         .order("name", { ascending: true });
       if (error) throw error;
       return data ?? [];
     },
   });
 
-export const useSpaceBookingsForDay = (spaceId: string | null, dayISO: string) =>
+export const useSpaceBookingsForDay = (locationId: string | null, dayISO: string) =>
   useQuery({
-    enabled: !!spaceId && !!dayISO,
-    queryKey: ["space_bookings", spaceId, dayISO],
+    enabled: !!locationId && !!dayISO,
+    queryKey: ["space_bookings", locationId, dayISO],
     queryFn: async (): Promise<BookingRow[]> => {
-      if (!spaceId) return [];
+      if (!locationId) return [];
       const start = new Date(dayISO);
       start.setHours(0, 0, 0, 0);
       const end = new Date(start);
@@ -45,7 +47,7 @@ export const useSpaceBookingsForDay = (spaceId: string | null, dayISO: string) =
       const { data, error } = await supabase
         .from("bookings")
         .select("*")
-        .eq("space_id", spaceId)
+        .eq("location_id", locationId)
         .gte("start_at", start.toISOString())
         .lt("start_at", end.toISOString());
       if (error) throw error;
@@ -54,7 +56,7 @@ export const useSpaceBookingsForDay = (spaceId: string | null, dayISO: string) =
   });
 
 export interface CreateBookingInput {
-  space_id: string;
+  location_id: string;
   title: string;
   start_at: string;
   end_at: string;
@@ -75,7 +77,7 @@ export const useCreateBooking = () => {
       const { data: existing } = await supabase
         .from("bookings")
         .select("id, start_at, end_at")
-        .eq("space_id", input.space_id)
+        .eq("location_id", input.location_id)
         .lt("start_at", input.end_at)
         .gt("end_at", input.start_at);
       if (existing && existing.length > 0) {
@@ -85,7 +87,7 @@ export const useCreateBooking = () => {
       const { data, error } = await supabase
         .from("bookings")
         .insert({
-          space_id: input.space_id,
+          location_id: input.location_id,
           title: input.title,
           start_at: input.start_at,
           end_at: input.end_at,
@@ -102,7 +104,6 @@ export const useCreateBooking = () => {
         throw error;
       }
       return data;
-
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["my_bookings"] });
