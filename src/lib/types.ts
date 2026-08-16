@@ -236,7 +236,6 @@ export type RequestActivityKind =
   | "supplier_removed"
   | "status_changed"
   | "owner_changed"
-  | "cost_updated"
   | "location_changed"
   | "created";
 
