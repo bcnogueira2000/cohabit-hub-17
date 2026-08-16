@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { Plus, Calendar, LogIn, LogOut, Home, Trash2, ArrowRight, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -10,6 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useStays, useRooms, useCreateStay, useUpdateStay, useDeleteStay } from "@/hooks/useData";
+import { NewContractDialog } from "@/components/contracts/NewContractDialog";
 import { toast } from "sonner";
 import type { Stay, StayStatus } from "@/lib/types";
 
@@ -38,6 +40,8 @@ const Stays = () => {
   const updateStay = useUpdateStay();
   const deleteStay = useDeleteStay();
   const [open, setOpen] = useState(false);
+  const [contractOpen, setContractOpen] = useState(false);
+  const navigate = useNavigate();
   const [filter, setFilter] = useState<Filter>("upcoming");
   const [roomId, setRoomId] = useState<string>("");
 
@@ -101,14 +105,29 @@ const Stays = () => {
           <h1 className="font-display text-3xl lg:text-4xl font-semibold">Estadias</h1>
           <p className="text-muted-foreground mt-1">Reservas de quarto · entradas, saídas e automatismos</p>
         </div>
+        <div className="flex flex-col items-start sm:items-end gap-1.5">
+        <Button
+          className="rounded-full gradient-warm border-0 shadow-elegant"
+          onClick={() => setContractOpen(true)}
+        >
+          <Plus className="h-4 w-4 mr-1.5" /> Novo contrato
+        </Button>
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
-            <Button className="rounded-full gradient-warm border-0 shadow-elegant">
-              <Plus className="h-4 w-4 mr-1.5" /> Nova estadia
-            </Button>
+            <button
+              type="button"
+              className="text-xs text-muted-foreground underline underline-offset-2 hover:text-foreground transition-smooth"
+            >
+              Criar estadia sem contrato…
+            </button>
           </DialogTrigger>
           <DialogContent className="max-w-lg">
-            <DialogHeader><DialogTitle className="font-display">Nova estadia</DialogTitle></DialogHeader>
+            <DialogHeader>
+              <DialogTitle className="font-display">Estadia sem contrato</DialogTitle>
+              <p className="text-sm text-muted-foreground">
+                Para casos sem residente pagante: quarto bloqueado para obras, uso interno da equipa ou teste.
+              </p>
+            </DialogHeader>
             <form onSubmit={handleCreate} className="space-y-3">
               <div className="grid grid-cols-2 gap-3">
                 <div><Label>Nome completo</Label><Input name="fullName" required className="mt-1.5" /></div>
@@ -145,7 +164,14 @@ const Stays = () => {
             </form>
           </DialogContent>
         </Dialog>
+        </div>
       </div>
+
+      <NewContractDialog
+        open={contractOpen}
+        onOpenChange={setContractOpen}
+        onCreated={({ contractId }) => navigate(`/contracts/${contractId}`)}
+      />
 
       <Tabs value={filter} onValueChange={(v) => setFilter(v as Filter)} className="mb-5">
         <TabsList>
@@ -176,6 +202,15 @@ const Stays = () => {
                   <div className="flex items-center gap-2 flex-wrap mb-1.5">
                     <Badge variant="outline" className={statusTone[s.status]}>{statusLabel[s.status]}</Badge>
                     {overdue && <Badge variant="outline" className="bg-destructive/10 text-destructive border-destructive/30">Atrasada</Badge>}
+                    {s.contractId ? (
+                      <Link to={`/contracts/${s.contractId}`} onClick={(e) => e.stopPropagation()}>
+                        <Badge variant="outline" className="text-muted-foreground hover:bg-muted">Contrato</Badge>
+                      </Link>
+                    ) : (
+                      (s.status === "confirmed" || s.status === "checked_in") && (
+                        <Badge variant="outline" className="bg-destructive/10 text-destructive border-destructive/30">Sem contrato</Badge>
+                      )
+                    )}
                     {room && <span className="text-xs text-muted-foreground flex items-center gap-1"><Home className="h-3 w-3" /> Quarto {room.number}</span>}
                     <span className="text-[11px] text-muted-foreground capitalize">· {s.source.replace("_", " ")}</span>
                   </div>
