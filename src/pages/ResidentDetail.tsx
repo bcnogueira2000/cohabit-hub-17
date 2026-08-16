@@ -52,6 +52,54 @@ const ResidentDetail = () => {
   const { data: profile } = useProfileByResidentId(resident?.id);
   const updateChecklist = useUpdateResidentChecklist();
   const updateProfile = useUpdateProfileByUserId();
+  const updateLegal = useUpdateResidentLegal();
+  const { data: roles = [] } = useMyRoles();
+  const isStaff = roles.some((r) => r === "staff" || r === "manager" || r === "admin");
+
+  const [legal, setLegal] = useState<ResidentLegalFields>({
+    nationality: null,
+    documentType: null,
+    documentNumber: null,
+    taxNumber: null,
+    employerOrSchool: null,
+    dateOfBirth: null,
+  });
+
+  useEffect(() => {
+    if (!resident) return;
+    setLegal({
+      nationality: resident.nationality,
+      documentType: resident.documentType,
+      documentNumber: resident.documentNumber,
+      taxNumber: resident.taxNumber,
+      employerOrSchool: resident.employerOrSchool,
+      dateOfBirth: resident.dateOfBirth,
+    });
+  }, [resident?.id, resident?.nationality, resident?.documentType, resident?.documentNumber, resident?.taxNumber, resident?.employerOrSchool, resident?.dateOfBirth]);
+
+  const saveLegal = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!resident) return;
+    const clean = (v: string | null) => (v && v.trim() !== "" ? v.trim() : null);
+    updateLegal.mutate(
+      {
+        id: resident.id,
+        values: {
+          nationality: clean(legal.nationality),
+          documentType: clean(legal.documentType),
+          documentNumber: clean(legal.documentNumber),
+          taxNumber: clean(legal.taxNumber),
+          employerOrSchool: clean(legal.employerOrSchool),
+          dateOfBirth: clean(legal.dateOfBirth),
+        },
+      },
+      {
+        onSuccess: () => toast.success("Dados legais guardados"),
+        onError: (e: any) => toast.error(e?.message ?? "Não foi possível guardar"),
+      },
+    );
+  };
+
 
   const documentPath = profile?.document_url ?? null;
 
