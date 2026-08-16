@@ -43,7 +43,7 @@ export type Database = {
           location_id: string | null
           notes: string | null
           resident_id: string | null
-          space_id: string | null
+          space_id_deprecated: string | null
           start_at: string
           title: string
         }
@@ -54,7 +54,7 @@ export type Database = {
           location_id?: string | null
           notes?: string | null
           resident_id?: string | null
-          space_id?: string | null
+          space_id_deprecated?: string | null
           start_at: string
           title: string
         }
@@ -65,7 +65,7 @@ export type Database = {
           location_id?: string | null
           notes?: string | null
           resident_id?: string | null
-          space_id?: string | null
+          space_id_deprecated?: string | null
           start_at?: string
           title?: string
         }
@@ -86,9 +86,9 @@ export type Database = {
           },
           {
             foreignKeyName: "bookings_space_id_fkey"
-            columns: ["space_id"]
+            columns: ["space_id_deprecated"]
             isOneToOne: false
-            referencedRelation: "spaces"
+            referencedRelation: "spaces_deprecated"
             referencedColumns: ["id"]
           },
         ]
@@ -966,7 +966,7 @@ export type Database = {
           },
         ]
       }
-      spaces: {
+      spaces_deprecated: {
         Row: {
           active: boolean
           capacity: number
