@@ -875,6 +875,33 @@ export type Database = {
           },
         ]
       }
+      room_typologies: {
+        Row: {
+          code: string
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          sort_order: number
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          sort_order?: number
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          sort_order?: number
+        }
+        Relationships: []
+      }
       rooms: {
         Row: {
           created_at: string
@@ -885,6 +912,7 @@ export type Database = {
           number: string
           status: Database["public"]["Enums"]["room_status"]
           typology: string
+          typology_id: string | null
           updated_at: string
         }
         Insert: {
@@ -896,6 +924,7 @@ export type Database = {
           number: string
           status?: Database["public"]["Enums"]["room_status"]
           typology: string
+          typology_id?: string | null
           updated_at?: string
         }
         Update: {
@@ -907,6 +936,7 @@ export type Database = {
           number?: string
           status?: Database["public"]["Enums"]["room_status"]
           typology?: string
+          typology_id?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -915,6 +945,13 @@ export type Database = {
             columns: ["current_resident_id"]
             isOneToOne: false
             referencedRelation: "residents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rooms_typology_id_fkey"
+            columns: ["typology_id"]
+            isOneToOne: false
+            referencedRelation: "room_typologies"
             referencedColumns: ["id"]
           },
         ]
@@ -1038,6 +1075,41 @@ export type Database = {
           website?: string | null
         }
         Relationships: []
+      }
+      typology_prices: {
+        Row: {
+          created_at: string
+          id: string
+          list_price: number
+          promo_price: number | null
+          typology_id: string
+          valid_from: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          list_price: number
+          promo_price?: number | null
+          typology_id: string
+          valid_from: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          list_price?: number
+          promo_price?: number | null
+          typology_id?: string
+          valid_from?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "typology_prices_typology_id_fkey"
+            columns: ["typology_id"]
+            isOneToOne: false
+            referencedRelation: "room_typologies"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
