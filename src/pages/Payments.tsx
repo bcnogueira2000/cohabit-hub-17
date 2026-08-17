@@ -9,11 +9,14 @@ import {
   ExternalLink,
   TrendingUp,
   AlertTriangle,
+  PiggyBank,
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { toast } from "@/hooks/use-toast";
@@ -23,12 +26,17 @@ import {
   paymentStateLabels,
   useChargePayments,
   useCreatePayment,
+  useCreateDepositReturn,
+  useDeposits,
+  useDepositPayments,
   useRentMonth,
   useTypologies,
+  type DepositRow,
   type PaymentMethod,
   type PaymentState,
   type RentChargeRow,
 } from "@/hooks/usePayments";
+
 
 const eur = (v: number | null | undefined) =>
   v == null ? "—" : new Intl.NumberFormat("pt-PT", { style: "currency", currency: "EUR" }).format(v);
@@ -126,7 +134,7 @@ const Payments = () => {
       <div className="flex flex-wrap items-start justify-between gap-4 mb-6">
         <div>
           <h1 className="font-display text-3xl lg:text-4xl font-semibold">Rendas</h1>
-          <p className="text-muted-foreground mt-1">Mapa mensal de rendas e pagamentos.</p>
+          <p className="text-muted-foreground mt-1">Mapa mensal de rendas, pagamentos e cauções.</p>
         </div>
         <Button
           variant="outline"
@@ -138,7 +146,15 @@ const Payments = () => {
         </Button>
       </div>
 
+      <Tabs defaultValue="rent" className="space-y-6">
+        <TabsList className="rounded-full">
+          <TabsTrigger value="rent" className="rounded-full">Rendas</TabsTrigger>
+          <TabsTrigger value="deposits" className="rounded-full">Cauções</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="rent" className="mt-0">
       {/* Seletor de mês */}
+
       <div className="flex items-center gap-2 mb-6">
         <Button variant="outline" size="icon" className="rounded-full" onClick={() => shiftMonth(-1)} aria-label="Mês anterior">
           <ChevronLeft className="h-4 w-4" strokeWidth={1.5} />
@@ -304,9 +320,16 @@ const Payments = () => {
           </table>
         </Card>
       )}
+        </TabsContent>
+
+        <TabsContent value="deposits" className="mt-0">
+          <DepositsSection />
+        </TabsContent>
+      </Tabs>
 
       <PaymentSheet charge={selected} onClose={() => setSelectedId(null)} />
     </div>
+
   );
 };
 
@@ -482,4 +505,300 @@ const PaymentSheet = ({ charge, onClose }: { charge: RentChargeRow | null; onClo
   );
 };
 
+// ============ Cauções ============
+
+const statusLabels: Record<string, string> = {
+  reserved: "Reservado",
+  active: "Ativo",
+  terminated: "Terminado",
+  cancelled: "Cancelado",
+};
+
+const DepositsSection = () => {
+  const { data: deposits = [], isLoading } = useDeposits();
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const selected = deposits.find((d) => d.contractId === selectedId) ?? null;
+
+  const totals = useMemo(
+    () => ({
+      received: deposits.reduce((a, d) => a + d.depositReceived, 0),
+      returned: deposits.reduce((a, d) => a + d.depositReturned, 0),
+      held: deposits.reduce((a, d) => a + d.depositHeld, 0),
+    }),
+    [deposits]
+  );
+
+  return (
+    <div>
+      <div className="grid grid-cols-3 gap-3 mb-6">
+        <Card className="p-4 border-border/60 shadow-card">
+          <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
+            <Wallet className="h-4 w-4" strokeWidth={1.5} /> Recebido
+          </div>
+          <div className="font-display text-2xl font-semibold">{eur(totals.received)}</div>
+        </Card>
+        <Card className="p-4 border-border/60 shadow-card">
+          <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
+            <TrendingUp className="h-4 w-4" strokeWidth={1.5} /> Devolvido
+          </div>
+          <div className="font-display text-2xl font-semibold text-success">{eur(totals.returned)}</div>
+        </Card>
+        <Card className="p-4 border-border/60 shadow-card">
+          <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
+            <PiggyBank className="h-4 w-4" strokeWidth={1.5} /> Retido
+          </div>
+          <div className="font-display text-2xl font-semibold">{eur(totals.held)}</div>
+        </Card>
+      </div>
+
+      {isLoading ? (
+        <p className="text-muted-foreground text-sm">A carregar…</p>
+      ) : deposits.length === 0 ? (
+        <Card className="p-10 text-center border-dashed border-border/60">
+          <PiggyBank className="h-10 w-10 text-muted-foreground mx-auto mb-3" strokeWidth={1.5} />
+          <p className="font-medium">Sem cauções por devolver</p>
+          <p className="text-sm text-muted-foreground mt-1">
+            Aparecem aqui os contratos cuja caução recebida ainda não foi devolvida.
+          </p>
+        </Card>
+      ) : (
+        <Card className="border-border/60 shadow-card overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-border text-left text-xs uppercase tracking-wider text-muted-foreground">
+                <th className="px-4 py-3 font-medium">Residente</th>
+                <th className="px-4 py-3 font-medium">Contrato</th>
+                <th className="px-4 py-3 font-medium text-right">Recebido</th>
+                <th className="px-4 py-3 font-medium text-right">Devolvido</th>
+                <th className="px-4 py-3 font-medium text-right">Retido</th>
+                <th className="px-4 py-3 font-medium" />
+              </tr>
+            </thead>
+            <tbody>
+              {deposits.map((d) => (
+                <tr key={d.contractId} className="border-b border-border/50 last:border-0 hover:bg-accent/30 transition-smooth">
+                  <td className="px-4 py-3">
+                    {d.residentId ? (
+                      <Link to={`/residents/${d.residentId}`} className="font-medium hover:underline">
+                        {d.residentName}
+                      </Link>
+                    ) : (
+                      <span className="font-medium">{d.residentName}</span>
+                    )}
+                  </td>
+                  <td className="px-4 py-3">
+                    <Link
+                      to={`/contracts/${d.contractId}`}
+                      className="inline-flex items-center gap-1 hover:underline"
+                    >
+                      {fmtDate(d.startDate)} – {fmtDate(d.endDate)}
+                      <ExternalLink className="h-3 w-3" strokeWidth={1.5} />
+                    </Link>
+                    <Badge variant="secondary" className="ml-2 rounded-full text-[11px]">
+                      {statusLabels[d.status] ?? d.status}
+                    </Badge>
+                  </td>
+                  <td className="px-4 py-3 text-right">{eur(d.depositReceived)}</td>
+                  <td className="px-4 py-3 text-right text-success">{eur(d.depositReturned)}</td>
+                  <td className="px-4 py-3 text-right font-medium">{eur(d.depositHeld)}</td>
+                  <td className="px-4 py-3 text-right">
+                    <Button size="sm" variant="outline" className="rounded-full" onClick={() => setSelectedId(d.contractId)}>
+                      Registar devolução
+                    </Button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </Card>
+      )}
+
+      <DepositReturnSheet deposit={selected} onClose={() => setSelectedId(null)} />
+    </div>
+  );
+};
+
+const DepositReturnSheet = ({ deposit, onClose }: { deposit: DepositRow | null; onClose: () => void }) => {
+  const create = useCreateDepositReturn();
+  const { data: movements = [] } = useDepositPayments(deposit?.contractId);
+  const [amount, setAmount] = useState("");
+  const [paidAt, setPaidAt] = useState(todayISO());
+  const [method, setMethod] = useState<PaymentMethod>("transfer");
+  const [reference, setReference] = useState("");
+
+  const reset = () => {
+    setAmount("");
+    setPaidAt(todayISO());
+    setMethod("transfer");
+    setReference("");
+  };
+
+  const submit = async () => {
+    if (!deposit) return;
+    const value = Number(String(amount).replace(",", "."));
+    if (!Number.isFinite(value) || value <= 0) {
+      toast({ title: "Valor inválido", description: "Indica um valor superior a zero.", variant: "destructive" });
+      return;
+    }
+    if (value > deposit.depositHeld + 0.005) {
+      toast({
+        title: "Valor superior ao retido",
+        description: `Só há ${eur(deposit.depositHeld)} por devolver.`,
+        variant: "destructive",
+      });
+      return;
+    }
+    try {
+      await create.mutateAsync({
+        contractId: deposit.contractId,
+        amount: value,
+        paidAt,
+        method,
+        reference,
+        currentReturned: deposit.depositReturned,
+      });
+      toast({ title: "Devolução registada" });
+      reset();
+      onClose();
+    } catch (e: any) {
+      toast({ title: "Erro ao registar devolução", description: e?.message, variant: "destructive" });
+    }
+  };
+
+  return (
+    <Sheet
+      open={!!deposit}
+      onOpenChange={(o) => {
+        if (!o) {
+          reset();
+          onClose();
+        }
+      }}
+    >
+      <SheetContent className="w-full sm:max-w-lg overflow-y-auto">
+        {deposit && (
+          <>
+            <SheetHeader>
+              <div className="mb-2">
+                <Badge variant="secondary" className="rounded-full text-[11px]">
+                  {statusLabels[deposit.status] ?? deposit.status}
+                </Badge>
+              </div>
+              <SheetTitle className="font-display text-2xl">{deposit.residentName}</SheetTitle>
+            </SheetHeader>
+
+            <div className="mt-4 grid grid-cols-3 gap-3 text-sm">
+              <div>
+                <div className="text-xs text-muted-foreground">Recebido</div>
+                <div className="font-medium">{eur(deposit.depositReceived)}</div>
+              </div>
+              <div>
+                <div className="text-xs text-muted-foreground">Devolvido</div>
+                <div className="font-medium text-success">{eur(deposit.depositReturned)}</div>
+              </div>
+              <div>
+                <div className="text-xs text-muted-foreground">Retido</div>
+                <div className="font-medium">{eur(deposit.depositHeld)}</div>
+              </div>
+            </div>
+
+            <div className="mt-6 space-y-3">
+              <h3 className="font-display text-lg font-semibold">Registar devolução</h3>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label className="text-xs text-muted-foreground">Valor a devolver (€)</Label>
+                  <Input
+                    className="mt-1"
+                    inputMode="decimal"
+                    placeholder={deposit.depositHeld.toFixed(2)}
+                    value={amount}
+                    onChange={(e) => setAmount(e.target.value)}
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs text-muted-foreground">Data</Label>
+                  <Input type="date" className="mt-1" value={paidAt} onChange={(e) => setPaidAt(e.target.value)} />
+                </div>
+                <div>
+                  <Label className="text-xs text-muted-foreground">Método</Label>
+                  <Select value={method} onValueChange={(v) => setMethod(v as PaymentMethod)}>
+                    <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {(Object.keys(paymentMethodLabels) as PaymentMethod[]).map((k) => (
+                        <SelectItem key={k} value={k}>{paymentMethodLabels[k]}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label className="text-xs text-muted-foreground">Referência</Label>
+                  <Input
+                    className="mt-1"
+                    placeholder="Opcional"
+                    value={reference}
+                    onChange={(e) => setReference(e.target.value)}
+                  />
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button className="rounded-full" onClick={submit} disabled={create.isPending}>
+                  {create.isPending ? "A registar…" : "Registar devolução"}
+                </Button>
+                <Button
+                  variant="outline"
+                  className="rounded-full"
+                  onClick={() => setAmount(deposit.depositHeld.toFixed(2))}
+                >
+                  Valor retido
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Devoluções parciais são somadas ao total já devolvido.
+              </p>
+            </div>
+
+            <div className="mt-6">
+              <h3 className="font-display text-lg font-semibold mb-2">Movimentos de caução</h3>
+              {movements.length === 0 ? (
+                <p className="text-sm text-muted-foreground">Ainda sem movimentos registados.</p>
+              ) : (
+                <div className="space-y-2">
+                  {movements.map((p) => (
+                    <div
+                      key={p.id}
+                      className="flex items-center justify-between rounded-lg border border-border/60 px-3 py-2 text-sm"
+                    >
+                      <div>
+                        <div className="font-medium">
+                          {p.kind === "deposit_return" ? "− " : "+ "}
+                          {eur(Number(p.amount))}
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          {fmtDate(p.paid_at)}
+                          {p.method ? ` · ${paymentMethodLabels[p.method as PaymentMethod]}` : ""}
+                          {p.reference ? ` · ${p.reference}` : ""}
+                        </div>
+                      </div>
+                      <span className="text-xs text-muted-foreground">
+                        {p.kind === "deposit_return" ? "Devolução" : "Caução"}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="mt-6">
+              <Link to={`/contracts/${deposit.contractId}`} className="inline-flex items-center gap-1 text-sm hover:underline">
+                Ver contrato <ExternalLink className="h-3.5 w-3.5" strokeWidth={1.5} />
+              </Link>
+            </div>
+          </>
+        )}
+      </SheetContent>
+    </Sheet>
+  );
+};
+
 export default Payments;
+
