@@ -1,11 +1,14 @@
+import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { ArrowLeft, ArrowRight, CalendarRange, LogIn, LogOut, Repeat, ShieldCheck, User } from "lucide-react";
+import { ArrowLeft, ArrowRight, CalendarRange, LogIn, LogOut, Pencil, Repeat, ShieldCheck, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useContract, useContractStays } from "@/hooks/useContracts";
 import { ContractStatusBadge } from "@/components/contracts/ContractStatusBadge";
 import { useRooms } from "@/hooks/useData";
 import { RentPeriodsSection } from "@/components/contracts/RentPeriodsSection";
+import { EditContractSheet } from "@/components/contracts/EditContractSheet";
+
 
 const eur = (v: number | null | undefined) =>
   v == null ? "—" : new Intl.NumberFormat("pt-PT", { style: "currency", currency: "EUR" }).format(v);
@@ -25,6 +28,8 @@ const ContractDetail = () => {
   const { data: contract, isLoading } = useContract(id);
   const { data: stays = [] } = useContractStays(id);
   const { data: rooms = [] } = useRooms();
+  const [editOpen, setEditOpen] = useState(false);
+
 
   if (isLoading) return <div className="p-10"><p className="text-muted-foreground text-sm">A carregar…</p></div>;
   if (!contract) {
@@ -56,11 +61,24 @@ const ContractDetail = () => {
             {fmtDate(contract.startDate)} → {fmtDate(contract.actualEndDate ?? contract.endDate)}
           </p>
         </div>
-        <div className="text-right">
-          <span className="text-xs text-muted-foreground block">Renda atual</span>
-          <span className="font-display text-2xl font-semibold">{eur(contract.currentRent)}</span>
+        <div className="flex items-center gap-4">
+          <div className="text-right">
+            <span className="text-xs text-muted-foreground block">Renda atual</span>
+            <span className="font-display text-2xl font-semibold">{eur(contract.currentRent)}</span>
+          </div>
+          <Button variant="outline" size="sm" onClick={() => setEditOpen(true)}>
+            <Pencil className="h-4 w-4 mr-1.5" strokeWidth={1.5} /> Editar contrato
+          </Button>
         </div>
       </div>
+
+      <EditContractSheet
+        key={`${contract.endDate}-${contract.paymentDay}-${contract.depositDue}`}
+        contract={contract}
+        open={editOpen}
+        onOpenChange={setEditOpen}
+      />
+
 
       <Card className="p-5 border-border/60 shadow-card mb-3">
         <h3 className="font-display text-lg font-semibold mb-3">Dados do contrato</h3>
