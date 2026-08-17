@@ -2,7 +2,7 @@ import { NavLink, Outlet, useLocation, useNavigate, Link } from "react-router-do
 import {
   LayoutDashboard, Inbox, Sparkles, ListChecks, Users, DoorClosed,
   CalendarRange, BarChart3, Settings, MoreHorizontal, Sun, LogOut, LogIn,
-  UserCheck, UserPlus, Shield, ArrowLeft, Building2, MapPin, FileText, Wallet,
+  UserCheck, UserPlus, Shield, ArrowLeft, Building2, MapPin, FileText, Wallet, Tag,
 } from "lucide-react";
 import { usePendingProfiles, useMyRoles, useProfile } from "@/hooks/useProfile";
 import { cn, getInitials } from "@/lib/utils";
