@@ -37,6 +37,8 @@ import Users from "./pages/Users";
 import Contracts from "./pages/Contracts";
 import ContractDetail from "./pages/ContractDetail";
 import Payments from "./pages/Payments";
+import Pricing from "./pages/Pricing";
+
 import Suppliers from "./pages/Suppliers";
 import SupplierDetail from "./pages/SupplierDetail";
 import Locations from "./pages/Locations";
