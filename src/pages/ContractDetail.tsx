@@ -61,11 +61,24 @@ const ContractDetail = () => {
             {fmtDate(contract.startDate)} → {fmtDate(contract.actualEndDate ?? contract.endDate)}
           </p>
         </div>
-        <div className="text-right">
-          <span className="text-xs text-muted-foreground block">Renda atual</span>
-          <span className="font-display text-2xl font-semibold">{eur(contract.currentRent)}</span>
+        <div className="flex items-center gap-4">
+          <div className="text-right">
+            <span className="text-xs text-muted-foreground block">Renda atual</span>
+            <span className="font-display text-2xl font-semibold">{eur(contract.currentRent)}</span>
+          </div>
+          <Button variant="outline" size="sm" onClick={() => setEditOpen(true)}>
+            <Pencil className="h-4 w-4 mr-1.5" strokeWidth={1.5} /> Editar contrato
+          </Button>
         </div>
       </div>
+
+      <EditContractSheet
+        key={`${contract.endDate}-${contract.paymentDay}-${contract.depositDue}`}
+        contract={contract}
+        open={editOpen}
+        onOpenChange={setEditOpen}
+      />
+
 
       <Card className="p-5 border-border/60 shadow-card mb-3">
         <h3 className="font-display text-lg font-semibold mb-3">Dados do contrato</h3>
