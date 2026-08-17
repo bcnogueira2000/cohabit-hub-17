@@ -2,7 +2,7 @@ import { NavLink, Outlet, useLocation, useNavigate, Link } from "react-router-do
 import {
   LayoutDashboard, Inbox, Sparkles, ListChecks, Users, DoorClosed,
   CalendarRange, BarChart3, Settings, MoreHorizontal, Sun, LogOut, LogIn,
-  UserCheck, UserPlus, Shield, ArrowLeft, Building2, MapPin,
+  UserCheck, UserPlus, Shield, ArrowLeft, Building2, MapPin, FileText, Wallet,
 } from "lucide-react";
 import { usePendingProfiles, useMyRoles, useProfile } from "@/hooks/useProfile";
 import { cn, getInitials } from "@/lib/utils";
@@ -47,6 +47,13 @@ const baseSections: NavSection[] = [
       { to: "/rooms", label: "Quartos", icon: DoorClosed },
       { to: "/locations", label: "Locais", icon: MapPin },
       { to: "/bookings", label: "Reservas", icon: CalendarRange },
+    ],
+  },
+  {
+    label: "Financeiro",
+    items: [
+      { to: "/contracts", label: "Contratos", icon: FileText },
+      { to: "/payments", label: "Rendas", icon: Wallet },
     ],
   },
   {
