@@ -242,6 +242,7 @@ export const useUpdateContract = () => {
       autoRenew: boolean;
       notes: string | null;
       endDateChanged: boolean;
+      paymentDayChanged: boolean;
     }) => {
       const { error } = await supabase
         .from("contracts" as any)
@@ -255,7 +256,7 @@ export const useUpdateContract = () => {
         .eq("id", input.id);
       if (error) throw error;
 
-      if (!input.endDateChanged) return null;
+      if (!input.endDateChanged && !input.paymentDayChanged) return null;
 
       const { data, error: rpcErr } = await supabase.rpc("recalculate_rent_charges" as any, {
         p_contract_id: input.id,
