@@ -37,6 +37,8 @@ import Users from "./pages/Users";
 import Contracts from "./pages/Contracts";
 import ContractDetail from "./pages/ContractDetail";
 import Payments from "./pages/Payments";
+import Pricing from "./pages/Pricing";
+
 import Suppliers from "./pages/Suppliers";
 import SupplierDetail from "./pages/SupplierDetail";
 import Locations from "./pages/Locations";
@@ -104,9 +106,11 @@ const App = () => (
               <Route path="/suppliers/:id" element={<SupplierDetail />} />
               <Route path="/locations" element={<Locations />} />
               <Route path="/locations/:id" element={<LocationDetail />} />
-              <Route path="/contracts" element={<Contracts />} />
-              <Route path="/contracts/:id" element={<ContractDetail />} />
-              <Route path="/payments" element={<Payments />} />
+              <Route path="/contracts" element={<ProtectedRoute requireRole={["manager", "admin"]}><Contracts /></ProtectedRoute>} />
+              <Route path="/contracts/:id" element={<ProtectedRoute requireRole={["manager", "admin"]}><ContractDetail /></ProtectedRoute>} />
+              <Route path="/payments" element={<ProtectedRoute requireRole={["manager", "admin"]}><Payments /></ProtectedRoute>} />
+              <Route path="/pricing" element={<ProtectedRoute requireRole={["manager", "admin"]}><Pricing /></ProtectedRoute>} />
+
               <Route path="/stays" element={<Stays />} />
               <Route path="/approvals" element={<Approvals />} />
               <Route path="/users" element={<ProtectedRoute requireRole={["admin"]}><Users /></ProtectedRoute>} />
