@@ -36,6 +36,7 @@ import Approvals from "./pages/Approvals";
 import Users from "./pages/Users";
 import Contracts from "./pages/Contracts";
 import ContractDetail from "./pages/ContractDetail";
+import Payments from "./pages/Payments";
 import Suppliers from "./pages/Suppliers";
 import SupplierDetail from "./pages/SupplierDetail";
 import Locations from "./pages/Locations";
@@ -105,6 +106,7 @@ const App = () => (
               <Route path="/locations/:id" element={<LocationDetail />} />
               <Route path="/contracts" element={<Contracts />} />
               <Route path="/contracts/:id" element={<ContractDetail />} />
+              <Route path="/payments" element={<Payments />} />
               <Route path="/stays" element={<Stays />} />
               <Route path="/approvals" element={<Approvals />} />
               <Route path="/users" element={<ProtectedRoute requireRole={["admin"]}><Users /></ProtectedRoute>} />
