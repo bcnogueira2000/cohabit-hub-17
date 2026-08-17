@@ -2,7 +2,7 @@ import { NavLink, Outlet, useLocation, useNavigate, Link } from "react-router-do
 import {
   LayoutDashboard, Inbox, Sparkles, ListChecks, Users, DoorClosed,
   CalendarRange, BarChart3, Settings, MoreHorizontal, Sun, LogOut, LogIn,
-  UserCheck, UserPlus, Shield, ArrowLeft, Building2, MapPin,
+  UserCheck, UserPlus, Shield, ArrowLeft, Building2, MapPin, Wallet,
 } from "lucide-react";
 import { usePendingProfiles, useMyRoles, useProfile } from "@/hooks/useProfile";
 import { cn, getInitials } from "@/lib/utils";
@@ -89,6 +89,7 @@ export const AppShell = () => {
   const { data: pending = [] } = usePendingProfiles();
   const { data: myRoles = [] } = useMyRoles();
   const isAdmin = myRoles.includes("admin");
+  const isFinance = myRoles.includes("admin") || myRoles.includes("manager");
 
   const sections: NavSection[] = (() => {
     const list: NavSection[] = [...baseSections];
@@ -161,6 +162,21 @@ export const AppShell = () => {
             </div>
             <NotificationBell />
           </div>
+          {isFinance && (
+            <NavLink
+              to="/finance/contracts"
+              className={({ isActive }) =>
+                cn(
+                  "flex items-center gap-2 px-3 py-2 rounded-lg text-[13px] font-medium transition-smooth",
+                  isActive
+                    ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                    : "text-sidebar-foreground/85 hover:bg-sidebar-accent/60 hover:text-sidebar-accent-foreground",
+                )
+              }
+            >
+              <Wallet className="h-4 w-4" /> Financeiro
+            </NavLink>
+          )}
           <button
             onClick={handleSignOut}
             className="mt-1 w-full flex items-center gap-2 px-3 py-2 rounded-lg text-[13px] font-medium text-sidebar-foreground/80 hover:bg-sidebar-accent/60 transition-smooth"
