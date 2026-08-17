@@ -9,11 +9,14 @@ import {
   ExternalLink,
   TrendingUp,
   AlertTriangle,
+  PiggyBank,
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { toast } from "@/hooks/use-toast";
@@ -23,12 +26,17 @@ import {
   paymentStateLabels,
   useChargePayments,
   useCreatePayment,
+  useCreateDepositReturn,
+  useDeposits,
+  useDepositPayments,
   useRentMonth,
   useTypologies,
+  type DepositRow,
   type PaymentMethod,
   type PaymentState,
   type RentChargeRow,
 } from "@/hooks/usePayments";
+
 
 const eur = (v: number | null | undefined) =>
   v == null ? "—" : new Intl.NumberFormat("pt-PT", { style: "currency", currency: "EUR" }).format(v);
