@@ -28,6 +28,8 @@ const ContractDetail = () => {
   const { data: contract, isLoading } = useContract(id);
   const { data: stays = [] } = useContractStays(id);
   const { data: rooms = [] } = useRooms();
+  const [editOpen, setEditOpen] = useState(false);
+
 
   if (isLoading) return <div className="p-10"><p className="text-muted-foreground text-sm">A carregar…</p></div>;
   if (!contract) {
