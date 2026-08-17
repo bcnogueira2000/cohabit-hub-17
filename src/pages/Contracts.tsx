@@ -24,7 +24,7 @@ const Contracts = () => {
   const navigate = useNavigate();
   const { data: contracts = [], isLoading } = useContracts();
   const { data: stayByContract = {} } = useStaysByContract();
-  const { data: monthRent } = useCurrentMonthRent();
+  const { data: pricing = [] } = useTypologyPricing();
   const { data: rooms = [] } = useRooms();
 
   const [status, setStatus] = useState<string>("all");
