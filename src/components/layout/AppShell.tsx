@@ -98,9 +98,21 @@ export const AppShell = () => {
   const { data: pending = [] } = usePendingProfiles();
   const { data: myRoles = [] } = useMyRoles();
   const isAdmin = myRoles.includes("admin");
-  const sections: NavSection[] = isAdmin
-    ? baseSections.map((s, i) => (i === baseSections.length - 1 ? { ...s, items: [...s.items, adminItem] } : s))
-    : baseSections;
+  const isFinance = myRoles.includes("admin") || myRoles.includes("manager");
+
+  const sections: NavSection[] = (() => {
+    const list: NavSection[] = [];
+    for (const s of baseSections) {
+      // "Financeiro" entra antes de "Parceiros", só para manager/admin
+      if (isFinance && s.label === "Parceiros") list.push(financeSection);
+      list.push(s);
+    }
+    if (!isAdmin) return list;
+    return list.map((s, i) =>
+      i === list.length - 1 ? { ...s, items: [...s.items, adminItem] } : s
+    );
+  })();
+
   const [moreOpen, setMoreOpen] = useState(false);
   const handleSignOut = async () => { await signOut(); navigate("/auth", { replace: true }); };
 
