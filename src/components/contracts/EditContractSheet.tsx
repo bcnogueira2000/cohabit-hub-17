@@ -38,6 +38,7 @@ export const EditContractSheet = ({ contract, open, onOpenChange }: Props) => {
     if (Number.isNaN(deposit) || deposit < 0) return toast.error("Caução inválida");
 
     const endDateChanged = endDate !== contract.endDate;
+    const paymentDayChanged = day !== contract.paymentDay;
     try {
       const result = await update.mutateAsync({
         id: contract.id,
@@ -47,6 +48,7 @@ export const EditContractSheet = ({ contract, open, onOpenChange }: Props) => {
         autoRenew,
         notes,
         endDateChanged,
+        paymentDayChanged,
       });
       setLocked(result?.locked ?? []);
       const lockedCount = result?.locked_count ?? 0;
@@ -54,7 +56,7 @@ export const EditContractSheet = ({ contract, open, onOpenChange }: Props) => {
         toast.warning(
           `${lockedCount} ${lockedCount === 1 ? "renda não foi removida porque já tem pagamentos registados" : "rendas não foram removidas porque já têm pagamentos registados"}`
         );
-      } else if (endDateChanged) {
+      } else if (endDateChanged || paymentDayChanged) {
         toast.success("Contrato atualizado e rendas recalculadas");
         onOpenChange(false);
       } else {
