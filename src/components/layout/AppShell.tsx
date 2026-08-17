@@ -2,7 +2,7 @@ import { NavLink, Outlet, useLocation, useNavigate, Link } from "react-router-do
 import {
   LayoutDashboard, Inbox, Sparkles, ListChecks, Users, DoorClosed,
   CalendarRange, BarChart3, Settings, MoreHorizontal, Sun, LogOut, LogIn,
-  UserCheck, UserPlus, Shield, ArrowLeft, Building2, MapPin, FileText, Wallet, Tag,
+  UserCheck, UserPlus, Shield, ArrowLeft, Building2, MapPin,
 } from "lucide-react";
 import { usePendingProfiles, useMyRoles, useProfile } from "@/hooks/useProfile";
 import { cn, getInitials } from "@/lib/utils";
@@ -65,15 +65,6 @@ const baseSections: NavSection[] = [
   },
 ];
 
-const financeSection: NavSection = {
-  label: "Financeiro",
-  items: [
-    { to: "/contracts", label: "Contratos", icon: FileText },
-    { to: "/payments", label: "Rendas", icon: Wallet },
-    { to: "/pricing", label: "Tipologias e preços", icon: Tag },
-  ],
-};
-
 const adminItem: NavItem = { to: "/users", label: "Utilizadores", icon: Shield };
 
 
@@ -98,15 +89,9 @@ export const AppShell = () => {
   const { data: pending = [] } = usePendingProfiles();
   const { data: myRoles = [] } = useMyRoles();
   const isAdmin = myRoles.includes("admin");
-  const isFinance = myRoles.includes("admin") || myRoles.includes("manager");
 
   const sections: NavSection[] = (() => {
-    const list: NavSection[] = [];
-    for (const s of baseSections) {
-      // "Financeiro" entra antes de "Parceiros", só para manager/admin
-      if (isFinance && s.label === "Parceiros") list.push(financeSection);
-      list.push(s);
-    }
+    const list: NavSection[] = [...baseSections];
     if (!isAdmin) return list;
     return list.map((s, i) =>
       i === list.length - 1 ? { ...s, items: [...s.items, adminItem] } : s

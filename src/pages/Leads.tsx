@@ -419,7 +419,7 @@ const Leads = () => {
                     <Badge variant="outline" className="text-muted-foreground">{leadSourceLabels[l.source]}</Badge>
                     {(l.contractId || l.stayId) && (
                       l.contractId ? (
-                        <Link to={`/contracts/${l.contractId}`} onClick={(e) => e.stopPropagation()}>
+                        <Link to={`/finance/contracts/${l.contractId}`} onClick={(e) => e.stopPropagation()}>
                           <Badge variant="outline" className="bg-success/10 text-success border-success/30 gap-1">
                             <CheckCircle2 className="h-3 w-3" strokeWidth={1.5} /> Convertido
                           </Badge>
@@ -661,7 +661,7 @@ const Leads = () => {
                   )}
                   {selected.contractId && (
                     <Button asChild variant="outline" className="w-full rounded-full mt-2">
-                      <Link to={`/contracts/${selected.contractId}`}>
+                      <Link to={`/finance/contracts/${selected.contractId}`}>
                         Ver contrato <ArrowRight className="h-4 w-4 ml-1.5" strokeWidth={1.5} />
                       </Link>
                     </Button>
@@ -700,7 +700,7 @@ const Leads = () => {
             qc.invalidateQueries({ queryKey: ["lead_activity", leadId] });
             setSelected((prev) => (prev ? { ...prev, stayId, contractId } : null));
             toast.success("Lead convertida — contrato criado");
-            navigate(`/contracts/${contractId}`);
+            navigate(`/finance/contracts/${contractId}`);
           }}
         />
       )}
@@ -742,7 +742,7 @@ const LeadHistory = ({ leadId }: { leadId: string }) => {
                   <>
                     Lead convertida em residente
                     {entry.payload?.contract_id ? (
-                      <Link to={`/contracts/${entry.payload.contract_id}`} className="text-primary hover:underline">
+                      <Link to={`/finance/contracts/${entry.payload.contract_id}`} className="text-primary hover:underline">
                         {" "}— Contrato criado
                       </Link>
                     ) : entry.payload?.stay_id ? (

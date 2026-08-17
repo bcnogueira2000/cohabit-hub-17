@@ -32,7 +32,7 @@ const ContractDetail = () => {
       <div className="p-10 max-w-3xl mx-auto">
         <p className="text-muted-foreground">Contrato não encontrado.</p>
         <Button asChild variant="outline" className="mt-4">
-          <Link to="/contracts"><ArrowLeft className="h-4 w-4 mr-1.5" strokeWidth={1.5} /> Voltar</Link>
+          <Link to="/finance/contracts"><ArrowLeft className="h-4 w-4 mr-1.5" strokeWidth={1.5} /> Voltar</Link>
         </Button>
       </div>
     );
@@ -41,7 +41,7 @@ const ContractDetail = () => {
   return (
     <div className="px-4 lg:px-10 py-6 lg:py-10 max-w-5xl mx-auto">
       <Button asChild variant="ghost" size="sm" className="mb-4 -ml-2">
-        <Link to="/contracts"><ArrowLeft className="h-4 w-4 mr-1.5" strokeWidth={1.5} /> Contratos</Link>
+        <Link to="/finance/contracts"><ArrowLeft className="h-4 w-4 mr-1.5" strokeWidth={1.5} /> Contratos</Link>
       </Button>
 
       <div className="flex flex-wrap items-start justify-between gap-3 mb-6">
