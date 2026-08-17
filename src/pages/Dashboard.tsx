@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Plus, ArrowRight, Inbox, Sparkles, DoorClosed, AlertTriangle, ListChecks, Sun, LogIn, LogOut } from "lucide-react";
+import { Plus, ArrowRight, Inbox, Sparkles, DoorClosed, AlertTriangle, ListChecks, Sun, LogIn, LogOut, Wallet } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -10,7 +10,7 @@ import { BrandAvatar } from "@/components/ui/BrandAvatar";
 import { NewTaskDialog } from "@/components/NewTaskDialog";
 import { useRequests, useCleaningTasks, useRooms, useResidents, useCreateOpsTask, useStays } from "@/hooks/useData";
 import { useAuth } from "@/hooks/useAuth";
-import { useProfile } from "@/hooks/useProfile";
+import { useProfile, useMyRoles } from "@/hooks/useProfile";
 import { capitalize, formatDate } from "@/lib/utils";
 
 const greeting = () => {
@@ -23,6 +23,8 @@ const greeting = () => {
 const Dashboard = () => {
   const { user } = useAuth();
   const { data: profile } = useProfile();
+  const { data: myRoles = [] } = useMyRoles();
+  const isFinance = myRoles.includes("admin") || myRoles.includes("manager");
   const { data: requests = [], isLoading: loadingRequests } = useRequests();
   const { data: cleaningTasks = [], isLoading: loadingCleaning } = useCleaningTasks();
   const { data: rooms = [], isLoading: loadingRooms } = useRooms();
@@ -84,6 +86,13 @@ const Dashboard = () => {
           <p className="text-sm text-muted-foreground mt-1">Aqui está o que precisa da tua atenção hoje.</p>
         </div>
         <div className="flex gap-2">
+          {isFinance && (
+            <Button asChild variant="outline" size="sm">
+              <Link to="/finance/contracts">
+                <Wallet className="h-4 w-4 mr-1.5" strokeWidth={1.5} /> Financeiro
+              </Link>
+            </Button>
+          )}
           <NewTaskDialog
             onCreate={(t) => createTask.mutate({
               title: t.title, description: t.description, category: t.category,
@@ -100,6 +109,21 @@ const Dashboard = () => {
           </Button>
         </div>
       </div>
+
+      {isFinance && (
+        <Link to="/finance/contracts" className="block mb-5">
+          <Card className="p-4 lg:p-5 border-border/70 shadow-none hover:shadow-card transition-smooth flex items-center gap-4">
+            <div className="h-10 w-10 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
+              <Wallet className="h-5 w-5" strokeWidth={1.5} />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="font-display text-base font-semibold">Financeiro</div>
+              <div className="text-xs text-muted-foreground mt-0.5">Contratos, pagamentos e tipologias — área separada da operação</div>
+            </div>
+            <ArrowRight className="h-4 w-4 text-muted-foreground shrink-0" strokeWidth={1.5} />
+          </Card>
+        </Link>
+      )}
 
       {/* KPIs */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4 mb-7">
