@@ -307,7 +307,7 @@ const Payments = () => {
                   </td>
                   <td className="px-4 py-3 text-right">
                     <Link
-                      to={`/contracts/${r.contractId}`}
+                      to={`/finance/contracts/${r.contractId}`}
                       onClick={(e) => e.stopPropagation()}
                       className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground hover:underline"
                     >
@@ -492,7 +492,7 @@ const PaymentSheet = ({ charge, onClose }: { charge: RentChargeRow | null; onClo
 
             <div className="mt-6">
               <Link
-                to={`/contracts/${charge.contractId}`}
+                to={`/finance/contracts/${charge.contractId}`}
                 className="inline-flex items-center gap-1 text-sm hover:underline"
               >
                 Ver contrato <ExternalLink className="h-3.5 w-3.5" strokeWidth={1.5} />
@@ -588,7 +588,7 @@ const DepositsSection = () => {
                   </td>
                   <td className="px-4 py-3">
                     <Link
-                      to={`/contracts/${d.contractId}`}
+                      to={`/finance/contracts/${d.contractId}`}
                       className="inline-flex items-center gap-1 hover:underline"
                     >
                       {fmtDate(d.startDate)} – {fmtDate(d.endDate)}
@@ -789,7 +789,7 @@ const DepositReturnSheet = ({ deposit, onClose }: { deposit: DepositRow | null; 
             </div>
 
             <div className="mt-6">
-              <Link to={`/contracts/${deposit.contractId}`} className="inline-flex items-center gap-1 text-sm hover:underline">
+              <Link to={`/finance/contracts/${deposit.contractId}`} className="inline-flex items-center gap-1 text-sm hover:underline">
                 Ver contrato <ExternalLink className="h-3.5 w-3.5" strokeWidth={1.5} />
               </Link>
             </div>

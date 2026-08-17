@@ -170,7 +170,7 @@ const Contracts = () => {
                   <tr
                     key={c.id}
                     className="border-b border-border/50 last:border-0 hover:bg-accent/30 transition-smooth cursor-pointer"
-                    onClick={() => navigate(`/contracts/${c.id}`)}
+                    onClick={() => navigate(`/finance/contracts/${c.id}`)}
                   >
                     <td className="px-4 py-3">
                       <Link
@@ -212,7 +212,7 @@ const Contracts = () => {
       <NewContractDialog
         open={dialogOpen}
         onOpenChange={setDialogOpen}
-        onCreated={({ contractId }) => navigate(`/contracts/${contractId}`)}
+        onCreated={({ contractId }) => navigate(`/finance/contracts/${contractId}`)}
       />
     </div>
   );

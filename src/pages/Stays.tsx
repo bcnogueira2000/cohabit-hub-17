@@ -170,7 +170,7 @@ const Stays = () => {
       <NewContractDialog
         open={contractOpen}
         onOpenChange={setContractOpen}
-        onCreated={({ contractId }) => navigate(`/contracts/${contractId}`)}
+        onCreated={({ contractId }) => navigate(`/finance/contracts/${contractId}`)}
       />
 
       <Tabs value={filter} onValueChange={(v) => setFilter(v as Filter)} className="mb-5">
@@ -203,7 +203,7 @@ const Stays = () => {
                     <Badge variant="outline" className={statusTone[s.status]}>{statusLabel[s.status]}</Badge>
                     {overdue && <Badge variant="outline" className="bg-destructive/10 text-destructive border-destructive/30">Atrasada</Badge>}
                     {s.contractId ? (
-                      <Link to={`/contracts/${s.contractId}`} onClick={(e) => e.stopPropagation()}>
+                      <Link to={`/finance/contracts/${s.contractId}`} onClick={(e) => e.stopPropagation()}>
                         <Badge variant="outline" className="text-muted-foreground hover:bg-muted">Contrato</Badge>
                       </Link>
                     ) : (

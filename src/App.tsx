@@ -8,6 +8,7 @@ import ResidentProfile from "./pages/resident/Profile";
 import ResidentAccount from "./pages/resident/Account";
 import ResidentMyStay from "./pages/resident/MyStay";
 import { AppShell } from "@/components/layout/AppShell";
+import { FinanceShell } from "@/components/layout/FinanceShell";
 import { ResidentShell } from "@/components/layout/ResidentShell";
 import { ComingSoon } from "@/components/resident/ComingSoon";
 import { AuthProvider } from "@/hooks/useAuth";
@@ -106,17 +107,20 @@ const App = () => (
               <Route path="/suppliers/:id" element={<SupplierDetail />} />
               <Route path="/locations" element={<Locations />} />
               <Route path="/locations/:id" element={<LocationDetail />} />
-              <Route path="/contracts" element={<ProtectedRoute requireRole={["manager", "admin"]}><Contracts /></ProtectedRoute>} />
-              <Route path="/contracts/:id" element={<ProtectedRoute requireRole={["manager", "admin"]}><ContractDetail /></ProtectedRoute>} />
-              <Route path="/payments" element={<ProtectedRoute requireRole={["manager", "admin"]}><Payments /></ProtectedRoute>} />
-              <Route path="/pricing" element={<ProtectedRoute requireRole={["manager", "admin"]}><Pricing /></ProtectedRoute>} />
-
               <Route path="/stays" element={<Stays />} />
               <Route path="/approvals" element={<Approvals />} />
               <Route path="/users" element={<ProtectedRoute requireRole={["admin"]}><Users /></ProtectedRoute>} />
               <Route path="/bookings" element={<Bookings />} />
               <Route path="/insights" element={<Insights />} />
               <Route path="/settings" element={<Settings />} />
+            </Route>
+
+            {/* Modo Financeiro — manager/admin */}
+            <Route element={<ProtectedRoute requireRole={["manager", "admin"]}><FinanceShell /></ProtectedRoute>}>
+              <Route path="/finance/contracts" element={<Contracts />} />
+              <Route path="/finance/contracts/:id" element={<ContractDetail />} />
+              <Route path="/finance/payments" element={<Payments />} />
+              <Route path="/finance/pricing" element={<Pricing />} />
             </Route>
 
             <Route path="*" element={<NotFound />} />
