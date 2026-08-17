@@ -1,0 +1,485 @@
+import { useMemo, useState } from "react";
+import { Link } from "react-router-dom";
+import {
+  ChevronLeft,
+  ChevronRight,
+  Download,
+  Wallet,
+  FileText,
+  ExternalLink,
+  TrendingUp,
+  AlertTriangle,
+} from "lucide-react";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { toast } from "@/hooks/use-toast";
+import { PaymentStateBadge } from "@/components/payments/PaymentStateBadge";
+import {
+  paymentMethodLabels,
+  paymentStateLabels,
+  useChargePayments,
+  useCreatePayment,
+  useRentMonth,
+  useTypologies,
+  type PaymentMethod,
+  type PaymentState,
+  type RentChargeRow,
+} from "@/hooks/usePayments";
+
+const eur = (v: number | null | undefined) =>
+  v == null ? "—" : new Intl.NumberFormat("pt-PT", { style: "currency", currency: "EUR" }).format(v);
+
+const monthLabel = (year: number, month: number) => {
+  const s = new Date(year, month - 1, 1).toLocaleDateString("pt-PT", { month: "long", year: "numeric" });
+  return s.charAt(0).toUpperCase() + s.slice(1);
+};
+
+const fmtDate = (d: string | null) =>
+  d ? new Date(d).toLocaleDateString("pt-PT", { day: "2-digit", month: "short", year: "numeric" }) : "—";
+
+const todayISO = () => new Date().toISOString().slice(0, 10);
+
+const downloadCsv = (rows: RentChargeRow[], year: number, month: number) => {
+  const header = [
+    "Residente",
+    "Quarto",
+    "Tipologia",
+    "Vencimento",
+    "Valor",
+    "Pago",
+    "Em falta",
+    "Estado",
+    "Contrato",
+  ];
+  const esc = (v: string | number) => `"${String(v ?? "").replace(/"/g, '""')}"`;
+  const lines = [
+    header.map(esc).join(";"),
+    ...rows.map((r) =>
+      [
+        r.residentName,
+        r.roomNumber ?? "",
+        r.typologyName ?? "",
+        r.dueDate ?? "",
+        r.amount.toFixed(2).replace(".", ","),
+        r.paid.toFixed(2).replace(".", ","),
+        Math.max(r.outstanding, 0).toFixed(2).replace(".", ","),
+        paymentStateLabels[r.state],
+        r.contractId,
+      ]
+        .map(esc)
+        .join(";")
+    ),
+  ];
+  const blob = new Blob(["\uFEFF" + lines.join("\r\n")], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `rendas-${year}-${String(month).padStart(2, "0")}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+};
+
+const Payments = () => {
+  const now = new Date();
+  const [year, setYear] = useState(now.getFullYear());
+  const [month, setMonth] = useState(now.getMonth() + 1);
+  const [state, setState] = useState<string>("all");
+  const [typology, setTypology] = useState<string>("all");
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+
+  const { data: charges = [], isLoading } = useRentMonth(year, month);
+  const { data: typologies = [] } = useTypologies();
+
+  const shiftMonth = (delta: number) => {
+    const d = new Date(year, month - 1 + delta, 1);
+    setYear(d.getFullYear());
+    setMonth(d.getMonth() + 1);
+  };
+
+  const filtered = useMemo(
+    () =>
+      charges.filter((r) => {
+        if (state !== "all" && r.state !== state) return false;
+        if (typology !== "all" && r.typologyId !== typology) return false;
+        return true;
+      }),
+    [charges, state, typology]
+  );
+
+  const totals = useMemo(
+    () => ({
+      billed: filtered.reduce((a, r) => a + r.amount, 0),
+      paid: filtered.reduce((a, r) => a + r.paid, 0),
+      outstanding: filtered.reduce((a, r) => a + Math.max(r.outstanding, 0), 0),
+    }),
+    [filtered]
+  );
+
+  const selected = filtered.find((r) => r.id === selectedId) ?? charges.find((r) => r.id === selectedId) ?? null;
+
+  return (
+    <div className="px-4 lg:px-10 py-6 lg:py-10 max-w-7xl mx-auto">
+      <div className="flex flex-wrap items-start justify-between gap-4 mb-6">
+        <div>
+          <h1 className="font-display text-3xl lg:text-4xl font-semibold">Rendas</h1>
+          <p className="text-muted-foreground mt-1">Mapa mensal de rendas e pagamentos.</p>
+        </div>
+        <Button
+          variant="outline"
+          className="rounded-full"
+          onClick={() => downloadCsv(filtered, year, month)}
+          disabled={filtered.length === 0}
+        >
+          <Download className="h-4 w-4 mr-1.5" strokeWidth={1.5} /> Exportar CSV
+        </Button>
+      </div>
+
+      {/* Seletor de mês */}
+      <div className="flex items-center gap-2 mb-6">
+        <Button variant="outline" size="icon" className="rounded-full" onClick={() => shiftMonth(-1)} aria-label="Mês anterior">
+          <ChevronLeft className="h-4 w-4" strokeWidth={1.5} />
+        </Button>
+        <div className="font-display text-xl font-semibold min-w-[190px] text-center">
+          {monthLabel(year, month)}
+        </div>
+        <Button variant="outline" size="icon" className="rounded-full" onClick={() => shiftMonth(1)} aria-label="Mês seguinte">
+          <ChevronRight className="h-4 w-4" strokeWidth={1.5} />
+        </Button>
+        {(year !== now.getFullYear() || month !== now.getMonth() + 1) && (
+          <Button
+            variant="ghost"
+            size="sm"
+            className="rounded-full text-muted-foreground"
+            onClick={() => {
+              setYear(now.getFullYear());
+              setMonth(now.getMonth() + 1);
+            }}
+          >
+            Mês atual
+          </Button>
+        )}
+      </div>
+
+      {/* KPIs */}
+      <div className="grid grid-cols-3 gap-3 mb-6">
+        <Card className="p-4 border-border/60 shadow-card">
+          <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
+            <TrendingUp className="h-4 w-4" strokeWidth={1.5} /> Faturado
+          </div>
+          <div className="font-display text-2xl font-semibold">{eur(totals.billed)}</div>
+        </Card>
+        <Card className="p-4 border-border/60 shadow-card">
+          <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
+            <Wallet className="h-4 w-4" strokeWidth={1.5} /> Recebido
+          </div>
+          <div className="font-display text-2xl font-semibold text-success">{eur(totals.paid)}</div>
+        </Card>
+        <Card className="p-4 border-border/60 shadow-card">
+          <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
+            <AlertTriangle className="h-4 w-4" strokeWidth={1.5} /> Em falta
+          </div>
+          <div className="font-display text-2xl font-semibold text-destructive">{eur(totals.outstanding)}</div>
+        </Card>
+      </div>
+
+      {/* Filtros */}
+      <div className="flex flex-wrap items-end gap-2 mb-5">
+        <div>
+          <Label className="text-xs text-muted-foreground">Estado</Label>
+          <Select value={state} onValueChange={setState}>
+            <SelectTrigger className="w-[180px] rounded-full mt-1"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos os estados</SelectItem>
+              {(Object.keys(paymentStateLabels) as PaymentState[]).map((k) => (
+                <SelectItem key={k} value={k}>{paymentStateLabels[k]}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div>
+          <Label className="text-xs text-muted-foreground">Tipologia</Label>
+          <Select value={typology} onValueChange={setTypology}>
+            <SelectTrigger className="w-[180px] rounded-full mt-1"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todas as tipologias</SelectItem>
+              {typologies.map((t) => (
+                <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      {isLoading ? (
+        <p className="text-muted-foreground text-sm">A carregar…</p>
+      ) : filtered.length === 0 ? (
+        <Card className="p-10 text-center border-dashed border-border/60">
+          <FileText className="h-10 w-10 text-muted-foreground mx-auto mb-3" strokeWidth={1.5} />
+          <p className="font-medium">Sem rendas para {monthLabel(year, month)}</p>
+          <p className="text-sm text-muted-foreground mt-1">
+            As rendas são geradas a partir dos contratos ativos.
+          </p>
+        </Card>
+      ) : (
+        <Card className="border-border/60 shadow-card overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-border text-left text-xs uppercase tracking-wider text-muted-foreground">
+                <th className="px-4 py-3 font-medium">Residente</th>
+                <th className="px-4 py-3 font-medium">Quarto</th>
+                <th className="px-4 py-3 font-medium">Vencimento</th>
+                <th className="px-4 py-3 font-medium text-right">Renda</th>
+                <th className="px-4 py-3 font-medium">Estado</th>
+                <th className="px-4 py-3 font-medium text-right">Pago</th>
+                <th className="px-4 py-3 font-medium text-right">Em falta</th>
+                <th className="px-4 py-3 font-medium" />
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map((r) => (
+                <tr
+                  key={r.id}
+                  className="border-b border-border/50 last:border-0 hover:bg-accent/30 transition-smooth cursor-pointer"
+                  onClick={() => setSelectedId(r.id)}
+                >
+                  <td className="px-4 py-3">
+                    {r.residentId ? (
+                      <Link
+                        to={`/residents/${r.residentId}`}
+                        onClick={(e) => e.stopPropagation()}
+                        className="font-medium hover:underline"
+                      >
+                        {r.residentName}
+                      </Link>
+                    ) : (
+                      <span className="font-medium">{r.residentName}</span>
+                    )}
+                    {r.prorated && (
+                      <span className="ml-2 text-[11px] text-muted-foreground">proporcional</span>
+                    )}
+                  </td>
+                  <td className="px-4 py-3">
+                    {r.roomId ? (
+                      <Link
+                        to={`/rooms/${r.roomId}`}
+                        onClick={(e) => e.stopPropagation()}
+                        className="hover:underline"
+                      >
+                        {r.roomNumber}
+                      </Link>
+                    ) : (
+                      <span className="text-muted-foreground">—</span>
+                    )}
+                    {r.typologyName && (
+                      <span className="ml-2 text-[11px] text-muted-foreground">{r.typologyName}</span>
+                    )}
+                  </td>
+                  <td className="px-4 py-3 text-muted-foreground">{fmtDate(r.dueDate)}</td>
+                  <td className="px-4 py-3 text-right">{eur(r.amount)}</td>
+                  <td className="px-4 py-3"><PaymentStateBadge state={r.state} /></td>
+                  <td className="px-4 py-3 text-right text-success">{eur(r.paid)}</td>
+                  <td
+                    className={`px-4 py-3 text-right ${
+                      r.outstanding > 0.005 ? "text-destructive font-medium" : "text-muted-foreground"
+                    }`}
+                  >
+                    {eur(Math.max(r.outstanding, 0))}
+                  </td>
+                  <td className="px-4 py-3 text-right">
+                    <Link
+                      to={`/contracts/${r.contractId}`}
+                      onClick={(e) => e.stopPropagation()}
+                      className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground hover:underline"
+                    >
+                      Contrato <ExternalLink className="h-3 w-3" strokeWidth={1.5} />
+                    </Link>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </Card>
+      )}
+
+      <PaymentSheet charge={selected} onClose={() => setSelectedId(null)} />
+    </div>
+  );
+};
+
+const PaymentSheet = ({ charge, onClose }: { charge: RentChargeRow | null; onClose: () => void }) => {
+  const create = useCreatePayment();
+  const { data: payments = [] } = useChargePayments(charge?.id);
+  const [amount, setAmount] = useState("");
+  const [paidAt, setPaidAt] = useState(todayISO());
+  const [method, setMethod] = useState<PaymentMethod>("transfer");
+  const [reference, setReference] = useState("");
+
+  const reset = () => {
+    setAmount("");
+    setPaidAt(todayISO());
+    setMethod("transfer");
+    setReference("");
+  };
+
+  const submit = async () => {
+    if (!charge) return;
+    const value = Number(String(amount).replace(",", "."));
+    if (!Number.isFinite(value) || value <= 0) {
+      toast({ title: "Valor inválido", description: "Indica um valor superior a zero.", variant: "destructive" });
+      return;
+    }
+    try {
+      await create.mutateAsync({
+        contractId: charge.contractId,
+        rentChargeId: charge.id,
+        amount: value,
+        paidAt,
+        method,
+        reference,
+      });
+      toast({ title: "Pagamento registado" });
+      reset();
+    } catch (e: any) {
+      toast({ title: "Erro ao registar pagamento", description: e?.message, variant: "destructive" });
+    }
+  };
+
+  return (
+    <Sheet
+      open={!!charge}
+      onOpenChange={(o) => {
+        if (!o) {
+          reset();
+          onClose();
+        }
+      }}
+    >
+      <SheetContent className="w-full sm:max-w-lg overflow-y-auto">
+        {charge && (
+          <>
+            <SheetHeader>
+              <div className="mb-2"><PaymentStateBadge state={charge.state} /></div>
+              <SheetTitle className="font-display text-2xl">{charge.residentName}</SheetTitle>
+            </SheetHeader>
+
+            <div className="mt-4 grid grid-cols-3 gap-3 text-sm">
+              <div>
+                <div className="text-xs text-muted-foreground">Renda</div>
+                <div className="font-medium">{eur(charge.amount)}</div>
+              </div>
+              <div>
+                <div className="text-xs text-muted-foreground">Pago</div>
+                <div className="font-medium text-success">{eur(charge.paid)}</div>
+              </div>
+              <div>
+                <div className="text-xs text-muted-foreground">Em falta</div>
+                <div className="font-medium text-destructive">{eur(Math.max(charge.outstanding, 0))}</div>
+              </div>
+            </div>
+            <div className="mt-3 text-xs text-muted-foreground">
+              {monthLabel(charge.year, charge.month)} · vencimento {fmtDate(charge.dueDate)}
+              {charge.roomNumber ? ` · quarto ${charge.roomNumber}` : ""}
+            </div>
+
+            <div className="mt-6 space-y-3">
+              <h3 className="font-display text-lg font-semibold">Registar pagamento</h3>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label className="text-xs text-muted-foreground">Valor (€)</Label>
+                  <Input
+                    className="mt-1"
+                    inputMode="decimal"
+                    placeholder={Math.max(charge.outstanding, 0).toFixed(2)}
+                    value={amount}
+                    onChange={(e) => setAmount(e.target.value)}
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs text-muted-foreground">Data</Label>
+                  <Input type="date" className="mt-1" value={paidAt} onChange={(e) => setPaidAt(e.target.value)} />
+                </div>
+                <div>
+                  <Label className="text-xs text-muted-foreground">Método</Label>
+                  <Select value={method} onValueChange={(v) => setMethod(v as PaymentMethod)}>
+                    <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {(Object.keys(paymentMethodLabels) as PaymentMethod[]).map((k) => (
+                        <SelectItem key={k} value={k}>{paymentMethodLabels[k]}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label className="text-xs text-muted-foreground">Referência</Label>
+                  <Input
+                    className="mt-1"
+                    placeholder="Opcional"
+                    value={reference}
+                    onChange={(e) => setReference(e.target.value)}
+                  />
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button className="rounded-full" onClick={submit} disabled={create.isPending}>
+                  {create.isPending ? "A registar…" : "Registar pagamento"}
+                </Button>
+                {Math.max(charge.outstanding, 0) > 0 && (
+                  <Button
+                    variant="outline"
+                    className="rounded-full"
+                    onClick={() => setAmount(Math.max(charge.outstanding, 0).toFixed(2))}
+                  >
+                    Valor em falta
+                  </Button>
+                )}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Podes registar vários pagamentos parciais — o estado atualiza-se automaticamente.
+              </p>
+            </div>
+
+            <div className="mt-6">
+              <h3 className="font-display text-lg font-semibold mb-2">Pagamentos registados</h3>
+              {payments.length === 0 ? (
+                <p className="text-sm text-muted-foreground">Ainda sem pagamentos.</p>
+              ) : (
+                <div className="space-y-2">
+                  {payments.map((p) => (
+                    <div
+                      key={p.id}
+                      className="flex items-center justify-between rounded-lg border border-border/60 px-3 py-2 text-sm"
+                    >
+                      <div>
+                        <div className="font-medium">{eur(Number(p.amount))}</div>
+                        <div className="text-xs text-muted-foreground">
+                          {fmtDate(p.paid_at)}
+                          {p.method ? ` · ${paymentMethodLabels[p.method as PaymentMethod]}` : ""}
+                          {p.reference ? ` · ${p.reference}` : ""}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="mt-6">
+              <Link
+                to={`/contracts/${charge.contractId}`}
+                className="inline-flex items-center gap-1 text-sm hover:underline"
+              >
+                Ver contrato <ExternalLink className="h-3.5 w-3.5" strokeWidth={1.5} />
+              </Link>
+            </div>
+          </>
+        )}
+      </SheetContent>
+    </Sheet>
+  );
+};
+
+export default Payments;
