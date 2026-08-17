@@ -65,7 +65,17 @@ const baseSections: NavSection[] = [
   },
 ];
 
+const financeSection: NavSection = {
+  label: "Financeiro",
+  items: [
+    { to: "/contracts", label: "Contratos", icon: FileText },
+    { to: "/payments", label: "Rendas", icon: Wallet },
+    { to: "/pricing", label: "Tipologias e preços", icon: Tag },
+  ],
+};
+
 const adminItem: NavItem = { to: "/users", label: "Utilizadores", icon: Shield };
+
 
 const mobileBottom: NavItem[] = [
   { to: "/my-day", label: "Hoje", icon: Sun },
