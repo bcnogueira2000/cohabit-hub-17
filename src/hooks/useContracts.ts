@@ -219,6 +219,7 @@ export const useAddRentPeriod = () => {
 export interface RecalculationResult {
   created: number;
   updated: number;
+  deleted?: number;
   locked_count: number;
   locked: Array<{
     id: string;
@@ -228,3 +229,46 @@ export interface RecalculationResult {
     expected_amount: number | null;
   }>;
 }
+
+/** Edição dos campos administrativos do contrato */
+export const useUpdateContract = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: {
+      id: string;
+      endDate: string;
+      paymentDay: number;
+      depositDue: number;
+      autoRenew: boolean;
+      notes: string | null;
+      endDateChanged: boolean;
+    }) => {
+      const { error } = await supabase
+        .from("contracts" as any)
+        .update({
+          end_date: input.endDate,
+          payment_day: input.paymentDay,
+          deposit_due: input.depositDue,
+          auto_renew: input.autoRenew,
+          notes: input.notes?.trim() || null,
+        } as any)
+        .eq("id", input.id);
+      if (error) throw error;
+
+      if (!input.endDateChanged) return null;
+
+      const { data, error: rpcErr } = await supabase.rpc("recalculate_rent_charges" as any, {
+        p_contract_id: input.id,
+      });
+      if (rpcErr) throw rpcErr;
+      return (data ?? null) as RecalculationResult | null;
+    },
+    onSuccess: (_d, input) => {
+      qc.invalidateQueries({ queryKey: ["contract", input.id] });
+      qc.invalidateQueries({ queryKey: ["contracts"] });
+      qc.invalidateQueries({ queryKey: ["rent-charges", input.id] });
+      qc.invalidateQueries({ queryKey: ["rent-current-month"] });
+    },
+  });
+};
+
