@@ -312,9 +312,16 @@ const Payments = () => {
           </table>
         </Card>
       )}
+        </TabsContent>
+
+        <TabsContent value="deposits" className="mt-0">
+          <DepositsSection />
+        </TabsContent>
+      </Tabs>
 
       <PaymentSheet charge={selected} onClose={() => setSelectedId(null)} />
     </div>
+
   );
 };
 
