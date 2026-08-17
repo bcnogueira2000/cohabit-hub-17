@@ -1,11 +1,14 @@
+import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { ArrowLeft, ArrowRight, CalendarRange, LogIn, LogOut, Repeat, ShieldCheck, User } from "lucide-react";
+import { ArrowLeft, ArrowRight, CalendarRange, LogIn, LogOut, Pencil, Repeat, ShieldCheck, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useContract, useContractStays } from "@/hooks/useContracts";
 import { ContractStatusBadge } from "@/components/contracts/ContractStatusBadge";
 import { useRooms } from "@/hooks/useData";
 import { RentPeriodsSection } from "@/components/contracts/RentPeriodsSection";
+import { EditContractSheet } from "@/components/contracts/EditContractSheet";
+
 
 const eur = (v: number | null | undefined) =>
   v == null ? "—" : new Intl.NumberFormat("pt-PT", { style: "currency", currency: "EUR" }).format(v);
