@@ -1,16 +1,18 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
-import { Plus, FileText, BedDouble, TrendingUp, Wallet, AlertTriangle } from "lucide-react";
+import { Plus, FileText, BedDouble, TrendingDown, CalendarClock } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useContracts, useStaysByContract, useCurrentMonthRent } from "@/hooks/useContracts";
+import { useContracts, useStaysByContract } from "@/hooks/useContracts";
+import { useTypologyPricing } from "@/hooks/usePricing";
 import { ContractStatusBadge, contractStatusLabels } from "@/components/contracts/ContractStatusBadge";
 import { NewContractDialog } from "@/components/contracts/NewContractDialog";
 import { useRooms } from "@/hooks/useData";
+
 
 const eur = (v: number | null | undefined) =>
   v == null ? "—" : new Intl.NumberFormat("pt-PT", { style: "currency", currency: "EUR" }).format(v);
@@ -22,7 +24,7 @@ const Contracts = () => {
   const navigate = useNavigate();
   const { data: contracts = [], isLoading } = useContracts();
   const { data: stayByContract = {} } = useStaysByContract();
-  const { data: monthRent } = useCurrentMonthRent();
+  const { data: pricing = [] } = useTypologyPricing();
   const { data: rooms = [] } = useRooms();
 
   const [status, setStatus] = useState<string>("all");
@@ -55,7 +57,47 @@ const Contracts = () => {
     return Math.round((occupied / rooms.length) * 100);
   }, [rooms]);
 
-  const totalOverdue = contracts.reduce((a, c) => a + (c.balance?.overdue ?? 0), 0);
+  const today = new Date().toISOString().slice(0, 10);
+
+  /** quartos ocupados por contratos ativos hoje */
+  const occupiedByContract = useMemo(() => {
+    const set = new Set<string>();
+    for (const c of contracts) {
+      if (c.status !== "active") continue;
+      const roomId = stayByContract[c.id]?.roomId;
+      if (roomId) set.add(roomId);
+    }
+    return set;
+  }, [contracts, stayByContract]);
+
+  /** perda mensal estimada: preço promocional (ou de tabela) dos quartos sem contrato ativo */
+  const vacancyLoss = useMemo(() => {
+    const priceByName = new Map<string, number>();
+    for (const t of pricing) {
+      const p = t.current;
+      if (!p) continue;
+      priceByName.set(t.name.toLowerCase(), p.promoPrice ?? p.listPrice);
+    }
+    let loss = 0;
+    let count = 0;
+    for (const r of rooms) {
+      if (occupiedByContract.has(r.id)) continue;
+      count += 1;
+      loss += priceByName.get(String(r.typology).toLowerCase()) ?? 0;
+    }
+    return { loss, count };
+  }, [rooms, pricing, occupiedByContract]);
+
+  const endingSoon = useMemo(() => {
+    const limit = new Date();
+    limit.setDate(limit.getDate() + 30);
+    const limitStr = limit.toISOString().slice(0, 10);
+    return contracts.filter((c) => {
+      if (c.status !== "active") return false;
+      const end = c.actualEndDate ?? c.endDate;
+      return end >= today && end <= limitStr;
+    }).length;
+  }, [contracts, today]);
 
   return (
     <div className="px-4 lg:px-10 py-6 lg:py-10 max-w-7xl mx-auto">
@@ -72,7 +114,7 @@ const Contracts = () => {
       </div>
 
       {/* KPIs */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 mb-6">
         <Card className="p-4 border-border/60 shadow-card">
           <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
             <BedDouble className="h-4 w-4" strokeWidth={1.5} /> Ocupação
@@ -84,26 +126,22 @@ const Contracts = () => {
         </Card>
         <Card className="p-4 border-border/60 shadow-card">
           <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
-            <TrendingUp className="h-4 w-4" strokeWidth={1.5} /> Receita prevista (mês)
+            <TrendingDown className="h-4 w-4" strokeWidth={1.5} /> Perda por vacância (mês)
           </div>
-          <div className="font-display text-2xl font-semibold">{eur(monthRent?.expected ?? 0)}</div>
+          <div className="font-display text-2xl font-semibold text-destructive">{eur(vacancyLoss.loss)}</div>
+          <div className="text-xs text-muted-foreground mt-0.5">
+            {vacancyLoss.count} quarto{vacancyLoss.count === 1 ? "" : "s"} sem contrato ativo
+          </div>
         </Card>
         <Card className="p-4 border-border/60 shadow-card">
           <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
-            <Wallet className="h-4 w-4" strokeWidth={1.5} /> Recebido (mês)
+            <CalendarClock className="h-4 w-4" strokeWidth={1.5} /> A terminar em 30 dias
           </div>
-          <div className="font-display text-2xl font-semibold text-success">{eur(monthRent?.received ?? 0)}</div>
-        </Card>
-        <Card className="p-4 border-border/60 shadow-card">
-          <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
-            <AlertTriangle className="h-4 w-4" strokeWidth={1.5} /> Em dívida
-          </div>
-          <div className="font-display text-2xl font-semibold text-destructive">{eur(totalOverdue)}</div>
+          <div className="font-display text-2xl font-semibold">{endingSoon}</div>
+          <div className="text-xs text-muted-foreground mt-0.5">contratos ativos</div>
         </Card>
       </div>
-      <p className="text-xs text-muted-foreground -mt-3 mb-6">
-        Perda por vacância ainda não incluída nestes indicadores.
-      </p>
+
 
       {/* Filtros */}
       <div className="flex flex-wrap items-end gap-2 mb-5">
