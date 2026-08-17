@@ -180,3 +180,105 @@ export const useCreatePayment = () => {
     },
   });
 };
+
+// ============ Cauções ============
+
+export interface DepositRow {
+  contractId: string;
+  residentId: string | null;
+  residentName: string;
+  status: string;
+  startDate: string;
+  endDate: string;
+  depositDue: number;
+  depositReceived: number;
+  depositReturned: number;
+  depositHeld: number;
+}
+
+/** Contratos com caução por devolver (recebido > devolvido), incluindo terminados. */
+export const useDeposits = () =>
+  useQuery({
+    queryKey: ["deposits"],
+    queryFn: async (): Promise<DepositRow[]> => {
+      const { data, error } = await supabase
+        .from("contracts" as any)
+        .select(
+          "id, status, start_date, end_date, resident_id, deposit_due, deposit_received, deposit_returned, residents:resident_id(id, full_name)"
+        )
+        .order("end_date", { ascending: true });
+      if (error) throw error;
+      return ((data ?? []) as any[])
+        .map((c): DepositRow => ({
+          contractId: c.id,
+          residentId: c.resident_id ?? null,
+          residentName: c.residents?.full_name ?? "—",
+          status: c.status,
+          startDate: c.start_date,
+          endDate: c.end_date,
+          depositDue: Number(c.deposit_due ?? 0),
+          depositReceived: Number(c.deposit_received ?? 0),
+          depositReturned: Number(c.deposit_returned ?? 0),
+          depositHeld: Number(c.deposit_received ?? 0) - Number(c.deposit_returned ?? 0),
+        }))
+        .filter((r) => r.depositHeld > 0.005);
+    },
+  });
+
+/** Pagamentos de caução (recebimento e devoluções) de um contrato */
+export const useDepositPayments = (contractId: string | undefined) =>
+  useQuery({
+    enabled: !!contractId,
+    queryKey: ["deposit-payments", contractId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("payments" as any)
+        .select("*")
+        .eq("contract_id", contractId!)
+        .in("kind", ["deposit", "deposit_return"])
+        .order("paid_at", { ascending: false });
+      if (error) throw error;
+      return (data ?? []) as any[];
+    },
+  });
+
+/**
+ * Registar devolução de caução: cria o pagamento (kind=deposit_return, valor positivo)
+ * e soma ao contracts.deposit_returned já existente (suporta devoluções parciais).
+ */
+export const useCreateDepositReturn = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: {
+      contractId: string;
+      amount: number;
+      paidAt: string;
+      method: PaymentMethod;
+      reference?: string | null;
+      currentReturned: number;
+    }) => {
+      const { error } = await supabase.from("payments" as any).insert({
+        contract_id: input.contractId,
+        kind: "deposit_return",
+        amount: input.amount,
+        paid_at: input.paidAt,
+        method: input.method,
+        reference: input.reference?.trim() || null,
+      } as any);
+      if (error) throw error;
+
+      const { error: updErr } = await supabase
+        .from("contracts" as any)
+        .update({ deposit_returned: input.currentReturned + input.amount } as any)
+        .eq("id", input.contractId);
+      if (updErr) throw updErr;
+    },
+    onSuccess: (_d, input) => {
+      qc.invalidateQueries({ queryKey: ["deposits"] });
+      qc.invalidateQueries({ queryKey: ["deposit-payments", input.contractId] });
+      qc.invalidateQueries({ queryKey: ["contract", input.contractId] });
+      qc.invalidateQueries({ queryKey: ["contracts"] });
+    },
+  });
+};
+
