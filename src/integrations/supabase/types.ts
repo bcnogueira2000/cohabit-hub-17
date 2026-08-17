@@ -1462,6 +1462,7 @@ export type Database = {
         Args: { p_count?: number; p_schedule_id: string }
         Returns: number
       }
+      generate_finance_alerts: { Args: never; Returns: number }
       generate_rent_charges: {
         Args: { p_contract_id: string }
         Returns: number
