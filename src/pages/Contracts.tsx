@@ -114,7 +114,7 @@ const Contracts = () => {
       </div>
 
       {/* KPIs */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 mb-6">
         <Card className="p-4 border-border/60 shadow-card">
           <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
             <BedDouble className="h-4 w-4" strokeWidth={1.5} /> Ocupação
@@ -126,26 +126,22 @@ const Contracts = () => {
         </Card>
         <Card className="p-4 border-border/60 shadow-card">
           <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
-            <TrendingUp className="h-4 w-4" strokeWidth={1.5} /> Receita prevista (mês)
+            <TrendingDown className="h-4 w-4" strokeWidth={1.5} /> Perda por vacância (mês)
           </div>
-          <div className="font-display text-2xl font-semibold">{eur(monthRent?.expected ?? 0)}</div>
+          <div className="font-display text-2xl font-semibold text-destructive">{eur(vacancyLoss.loss)}</div>
+          <div className="text-xs text-muted-foreground mt-0.5">
+            {vacancyLoss.count} quarto{vacancyLoss.count === 1 ? "" : "s"} sem contrato ativo
+          </div>
         </Card>
         <Card className="p-4 border-border/60 shadow-card">
           <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
-            <Wallet className="h-4 w-4" strokeWidth={1.5} /> Recebido (mês)
+            <CalendarClock className="h-4 w-4" strokeWidth={1.5} /> A terminar em 30 dias
           </div>
-          <div className="font-display text-2xl font-semibold text-success">{eur(monthRent?.received ?? 0)}</div>
-        </Card>
-        <Card className="p-4 border-border/60 shadow-card">
-          <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
-            <AlertTriangle className="h-4 w-4" strokeWidth={1.5} /> Em dívida
-          </div>
-          <div className="font-display text-2xl font-semibold text-destructive">{eur(totalOverdue)}</div>
+          <div className="font-display text-2xl font-semibold">{endingSoon}</div>
+          <div className="text-xs text-muted-foreground mt-0.5">contratos ativos</div>
         </Card>
       </div>
-      <p className="text-xs text-muted-foreground -mt-3 mb-6">
-        Perda por vacância ainda não incluída nestes indicadores.
-      </p>
+
 
       {/* Filtros */}
       <div className="flex flex-wrap items-end gap-2 mb-5">
