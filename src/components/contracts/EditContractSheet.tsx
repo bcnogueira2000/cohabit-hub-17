@@ -56,7 +56,7 @@ export const EditContractSheet = ({ contract, open, onOpenChange }: Props) => {
         toast.warning(
           `${lockedCount} ${lockedCount === 1 ? "renda não foi removida porque já tem pagamentos registados" : "rendas não foram removidas porque já têm pagamentos registados"}`
         );
-      } else if (endDateChanged) {
+      } else if (endDateChanged || paymentDayChanged) {
         toast.success("Contrato atualizado e rendas recalculadas");
         onOpenChange(false);
       } else {
