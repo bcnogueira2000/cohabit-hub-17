@@ -134,7 +134,7 @@ const Payments = () => {
       <div className="flex flex-wrap items-start justify-between gap-4 mb-6">
         <div>
           <h1 className="font-display text-3xl lg:text-4xl font-semibold">Rendas</h1>
-          <p className="text-muted-foreground mt-1">Mapa mensal de rendas e pagamentos.</p>
+          <p className="text-muted-foreground mt-1">Mapa mensal de rendas, pagamentos e cauções.</p>
         </div>
         <Button
           variant="outline"
@@ -146,7 +146,15 @@ const Payments = () => {
         </Button>
       </div>
 
+      <Tabs defaultValue="rent" className="space-y-6">
+        <TabsList className="rounded-full">
+          <TabsTrigger value="rent" className="rounded-full">Rendas</TabsTrigger>
+          <TabsTrigger value="deposits" className="rounded-full">Cauções</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="rent" className="mt-0">
       {/* Seletor de mês */}
+
       <div className="flex items-center gap-2 mb-6">
         <Button variant="outline" size="icon" className="rounded-full" onClick={() => shiftMonth(-1)} aria-label="Mês anterior">
           <ChevronLeft className="h-4 w-4" strokeWidth={1.5} />
