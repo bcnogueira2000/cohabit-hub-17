@@ -135,7 +135,10 @@ export const EditContractSheet = ({ contract, open, onOpenChange }: Props) => {
             <div className="rounded-xl border border-warning/40 bg-warning/10 p-3">
               <div className="flex items-center gap-2 text-sm font-medium text-warning-foreground">
                 <AlertTriangle className="h-4 w-4" strokeWidth={1.5} />
-                {locked.length} {locked.length === 1 ? "renda não foi removida" : "rendas não foram removidas"} porque já têm pagamentos registados
+                {locked.length}{" "}
+                {locked.length === 1
+                  ? "renda não foi removida porque já tem pagamentos registados"
+                  : "rendas não foram removidas porque já têm pagamentos registados"}
               </div>
               <ul className="mt-2 space-y-1 text-xs text-muted-foreground">
                 {locked.map((l) => (
