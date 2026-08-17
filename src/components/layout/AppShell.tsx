@@ -50,13 +50,7 @@ const baseSections: NavSection[] = [
     ],
   },
   {
-    label: "Financeiro",
-    items: [
-      { to: "/contracts", label: "Contratos", icon: FileText },
-      { to: "/payments", label: "Rendas", icon: Wallet },
-    ],
-  },
-  {
+
     label: "Parceiros",
     items: [
       { to: "/suppliers", label: "Fornecedores", icon: Building2 },
