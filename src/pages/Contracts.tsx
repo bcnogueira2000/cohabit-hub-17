@@ -1,16 +1,18 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
-import { Plus, FileText, BedDouble, TrendingUp, Wallet, AlertTriangle } from "lucide-react";
+import { Plus, FileText, BedDouble, TrendingDown, CalendarClock } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useContracts, useStaysByContract, useCurrentMonthRent } from "@/hooks/useContracts";
+import { useContracts, useStaysByContract } from "@/hooks/useContracts";
+import { useTypologyPricing } from "@/hooks/usePricing";
 import { ContractStatusBadge, contractStatusLabels } from "@/components/contracts/ContractStatusBadge";
 import { NewContractDialog } from "@/components/contracts/NewContractDialog";
 import { useRooms } from "@/hooks/useData";
+
 
 const eur = (v: number | null | undefined) =>
   v == null ? "—" : new Intl.NumberFormat("pt-PT", { style: "currency", currency: "EUR" }).format(v);
