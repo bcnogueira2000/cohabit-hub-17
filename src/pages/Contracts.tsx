@@ -57,7 +57,47 @@ const Contracts = () => {
     return Math.round((occupied / rooms.length) * 100);
   }, [rooms]);
 
-  const totalOverdue = contracts.reduce((a, c) => a + (c.balance?.overdue ?? 0), 0);
+  const today = new Date().toISOString().slice(0, 10);
+
+  /** quartos ocupados por contratos ativos hoje */
+  const occupiedByContract = useMemo(() => {
+    const set = new Set<string>();
+    for (const c of contracts) {
+      if (c.status !== "active") continue;
+      const roomId = stayByContract[c.id]?.roomId;
+      if (roomId) set.add(roomId);
+    }
+    return set;
+  }, [contracts, stayByContract]);
+
+  /** perda mensal estimada: preço promocional (ou de tabela) dos quartos sem contrato ativo */
+  const vacancyLoss = useMemo(() => {
+    const priceByName = new Map<string, number>();
+    for (const t of pricing) {
+      const p = t.current;
+      if (!p) continue;
+      priceByName.set(t.name.toLowerCase(), p.promoPrice ?? p.listPrice);
+    }
+    let loss = 0;
+    let count = 0;
+    for (const r of rooms) {
+      if (occupiedByContract.has(r.id)) continue;
+      count += 1;
+      loss += priceByName.get(String(r.typology).toLowerCase()) ?? 0;
+    }
+    return { loss, count };
+  }, [rooms, pricing, occupiedByContract]);
+
+  const endingSoon = useMemo(() => {
+    const limit = new Date();
+    limit.setDate(limit.getDate() + 30);
+    const limitStr = limit.toISOString().slice(0, 10);
+    return contracts.filter((c) => {
+      if (c.status !== "active") return false;
+      const end = c.actualEndDate ?? c.endDate;
+      return end >= today && end <= limitStr;
+    }).length;
+  }, [contracts, today]);
 
   return (
     <div className="px-4 lg:px-10 py-6 lg:py-10 max-w-7xl mx-auto">
