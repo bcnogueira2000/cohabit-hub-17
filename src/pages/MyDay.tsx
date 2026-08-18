@@ -1,17 +1,20 @@
 import { useMemo, useState } from "react";
-import { Sparkles, ListChecks, Clock, Check, MapPin } from "lucide-react";
+import { Sparkles, ListChecks, Clock, Check, MapPin, LogIn, LogOut } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
-import { useCleaningTasks, useOpsTasks, useUpdateCleaningTask, useUpdateOpsTask } from "@/hooks/useData";
+import { useCleaningTasks, useOpsTasks, useUpdateCleaningTask, useUpdateOpsTask, useStays, useUpdateStay, useRooms } from "@/hooks/useData";
 import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
+import type { Stay } from "@/lib/types";
 
 type Item =
   | { kind: "cleaning"; id: string; time: Date; title: string; subtitle: string; status: string; raw: any }
-  | { kind: "task"; id: string; time: Date; title: string; subtitle: string; status: string; raw: any };
+  | { kind: "task"; id: string; time: Date; title: string; subtitle: string; status: string; raw: any }
+  | { kind: "stay_checkin"; id: string; time: Date; title: string; subtitle: string; status: string; raw: Stay }
+  | { kind: "stay_checkout"; id: string; time: Date; title: string; subtitle: string; status: string; raw: Stay };
 
 const isToday = (d: Date) => d.toDateString() === new Date().toDateString();
 
@@ -19,13 +22,18 @@ const MyDay = () => {
   const { user } = useAuth();
   const { data: cleanings = [] } = useCleaningTasks();
   const { data: tasks = [] } = useOpsTasks();
+  const { data: stays = [] } = useStays();
+  const { data: rooms = [] } = useRooms();
   const updateCleaning = useUpdateCleaningTask();
   const updateTask = useUpdateOpsTask();
+  const updateStay = useUpdateStay();
 
-  const [filter, setFilter] = useState<"all" | "cleaning" | "task">("all");
+  const [filter, setFilter] = useState<"all" | "cleaning" | "task" | "stay">("all");
   const [scope, setScope] = useState<"today" | "mine">("today");
   const [sel, setSel] = useState<Item | null>(null);
   const [notes, setNotes] = useState("");
+
+  const roomNumber = (id?: string | null) => rooms.find((r) => r.id === id)?.number ?? "—";
 
   const items: Item[] = useMemo(() => {
     const isMine = (assignedUserId: string | null) =>
@@ -51,7 +59,7 @@ const MyDay = () => {
         return isToday(new Date(c.scheduledFor));
       })
       .map((c) => ({
-        kind: "cleaning",
+        kind: "cleaning" as const,
         id: c.id,
         time: new Date(c.scheduledFor),
         title: c.area,
@@ -72,7 +80,7 @@ const MyDay = () => {
         return t.dueDate && isToday(new Date(t.dueDate));
       })
       .map((t) => ({
-        kind: "task",
+        kind: "task" as const,
         id: t.id,
         time: new Date(t.dueDate ?? t.createdAt),
         title: t.title,
@@ -81,21 +89,54 @@ const MyDay = () => {
         raw: t,
       }));
 
-    let merged = [...cleaningItems, ...taskItems].sort(
+    const stayItems: Item[] =
+      scope === "today"
+        ? stays
+            .filter((s) => {
+              if (s.status === "confirmed" && s.checkIn && isToday(new Date(s.checkIn))) return true;
+              if (s.status === "checked_in" && s.checkOut && isToday(new Date(s.checkOut))) return true;
+              return false;
+            })
+            .map((s) => {
+              const isCheckIn = s.status === "confirmed";
+              return {
+                kind: isCheckIn ? ("stay_checkin" as const) : ("stay_checkout" as const),
+                id: s.id,
+                time: new Date(isCheckIn ? s.checkIn : s.checkOut),
+                title: s.fullName,
+                subtitle: `${isCheckIn ? "Chegada" : "Saída"} — Quarto ${roomNumber(s.roomId)}`,
+                status: s.status,
+                raw: s,
+              };
+            })
+        : [];
+
+    let merged = [...cleaningItems, ...taskItems, ...stayItems].sort(
       (x, y) => x.time.getTime() - y.time.getTime(),
     );
-    if (filter !== "all") merged = merged.filter((m) => m.kind === filter);
+    if (filter !== "all") {
+      merged = merged.filter((m) =>
+        filter === "stay" ? m.kind === "stay_checkin" || m.kind === "stay_checkout" : m.kind === filter,
+      );
+    }
     return merged;
-  }, [cleanings, tasks, filter, scope, user]);
+  }, [cleanings, tasks, stays, rooms, filter, scope, user]);
 
   const openItem = (it: Item) => {
     setSel(it);
-    setNotes(it.kind === "cleaning" ? (it.raw.notes ?? "") : (it.raw.description ?? ""));
+    setNotes(
+      it.kind === "cleaning"
+        ? (it.raw.notes ?? "")
+        : it.kind === "task"
+        ? (it.raw.description ?? "")
+        : "",
+    );
   };
 
   const setStatus = (it: Item, status: string) => {
     if (it.kind === "cleaning") updateCleaning.mutate({ id: it.id, patch: { status: status as any } });
-    else updateTask.mutate({ id: it.id, patch: { status: status as any } });
+    else if (it.kind === "task") updateTask.mutate({ id: it.id, patch: { status: status as any } });
+    else updateStay.mutate({ id: it.id, patch: { status: status as any } });
     setSel(null);
   };
 
@@ -110,8 +151,10 @@ const MyDay = () => {
   const saveNotes = () => {
     if (!sel) return;
     if (sel.kind === "cleaning") updateCleaning.mutate({ id: sel.id, patch: { notes } });
-    else updateTask.mutate({ id: sel.id, patch: { description: notes } });
+    else if (sel.kind === "task") updateTask.mutate({ id: sel.id, patch: { description: notes } });
   };
+
+  const stayKind = (it: Item) => (it.kind === "stay_checkin" || it.kind === "stay_checkout" ? it.kind : null);
 
   return (
     <div className="px-4 lg:px-10 py-6 lg:py-8 max-w-3xl mx-auto pb-24">
@@ -146,7 +189,7 @@ const MyDay = () => {
       </div>
 
       <div className="flex gap-2 overflow-x-auto pb-2 mb-4 -mx-1 px-1">
-        {([["all","Todas"],["cleaning","Limpeza"],["task","Manutenção/Tarefas"]] as const).map(([v, l]) => (
+        {([["all","Todas"],["cleaning","Limpeza"],["task","Manutenção/Tarefas"],["stay","Estadias"]] as const).map(([v, l]) => (
           <button key={v} onClick={() => setFilter(v as any)}
             className={cn("shrink-0 px-3.5 py-1.5 rounded-full text-sm font-medium border transition-smooth",
               filter === v ? "bg-foreground text-background border-foreground" : "bg-card text-muted-foreground border-border")}>
@@ -164,28 +207,32 @@ const MyDay = () => {
       )}
 
       <div className="space-y-2">
-        {items.map((it) => (
-          <Card key={`${it.kind}-${it.id}`} onClick={() => openItem(it)}
-            className="p-4 cursor-pointer active:scale-[0.99] transition-transform border-border/60">
-            <div className="flex items-start gap-3">
-              <div className={cn("h-11 w-11 rounded-xl flex items-center justify-center shrink-0",
-                it.kind === "cleaning" ? "bg-primary/10 text-primary" : "bg-info/10 text-info")}>
-                {it.kind === "cleaning" ? <Sparkles className="h-5 w-5" /> : <ListChecks className="h-5 w-5" />}
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-0.5 text-xs text-muted-foreground">
-                  <Clock className="h-3 w-3" />
-                  {scope === "mine" && !isToday(it.time)
-                    ? it.time.toLocaleDateString("pt-PT", { day: "numeric", month: "short" })
-                    : it.time.toLocaleTimeString("pt-PT", { hour: "2-digit", minute: "2-digit" })}
-                  {it.status === "in_progress" && <span className="px-1.5 py-0.5 rounded-full bg-warning/20 text-warning text-[10px]">em curso</span>}
+        {items.map((it) => {
+          const isStay = stayKind(it) !== null;
+          return (
+            <Card key={`${it.kind}-${it.id}`} onClick={() => openItem(it)}
+              className="p-4 cursor-pointer active:scale-[0.99] transition-transform border-border/60">
+              <div className="flex items-start gap-3">
+                <div className={cn("h-11 w-11 rounded-xl flex items-center justify-center shrink-0",
+                  it.kind === "cleaning" ? "bg-primary/10 text-primary" : it.kind === "task" ? "bg-info/10 text-info" : it.kind === "stay_checkin" ? "bg-success/10 text-success" : "bg-warning/10 text-warning")}>
+                  {it.kind === "cleaning" ? <Sparkles className="h-5 w-5" /> : it.kind === "task" ? <ListChecks className="h-5 w-5" /> : it.kind === "stay_checkin" ? <LogIn className="h-5 w-5" /> : <LogOut className="h-5 w-5" />}
                 </div>
-                <div className="font-medium leading-tight">{it.title}</div>
-                <div className="text-xs text-muted-foreground mt-0.5">{it.subtitle}</div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-0.5 text-xs text-muted-foreground">
+                    <Clock className="h-3 w-3" />
+                    {scope === "mine" && !isToday(it.time)
+                      ? it.time.toLocaleDateString("pt-PT", { day: "numeric", month: "short" })
+                      : it.time.toLocaleTimeString("pt-PT", { hour: "2-digit", minute: "2-digit" })}
+                    {it.status === "in_progress" && <span className="px-1.5 py-0.5 rounded-full bg-warning/20 text-warning text-[10px]">em curso</span>}
+                    {isStay && <span className="px-1.5 py-0.5 rounded-full bg-info/20 text-info text-[10px]">{it.kind === "stay_checkin" ? "check-in" : "check-out"}</span>}
+                  </div>
+                  <div className="font-medium leading-tight">{it.title}</div>
+                  <div className="text-xs text-muted-foreground mt-0.5">{it.subtitle}</div>
+                </div>
               </div>
-            </div>
-          </Card>
-        ))}
+            </Card>
+          );
+        })}
       </div>
 
       <Sheet open={!!sel} onOpenChange={(o) => !o && setSel(null)}>
@@ -215,28 +262,42 @@ const MyDay = () => {
                 </div>
               )}
 
-              <div className="my-4">
-                <div className="text-sm font-semibold mb-2">Notas</div>
-                <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} onBlur={saveNotes} rows={3}
-                  placeholder="Apontamentos, fotos por descrever, etc." />
-              </div>
+              {(sel.kind === "cleaning" || sel.kind === "task") && (
+                <div className="my-4">
+                  <div className="text-sm font-semibold mb-2">Notas</div>
+                  <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} onBlur={saveNotes} rows={3}
+                    placeholder="Apontamentos, fotos por descrever, etc." />
+                </div>
+              )}
 
-              <div className="grid grid-cols-2 gap-2 mt-4">
-                {sel.status !== "in_progress" && sel.status !== "completed" && sel.status !== "done" && (
-                  <Button onClick={() => setStatus(sel, "in_progress")} className="rounded-full gradient-warm border-0 h-12">
-                    <Clock className="h-4 w-4 mr-1.5" /> Iniciar
+              {sel.kind === "cleaning" || sel.kind === "task" ? (
+                <div className="grid grid-cols-2 gap-2 mt-4">
+                  {sel.status !== "in_progress" && sel.status !== "completed" && sel.status !== "done" && (
+                    <Button onClick={() => setStatus(sel, "in_progress")} className="rounded-full gradient-warm border-0 h-12">
+                      <Clock className="h-4 w-4 mr-1.5" /> Iniciar
+                    </Button>
+                  )}
+                  <Button onClick={() => setStatus(sel, sel.kind === "cleaning" ? "completed" : "done")}
+                    className="rounded-full h-12 col-span-2 bg-success text-success-foreground hover:bg-success/90">
+                    <Check className="h-4 w-4 mr-1.5" /> Concluir
                   </Button>
-                )}
-                <Button onClick={() => setStatus(sel, sel.kind === "cleaning" ? "completed" : "done")}
-                  className="rounded-full h-12 col-span-2 bg-success text-success-foreground hover:bg-success/90">
-                  <Check className="h-4 w-4 mr-1.5" /> Concluir
-                </Button>
-                {sel.kind === "task" && sel.status !== "blocked" && (
-                  <Button variant="outline" onClick={() => setStatus(sel, "blocked")} className="rounded-full h-12 col-span-2">
-                    Bloquear
+                  {sel.kind === "task" && sel.status !== "blocked" && (
+                    <Button variant="outline" onClick={() => setStatus(sel, "blocked")} className="rounded-full h-12 col-span-2">
+                      Bloquear
+                    </Button>
+                  )}
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 gap-2 mt-4">
+                  <Button
+                    onClick={() => setStatus(sel, sel.kind === "stay_checkin" ? "checked_in" : "checked_out")}
+                    className="rounded-full h-12 bg-success text-success-foreground hover:bg-success/90"
+                  >
+                    <Check className="h-4 w-4 mr-1.5" />
+                    Confirmar {sel.kind === "stay_checkin" ? "check-in" : "check-out"}
                   </Button>
-                )}
-              </div>
+                </div>
+              )}
             </>
           )}
         </SheetContent>
