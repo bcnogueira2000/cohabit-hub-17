@@ -208,8 +208,8 @@ const OccupancyMap = () => {
   const dayWidth = 8;
   const labelWidth = 200;
   const gridWidth = totalDays * dayWidth;
-  const rowHeight = 22;
-  const barPad = 3;
+  const rowHeight = 16;
+  const barPad = 0;
 
   const openBar = (bar: Bar) => {
     if (bar.contractId) navigate(`/finance/contracts/${bar.contractId}`);
