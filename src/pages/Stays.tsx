@@ -41,6 +41,7 @@ const Stays = () => {
   const createStay = useCreateStay();
   const updateStay = useUpdateStay();
   const deleteStay = useDeleteStay();
+  const qc = useQueryClient();
   const [open, setOpen] = useState(false);
   const [contractOpen, setContractOpen] = useState(false);
   const navigate = useNavigate();
