@@ -29,6 +29,9 @@ export const mapResident = (r: any): Resident => ({
   taxNumber: r.tax_number ?? null,
   employerOrSchool: r.employer_or_school ?? null,
   dateOfBirth: r.date_of_birth ?? null,
+  emergencyContactName: r.emergency_contact_name ?? null,
+  emergencyContactPhone: r.emergency_contact_phone ?? null,
+  specialNeeds: r.special_needs ?? null,
 });
 
 export const mapRequest = (r: any): Request => ({
