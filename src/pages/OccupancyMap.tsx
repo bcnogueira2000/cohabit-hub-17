@@ -433,10 +433,10 @@ const OccupancyMap = () => {
                                         onClick={() => openBar(bar)}
                                         title={`${bar.label} · ${bar.tone === "occupied" ? "Ocupado" : "Reservado"}`}
                                         className={cn(
-                                          "absolute inset-y-0 h-full rounded-sm px-1 text-[9px] font-semibold text-left flex items-center gap-1 overflow-hidden transition-smooth hover:shadow-md hover:scale-[1.01]",
+                                          "absolute inset-y-1.5 rounded-sm px-1 text-[9px] font-semibold text-left flex items-center gap-1 overflow-hidden transition-smooth hover:shadow-md hover:scale-[1.01]",
                                           bar.tone === "occupied"
-                                            ? "bg-green-700/60 text-white border border-green-700/50 shadow-sm shadow-green-900/20"
-                                            : "bg-yellow-400/35 text-yellow-950 border border-dashed border-yellow-600/70"
+                                            ? "bg-green-600 text-green-50 shadow-sm shadow-green-600/20"
+                                            : "bg-yellow-400 text-yellow-950 shadow-sm"
                                         )}
                                         style={{
                                           left: bar.startIdx * dayWidth + 2,
