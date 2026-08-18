@@ -204,8 +204,8 @@ const OccupancyMap = () => {
       </div>
 
       <div className="flex items-center gap-4 text-sm text-muted-foreground">
-        <span className="flex items-center gap-2"><span className="h-3 w-6 rounded bg-info/60 border border-info/40" />Reservado</span>
-        <span className="flex items-center gap-2"><span className="h-3 w-6 rounded bg-primary/60 border border-primary/40" />Ocupado</span>
+        <span className="flex items-center gap-2"><span className="h-3 w-6 rounded bg-info/25 border border-dashed border-info" />Reservado</span>
+        <span className="flex items-center gap-2"><span className="h-3 w-6 rounded bg-primary border border-primary" />Ocupado</span>
         <span className="flex items-center gap-2"><span className="h-3 w-6 rounded bg-muted border border-border" />Livre</span>
       </div>
 
@@ -307,8 +307,8 @@ const OccupancyMap = () => {
                                     className={cn(
                                       "absolute top-1 bottom-1 rounded px-1.5 text-[10px] font-medium truncate text-left border transition-opacity hover:opacity-80",
                                       bar.tone === "occupied"
-                                        ? "bg-primary/60 border-primary/40 text-primary-foreground"
-                                        : "bg-info/50 border-info/40 text-foreground",
+                                        ? "bg-primary border-primary text-primary-foreground"
+                                        : "bg-info/25 border-dashed border-info text-info",
                                     )}
                                     style={{
                                       left: bar.startIdx * colWidth + 1,
