@@ -30,6 +30,18 @@ const monthLabel = (d: Date) =>
   `${d.toLocaleDateString("pt-PT", { month: "long" })} ${d.getFullYear()}`;
 const monthKey = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
 
+type RoomRow = { id: string; number: string; floor: number; typology: string; typology_id: string | null };
+type StayRow = {
+  id: string;
+  room_id: string | null;
+  check_in: string;
+  check_out: string;
+  status: string;
+  contract_id: string | null;
+  full_name: string;
+  contract: { id: string; status: string; start_date: string; end_date: string; actual_end_date: string | null } | null;
+};
+
 const useOccupancyData = () =>
   useQuery({
     queryKey: ["occupancy-map"],
