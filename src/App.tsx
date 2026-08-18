@@ -33,6 +33,7 @@ import Insights from "./pages/Insights";
 import Settings from "./pages/Settings";
 import MyDay from "./pages/MyDay";
 import Stays from "./pages/Stays";
+import OccupancyMap from "./pages/OccupancyMap";
 import Approvals from "./pages/Approvals";
 import Users from "./pages/Users";
 import Contracts from "./pages/Contracts";
@@ -108,6 +109,7 @@ const App = () => (
               <Route path="/locations" element={<Locations />} />
               <Route path="/locations/:id" element={<LocationDetail />} />
               <Route path="/stays" element={<Stays />} />
+              <Route path="/occupancy-map" element={<OccupancyMap />} />
               <Route path="/approvals" element={<Approvals />} />
               <Route path="/users" element={<ProtectedRoute requireRole={["admin"]}><Users /></ProtectedRoute>} />
               <Route path="/bookings" element={<Bookings />} />
