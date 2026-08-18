@@ -194,9 +194,10 @@ const OccupancyMap = () => {
   const hiddenCount = Object.keys(byFloor).length - visibleFloors.length;
 
   const dayWidth = 8;
-  const labelWidth = 168;
+  const labelWidth = 200;
   const gridWidth = totalDays * dayWidth;
   const rowHeight = 26;
+
 
   const openBar = (bar: Bar) => {
     if (bar.contractId) navigate(`/finance/contracts/${bar.contractId}`);
