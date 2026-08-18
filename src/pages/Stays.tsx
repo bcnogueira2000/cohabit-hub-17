@@ -13,6 +13,8 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useStays, useRooms, useCreateStay, useUpdateStay, useDeleteStay } from "@/hooks/useData";
 import { NewContractDialog } from "@/components/contracts/NewContractDialog";
 import { toast } from "sonner";
+import { useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import type { Stay, StayStatus } from "@/lib/types";
 
 const statusLabel: Record<StayStatus, string> = {
