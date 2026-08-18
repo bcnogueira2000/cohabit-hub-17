@@ -110,6 +110,23 @@ const ResidentDetail = () => {
     );
   };
 
+  // Prefer o valor que o próprio residente preencheu no portal (profiles); senão o da equipa (residents).
+  const profileEmergency =
+    profile?.emergency_contact_name || profile?.emergency_contact_phone
+      ? [profile?.emergency_contact_name, profile?.emergency_contact_phone].filter(Boolean).join(" · ")
+      : null;
+  const residentEmergency =
+    resident?.emergencyContactName || resident?.emergencyContactPhone
+      ? [resident?.emergencyContactName, resident?.emergencyContactPhone].filter(Boolean).join(" · ")
+      : null;
+
+  const nationalityFromProfile = !!profile?.nationality;
+  const nationalityValue = profile?.nationality || resident?.nationality || null;
+  const emergencyFromProfile = !!profileEmergency;
+  const emergencyValue = profileEmergency || residentEmergency;
+  const specialNeedsFromProfile = !!profile?.special_needs;
+  const specialNeedsValue = profile?.special_needs || resident?.specialNeeds || null;
+
 
   const documentPath = profile?.document_url ?? null;
 
