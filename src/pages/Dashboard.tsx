@@ -8,7 +8,7 @@ import { StatusBadge, PriorityBadge } from "@/components/ui/StatusBadge";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { BrandAvatar } from "@/components/ui/BrandAvatar";
 import { NewTaskDialog } from "@/components/NewTaskDialog";
-import { useRequests, useCleaningTasks, useRooms, useResidents, useCreateOpsTask, useStays } from "@/hooks/useData";
+import { useRequests, useCleaningTasks, useRooms, useResidents, useCreateOpsTask, useStays, useOpsTasks } from "@/hooks/useData";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
 import { capitalize, formatDate } from "@/lib/utils";
@@ -28,6 +28,7 @@ const Dashboard = () => {
   const { data: rooms = [], isLoading: loadingRooms } = useRooms();
   const { data: residents = [] } = useResidents();
   const { data: stays = [], isLoading: loadingStays } = useStays();
+  const { data: opsTasks = [] } = useOpsTasks();
   const createTask = useCreateOpsTask();
 
   const isLoadingKpis = loadingRequests || loadingCleaning || loadingRooms || loadingStays;
