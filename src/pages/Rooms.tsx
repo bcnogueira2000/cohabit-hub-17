@@ -137,7 +137,7 @@ const Rooms = () => {
                       <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">
                         {sideLabels[side]}
                       </h3>
-                      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-2">
+                      <div className="grid grid-cols-1 2xl:grid-cols-2 gap-2">
                         {sorted.map((r) => {
                           const status = effective(r);
                           const d = derived.get(r.id);
@@ -145,28 +145,31 @@ const Rooms = () => {
                           const occupantName = resident?.fullName ?? d?.name ?? null;
                           return (
                             <Link key={r.id} to={`/rooms/${r.id}`}>
-                              <Card className={cn("p-2.5 hover:shadow-elegant transition-smooth cursor-pointer h-full", cardTone[status])}>
-                                <div className="flex items-center justify-between mb-1.5 gap-1">
-                                  <div className="flex items-center gap-1 min-w-0">
-                                    <DoorClosed className="h-3 w-3 text-muted-foreground shrink-0" />
-                                    <span className="font-display text-sm font-semibold truncate">{r.number}</span>
-                                  </div>
-                                  <span className={cn("text-[9px] px-1.5 py-0.5 rounded-full border font-medium shrink-0", statusTone[status])}>{roomStatusLabels[status]}</span>
+                              <Card className={cn("px-3 py-2.5 hover:shadow-elegant transition-smooth cursor-pointer h-full", cardTone[status])}>
+                                <div className="flex items-center gap-2 min-w-0">
+                                  <DoorClosed className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                                  <span className="font-display text-sm font-semibold">{r.number}</span>
+                                  <span className="text-xs text-muted-foreground truncate">{r.typology}</span>
+                                  <span className={cn("ml-auto text-[10px] leading-none px-2 py-1 rounded-full border font-medium shrink-0 whitespace-nowrap", statusTone[status])}>
+                                    {roomStatusLabels[status]}
+                                  </span>
                                 </div>
-                                <div className="text-[10px] text-muted-foreground mb-1 truncate">{r.typology}</div>
-                                {occupantName ? (
-                                  <div className="flex items-center gap-1 text-[10px]">
-                                    <User className="h-2.5 w-2.5 text-muted-foreground shrink-0" />
-                                    <span className="truncate">{occupantName}</span>
-                                  </div>
-                                ) : (
-                                  <div className="text-[10px] text-muted-foreground italic">Sem residente</div>
-                                )}
+                                <div className="flex items-center gap-1 mt-1.5 text-xs min-w-0">
+                                  {occupantName ? (
+                                    <>
+                                      <User className="h-3 w-3 text-muted-foreground shrink-0" />
+                                      <span className="truncate">{occupantName}</span>
+                                    </>
+                                  ) : (
+                                    <span className="text-muted-foreground italic">Sem residente</span>
+                                  )}
+                                </div>
                               </Card>
                             </Link>
                           );
                         })}
                       </div>
+
                     </div>
                   );
                 })}
