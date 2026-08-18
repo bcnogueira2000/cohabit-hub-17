@@ -208,8 +208,6 @@ const OccupancyMap = () => {
   const dayWidth = 8;
   const labelWidth = 200;
   const gridWidth = totalDays * dayWidth;
-  const rowHeight = 16;
-  const barPad = 0;
 
   const openBar = (bar: Bar) => {
     if (bar.contractId) navigate(`/finance/contracts/${bar.contractId}`);
@@ -313,8 +311,8 @@ const OccupancyMap = () => {
 
         {/* Legend + toggle */}
         <div className="flex flex-wrap items-center gap-4 text-xs font-medium text-muted-foreground">
-          <span className="flex items-center gap-2"><span className="h-3 w-5 rounded-sm bg-yellow-600/90 border border-yellow-700/60" />Reservado</span>
-          <span className="flex items-center gap-2"><span className="h-3 w-5 rounded-sm bg-green-700/90 shadow-sm" />Ocupado</span>
+          <span className="flex items-center gap-2"><span className="h-3 w-5 rounded-sm bg-yellow-400/35 border border-dashed border-yellow-600/70" />Reservado</span>
+          <span className="flex items-center gap-2"><span className="h-3 w-5 rounded-sm bg-green-700/60 border border-green-700/50 shadow-sm" />Ocupado</span>
           <span className="flex items-center gap-2"><span className="h-3 w-5 rounded-md bg-muted border border-border" />Livre</span>
           <Button variant="ghost" size="sm" className="ml-auto h-7 text-xs" onClick={() => setShowEmpty((v) => !v)}>
             {showEmpty ? "Esconder pisos sem ocupação" : `Mostrar todos os pisos${hiddenCount > 0 ? ` (+${hiddenCount})` : ""}`}
@@ -407,14 +405,14 @@ const OccupancyMap = () => {
                               >
                                 <div
                                   style={{ width: labelWidth }}
-                                  className="shrink-0 sticky left-0 z-20 bg-card group-hover:bg-muted/20 border-r border-border/60 px-5 py-1 text-sm flex flex-col justify-center transition-smooth"
+                                  className="shrink-0 sticky left-0 z-20 bg-card group-hover:bg-muted/20 border-r border-border/60 px-5 py-1.5 text-sm flex flex-col justify-center transition-smooth"
                                 >
                                   <div className="flex items-center gap-2">
                                     <span className="font-semibold text-foreground leading-tight">{r.number}</span>
                                     <span className="text-[10px] text-muted-foreground truncate leading-tight">{r.typology}</span>
                                   </div>
                                 </div>
-                                <div className="relative shrink-0" style={{ width: gridWidth, height: rowHeight }}>
+                                <div className="relative shrink-0 h-full" style={{ width: gridWidth }}>
                                   {/* weekly grid lines */}
                                   {weekSpans.map((w) => (
                                     <div
@@ -437,8 +435,8 @@ const OccupancyMap = () => {
                                         className={cn(
                                           "absolute inset-y-0 h-full rounded-sm px-1 text-[9px] font-semibold text-left flex items-center gap-1 overflow-hidden transition-smooth hover:shadow-md hover:scale-[1.01]",
                                           bar.tone === "occupied"
-                                            ? "bg-green-700/90 text-white shadow-sm shadow-green-900/20"
-                                            : "bg-yellow-600/90 text-white shadow-sm"
+                                            ? "bg-green-700/60 text-white border border-green-700/50 shadow-sm shadow-green-900/20"
+                                            : "bg-yellow-400/35 text-yellow-950 border border-dashed border-yellow-600/70"
                                         )}
                                         style={{
                                           left: bar.startIdx * dayWidth + 2,
@@ -447,7 +445,10 @@ const OccupancyMap = () => {
                                       >
                                         <span
                                           className={cn(
-                                            "shrink-0 h-3 w-3 rounded-full grid place-items-center text-[7px] font-bold bg-white/25 text-white"
+                                            "shrink-0 h-3 w-3 rounded-full grid place-items-center text-[7px] font-bold",
+                                            bar.tone === "occupied"
+                                              ? "bg-white/25 text-white"
+                                              : "bg-yellow-950/15 text-yellow-950"
                                           )}
                                         >
                                           {getInitials(bar.label).slice(0, 2)}
