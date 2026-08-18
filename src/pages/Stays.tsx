@@ -339,6 +339,11 @@ const Stays = () => {
                       {s.status === "checked_in" && "Check-out"}
                     </Button>
                   )}
+                  {s.status !== "pending" && s.status !== "cancelled" && (
+                    <Button size="sm" variant="ghost" className="rounded-full text-muted-foreground" onClick={() => revert(s)}>
+                      <Undo2 className="h-3.5 w-3.5 mr-1.5" /> Recuar
+                    </Button>
+                  )}
                   <Button size="icon" variant="ghost" onClick={() => remove(s.id)}>
                     <Trash2 className="h-4 w-4 text-muted-foreground" />
                   </Button>
