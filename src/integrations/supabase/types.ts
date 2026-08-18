@@ -620,6 +620,7 @@ export type Database = {
           request_id: string | null
           resident_id: string | null
           room_id: string | null
+          source_ref: string | null
           status: Database["public"]["Enums"]["task_status"]
           supplier_id: string | null
           title: string
@@ -642,6 +643,7 @@ export type Database = {
           request_id?: string | null
           resident_id?: string | null
           room_id?: string | null
+          source_ref?: string | null
           status?: Database["public"]["Enums"]["task_status"]
           supplier_id?: string | null
           title: string
@@ -664,6 +666,7 @@ export type Database = {
           request_id?: string | null
           resident_id?: string | null
           room_id?: string | null
+          source_ref?: string | null
           status?: Database["public"]["Enums"]["task_status"]
           supplier_id?: string | null
           title?: string
