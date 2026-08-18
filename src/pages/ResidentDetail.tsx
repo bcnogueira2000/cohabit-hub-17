@@ -63,6 +63,9 @@ const ResidentDetail = () => {
     taxNumber: null,
     employerOrSchool: null,
     dateOfBirth: null,
+    emergencyContactName: null,
+    emergencyContactPhone: null,
+    specialNeeds: null,
   });
 
   useEffect(() => {
@@ -74,8 +77,11 @@ const ResidentDetail = () => {
       taxNumber: resident.taxNumber,
       employerOrSchool: resident.employerOrSchool,
       dateOfBirth: resident.dateOfBirth,
+      emergencyContactName: resident.emergencyContactName,
+      emergencyContactPhone: resident.emergencyContactPhone,
+      specialNeeds: resident.specialNeeds,
     });
-  }, [resident?.id, resident?.nationality, resident?.documentType, resident?.documentNumber, resident?.taxNumber, resident?.employerOrSchool, resident?.dateOfBirth]);
+  }, [resident?.id, resident?.nationality, resident?.documentType, resident?.documentNumber, resident?.taxNumber, resident?.employerOrSchool, resident?.dateOfBirth, resident?.emergencyContactName, resident?.emergencyContactPhone, resident?.specialNeeds]);
 
   const saveLegal = (e: React.FormEvent) => {
     e.preventDefault();
@@ -91,10 +97,13 @@ const ResidentDetail = () => {
           taxNumber: clean(legal.taxNumber),
           employerOrSchool: clean(legal.employerOrSchool),
           dateOfBirth: clean(legal.dateOfBirth),
+          emergencyContactName: clean(legal.emergencyContactName),
+          emergencyContactPhone: clean(legal.emergencyContactPhone),
+          specialNeeds: clean(legal.specialNeeds),
         },
       },
       {
-        onSuccess: () => toast.success("Dados legais guardados"),
+        onSuccess: () => toast.success("Dados pessoais guardados"),
         onError: (e: any) => toast.error(e?.message ?? "Não foi possível guardar"),
       },
     );
