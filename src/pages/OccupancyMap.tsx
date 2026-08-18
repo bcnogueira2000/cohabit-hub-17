@@ -311,8 +311,8 @@ const OccupancyMap = () => {
 
         {/* Legend + toggle */}
         <div className="flex flex-wrap items-center gap-4 text-xs font-medium text-muted-foreground">
-          <span className="flex items-center gap-2"><span className="h-3 w-5 rounded-sm bg-yellow-400/35 border border-dashed border-yellow-600/70" />Reservado</span>
-          <span className="flex items-center gap-2"><span className="h-3 w-5 rounded-sm bg-green-700/60 border border-green-700/50 shadow-sm" />Ocupado</span>
+          <span className="flex items-center gap-2"><span className="h-3 w-5 rounded-sm bg-yellow-400 border border-yellow-500/60" />Reservado</span>
+          <span className="flex items-center gap-2"><span className="h-3 w-5 rounded-sm bg-green-600 shadow-sm" />Ocupado</span>
           <span className="flex items-center gap-2"><span className="h-3 w-5 rounded-md bg-muted border border-border" />Livre</span>
           <Button variant="ghost" size="sm" className="ml-auto h-7 text-xs" onClick={() => setShowEmpty((v) => !v)}>
             {showEmpty ? "Esconder pisos sem ocupação" : `Mostrar todos os pisos${hiddenCount > 0 ? ` (+${hiddenCount})` : ""}`}
