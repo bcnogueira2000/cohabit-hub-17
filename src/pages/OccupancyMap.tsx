@@ -409,8 +409,10 @@ const OccupancyMap = () => {
                                   style={{ width: labelWidth }}
                                   className="shrink-0 sticky left-0 z-20 bg-card group-hover:bg-muted/20 border-r border-border/60 px-5 py-1 text-sm flex flex-col justify-center transition-smooth"
                                 >
-                                  <span className="font-semibold text-foreground leading-tight">{r.number}</span>
-                                  <span className="text-[10px] text-muted-foreground truncate leading-tight">{r.typology}</span>
+                                  <div className="flex items-center gap-2">
+                                    <span className="font-semibold text-foreground leading-tight">{r.number}</span>
+                                    <span className="text-[10px] text-muted-foreground truncate leading-tight">{r.typology}</span>
+                                  </div>
                                 </div>
                                 <div className="relative shrink-0" style={{ width: gridWidth, height: rowHeight }}>
                                   {/* weekly grid lines */}
