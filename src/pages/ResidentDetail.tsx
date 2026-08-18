@@ -44,6 +44,13 @@ const checkInItems = [
 
 const defaultChecklist = (): ChecklistItem[] => checkInItems.map((label) => ({ label, done: false }));
 
+const ByResidentTag = () => (
+  <span className="inline-flex items-center rounded-full bg-primary/10 text-primary text-[10px] font-medium px-2 py-0.5">
+    preenchido pelo residente
+  </span>
+);
+
+
 const ResidentDetail = () => {
   const { id } = useParams();
   const { data: residents = [] } = useResidents();
