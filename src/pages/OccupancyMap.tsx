@@ -1,24 +1,18 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, CalendarDays } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { cn, colorKey, getInitials, parseRoomNumber, type RoomSide } from "@/lib/utils";
-
-type RoomRow = { id: string; number: string; floor: number; typology: string; typology_id: string | null };
-type StayRow = {
-  id: string;
-  room_id: string | null;
-  check_in: string;
-  check_out: string;
-  status: string;
-  contract_id: string | null;
-  full_name: string;
-  contract: { id: string; status: string; start_date: string; end_date: string; actual_end_date: string | null } | null;
-};
 
 const sideOrder: RoomSide[] = ["esquerdo", "direito", "indefinido"];
 const sideLabels: Record<RoomSide, string> = {
@@ -32,6 +26,21 @@ const toDay = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
 const parseDay = (s: string) => toDay(new Date(s));
 const addMonths = (d: Date, n: number) => new Date(d.getFullYear(), d.getMonth() + n, 1);
 const diffDays = (a: Date, b: Date) => Math.round((a.getTime() - b.getTime()) / dayMs);
+const monthLabel = (d: Date) =>
+  `${d.toLocaleDateString("pt-PT", { month: "long" })} ${d.getFullYear()}`;
+const monthKey = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+
+type RoomRow = { id: string; number: string; floor: number; typology: string; typology_id: string | null };
+type StayRow = {
+  id: string;
+  room_id: string | null;
+  check_in: string;
+  check_out: string;
+  status: string;
+  contract_id: string | null;
+  full_name: string;
+  contract: { id: string; status: string; start_date: string; end_date: string; actual_end_date: string | null } | null;
+};
 
 const useOccupancyData = () =>
   useQuery({
@@ -199,7 +208,8 @@ const OccupancyMap = () => {
   const dayWidth = 8;
   const labelWidth = 200;
   const gridWidth = totalDays * dayWidth;
-  const rowHeight = 30;
+  const rowHeight = 22;
+  const barPad = 3;
 
   const openBar = (bar: Bar) => {
     if (bar.contractId) navigate(`/finance/contracts/${bar.contractId}`);
@@ -208,19 +218,35 @@ const OccupancyMap = () => {
 
   const firstMonthLabel = monthSpans[0]?.label ?? "";
 
+  const jumpMonths = useMemo(() => {
+    const today = new Date();
+    const start = addMonths(today, -3);
+    const end = addMonths(today, 24);
+    const list: { key: string; label: string; offset: number }[] = [];
+    let cursor = start;
+    while (cursor <= end) {
+      const offset = cursor.getMonth() - today.getMonth() + (cursor.getFullYear() - today.getFullYear()) * 12;
+      list.push({ key: monthKey(cursor), label: monthLabel(cursor), offset });
+      cursor = addMonths(cursor, 1);
+    }
+    return list;
+  }, []);
+
   return (
     <div className="px-4 lg:px-10 py-6 lg:py-10 max-w-7xl mx-auto">
       <div className="space-y-5">
-        {/* Header — segmented navigation + month title */}
+        {/* Header — 3-month navigation + month jump */}
         <div className="flex flex-wrap items-end justify-between gap-4">
-          <div className="flex items-center gap-4">
-            <h1 className="font-display text-2xl lg:text-3xl font-semibold tracking-tight min-w-[200px]">{firstMonthLabel}</h1>
+          <div className="flex items-center gap-3 flex-wrap">
+            <h1 className="font-display text-2xl lg:text-3xl font-semibold tracking-tight min-w-[200px] capitalize">
+              {firstMonthLabel}
+            </h1>
             <div className="flex items-center bg-muted p-1 rounded-lg border border-border/50">
               <Button
                 variant="ghost"
                 size="sm"
                 className="h-7 px-2.5 text-xs font-medium text-muted-foreground hover:bg-card hover:text-foreground rounded-md"
-                onClick={() => setMonthOffset((o) => o - 1)}
+                onClick={() => setMonthOffset((o) => o - 3)}
               >
                 <ChevronLeft className="h-3.5 w-3.5" strokeWidth={1.5} />
               </Button>
@@ -236,11 +262,31 @@ const OccupancyMap = () => {
                 variant="ghost"
                 size="sm"
                 className="h-7 px-2.5 text-xs font-medium text-muted-foreground hover:bg-card hover:text-foreground rounded-md"
-                onClick={() => setMonthOffset((o) => o + 1)}
+                onClick={() => setMonthOffset((o) => o + 3)}
               >
                 <ChevronRight className="h-3.5 w-3.5" strokeWidth={1.5} />
               </Button>
             </div>
+
+            <Select
+              value={monthKey(windowStart)}
+              onValueChange={(key) => {
+                const found = jumpMonths.find((m) => m.key === key);
+                if (found) setMonthOffset(found.offset);
+              }}
+            >
+              <SelectTrigger className="w-[180px] h-7 text-xs rounded-lg gap-2">
+                <CalendarDays className="h-3.5 w-3.5 text-muted-foreground" strokeWidth={1.5} />
+                <SelectValue placeholder="Ir para mês" />
+              </SelectTrigger>
+              <SelectContent>
+                {jumpMonths.map((m) => (
+                  <SelectItem key={m.key} value={m.key} className="text-xs capitalize">
+                    {m.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
@@ -387,16 +433,21 @@ const OccupancyMap = () => {
                                         onClick={() => openBar(bar)}
                                         title={`${bar.label} · ${bar.tone === "occupied" ? "Ocupado" : "Reservado"}`}
                                         className={cn(
-                                          "absolute top-[5px] bottom-[5px] rounded-lg px-2 text-[10px] font-semibold text-left flex items-center gap-1.5 overflow-hidden transition-smooth hover:shadow-md hover:scale-[1.01]",
+                                          "absolute rounded-lg px-1.5 text-[10px] font-semibold text-left flex items-center gap-1 overflow-hidden transition-smooth hover:shadow-md hover:scale-[1.01]",
                                           bar.tone === "occupied"
                                             ? "bg-primary text-primary-foreground shadow-sm shadow-primary/20"
                                             : "bg-info/15 border border-dashed border-info/60 text-foreground shadow-sm"
                                         )}
-                                        style={{ left: bar.startIdx * dayWidth + 2, width }}
+                                        style={{
+                                          left: bar.startIdx * dayWidth + 2,
+                                          width,
+                                          top: barPad,
+                                          bottom: barPad,
+                                        }}
                                       >
                                         <span
                                           className={cn(
-                                            "shrink-0 h-4 w-4 rounded-full grid place-items-center text-[8px] font-bold",
+                                            "shrink-0 h-3.5 w-3.5 rounded-full grid place-items-center text-[7px] font-bold",
                                             bar.tone === "occupied"
                                               ? "bg-primary-foreground/20 text-primary-foreground"
                                               : avatarTones[colorKey(bar.label)]
@@ -404,7 +455,7 @@ const OccupancyMap = () => {
                                         >
                                           {getInitials(bar.label).slice(0, 2)}
                                         </span>
-                                        {width > 70 && <span className="truncate">{bar.label}</span>}
+                                        {width > 60 && <span className="truncate">{bar.label}</span>}
                                       </button>
                                     );
                                   })}
@@ -424,7 +475,7 @@ const OccupancyMap = () => {
 
         {/* Footer info */}
         <div className="flex items-center justify-between text-xs text-muted-foreground px-1">
-          <span>Janela de 3 meses · colunas semanais</span>
+          <span>Janela de 3 meses · colunas semanais · use os saltos para ver até 2 anos</span>
           <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-primary" />Semana atual destacada</span>
         </div>
       </div>
