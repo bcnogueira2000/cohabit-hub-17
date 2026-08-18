@@ -401,18 +401,18 @@ const OccupancyMap = () => {
                             return (
                               <div
                                 key={r.id}
-                                className="flex group border-b border-border/20 hover:bg-muted/20 transition-smooth"
+                                className="flex items-center group border-b border-border/20 hover:bg-muted/20 transition-smooth"
                               >
                                 <div
                                   style={{ width: labelWidth }}
-                                  className="shrink-0 sticky left-0 z-20 bg-card group-hover:bg-muted/20 border-r border-border/60 px-5 py-1.5 text-sm flex flex-col justify-center transition-smooth"
+                                  className="shrink-0 sticky left-0 z-20 bg-card group-hover:bg-muted/20 border-r border-border/60 px-5 py-2 text-sm flex flex-col justify-center transition-smooth"
                                 >
                                   <div className="flex items-center gap-2">
                                     <span className="font-semibold text-foreground leading-tight">{r.number}</span>
                                     <span className="text-[10px] text-muted-foreground truncate leading-tight">{r.typology}</span>
                                   </div>
                                 </div>
-                                <div className="relative shrink-0 h-full" style={{ width: gridWidth }}>
+                                <div className="relative shrink-0 h-7 flex items-center" style={{ width: gridWidth }}>
                                   {/* weekly grid lines */}
                                   {weekSpans.map((w) => (
                                     <div
@@ -433,7 +433,7 @@ const OccupancyMap = () => {
                                         onClick={() => openBar(bar)}
                                         title={`${bar.label} · ${bar.tone === "occupied" ? "Ocupado" : "Reservado"}`}
                                         className={cn(
-                                          "absolute inset-y-0 h-full rounded-sm px-1 text-[9px] font-semibold text-left flex items-center gap-1 overflow-hidden transition-smooth hover:shadow-md hover:scale-[1.01]",
+                                          "absolute top-1/2 -translate-y-1/2 h-6 rounded-md px-1 text-[9px] font-semibold text-left flex items-center gap-1 overflow-hidden transition-smooth hover:shadow-md hover:scale-[1.01]",
                                           bar.tone === "occupied"
                                             ? "bg-green-700/60 text-white border border-green-700/50 shadow-sm shadow-green-900/20"
                                             : "bg-yellow-400/35 text-yellow-950 border border-dashed border-yellow-600/70"
