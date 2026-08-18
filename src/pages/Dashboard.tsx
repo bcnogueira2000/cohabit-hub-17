@@ -229,7 +229,28 @@ const Dashboard = () => {
             ) : (
               upcomingArrivals.map((s) => {
                 const room = rooms.find((r) => r.id === s.roomId);
+                const kitTask = opsTasks.find((t) => t.sourceRef === s.id);
                 return (
+                  <Link key={s.id} to="/stays" className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-muted/50 transition-smooth border border-transparent hover:border-border">
+                    <div className="h-10 w-10 rounded-lg bg-success/10 text-success flex items-center justify-center font-display font-semibold text-sm">
+                      {new Date(s.checkIn).getDate()}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="font-medium text-sm truncate">{s.fullName}</div>
+                      <div className="text-xs text-muted-foreground truncate">
+                        {room ? `Quarto ${room.number}` : "Sem quarto"} · {formatDate(s.checkIn, "weekday")}
+                      </div>
+                    </div>
+                    {kitTask ? (
+                      <Badge
+                        variant="outline"
+                        className={`text-[10px] ${kitTask.status === "done" ? "border-success/40 text-success" : "border-warning/40 text-warning"}`}
+                      >
+                        {kitTask.status === "done" ? "Kit ✓" : "Kit pendente"}
+                      </Badge>
+                    ) : (
+                      <span className="text-[10px] text-muted-foreground">—</span>
+                    )}
                   <Link key={s.id} to="/stays" className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-muted/50 transition-smooth border border-transparent hover:border-border">
                     <div className="h-10 w-10 rounded-lg bg-success/10 text-success flex items-center justify-center font-display font-semibold text-sm">
                       {new Date(s.checkIn).getDate()}
