@@ -447,7 +447,10 @@ const OccupancyMap = () => {
                                       >
                                         <span
                                           className={cn(
-                                            "shrink-0 h-3 w-3 rounded-full grid place-items-center text-[7px] font-bold bg-white/25 text-white"
+                                            "shrink-0 h-3 w-3 rounded-full grid place-items-center text-[7px] font-bold",
+                                            bar.tone === "occupied"
+                                              ? "bg-white/25 text-white"
+                                              : "bg-yellow-950/15 text-yellow-950"
                                           )}
                                         >
                                           {getInitials(bar.label).slice(0, 2)}
