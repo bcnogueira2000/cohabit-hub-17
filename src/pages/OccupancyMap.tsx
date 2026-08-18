@@ -405,7 +405,7 @@ const OccupancyMap = () => {
                               >
                                 <div
                                   style={{ width: labelWidth }}
-                                  className="shrink-0 sticky left-0 z-20 bg-card group-hover:bg-muted/20 border-r border-border/60 px-5 py-1.5 text-sm flex flex-col justify-center transition-smooth"
+                                  className="shrink-0 sticky left-0 z-20 bg-card group-hover:bg-muted/20 border-r border-border/60 px-5 py-2.5 text-sm flex flex-col justify-center transition-smooth"
                                 >
                                   <div className="flex items-center gap-2">
                                     <span className="font-semibold text-foreground leading-tight">{r.number}</span>
