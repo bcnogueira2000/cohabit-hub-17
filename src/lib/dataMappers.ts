@@ -67,6 +67,7 @@ export const mapOpsTask = (t: any): OpsTask => ({
   locationId: t.location_id ?? null,
   residentId: t.resident_id ?? null,
   requestId: t.request_id ?? null,
+  sourceRef: t.source_ref ?? null,
   dueDate: t.due_date ?? null,
   estimatedCost: t.estimated_cost !== undefined && t.estimated_cost !== null ? Number(t.estimated_cost) : null,
   finalCost: t.final_cost !== undefined && t.final_cost !== null ? Number(t.final_cost) : null,

@@ -8,7 +8,7 @@ import { StatusBadge, PriorityBadge } from "@/components/ui/StatusBadge";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { BrandAvatar } from "@/components/ui/BrandAvatar";
 import { NewTaskDialog } from "@/components/NewTaskDialog";
-import { useRequests, useCleaningTasks, useRooms, useResidents, useCreateOpsTask, useStays } from "@/hooks/useData";
+import { useRequests, useCleaningTasks, useRooms, useResidents, useCreateOpsTask, useStays, useOpsTasks } from "@/hooks/useData";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
 import { capitalize, formatDate } from "@/lib/utils";
@@ -28,6 +28,7 @@ const Dashboard = () => {
   const { data: rooms = [], isLoading: loadingRooms } = useRooms();
   const { data: residents = [] } = useResidents();
   const { data: stays = [], isLoading: loadingStays } = useStays();
+  const { data: opsTasks = [] } = useOpsTasks();
   const createTask = useCreateOpsTask();
 
   const isLoadingKpis = loadingRequests || loadingCleaning || loadingRooms || loadingStays;
@@ -228,6 +229,7 @@ const Dashboard = () => {
             ) : (
               upcomingArrivals.map((s) => {
                 const room = rooms.find((r) => r.id === s.roomId);
+                const kitTask = opsTasks.find((t) => t.sourceRef === s.id);
                 return (
                   <Link key={s.id} to="/stays" className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-muted/50 transition-smooth border border-transparent hover:border-border">
                     <div className="h-10 w-10 rounded-lg bg-success/10 text-success flex items-center justify-center font-display font-semibold text-sm">
@@ -239,7 +241,16 @@ const Dashboard = () => {
                         {room ? `Quarto ${room.number}` : "Sem quarto"} · {formatDate(s.checkIn, "weekday")}
                       </div>
                     </div>
-                    <Badge variant="outline" className="text-[10px]">{s.status === "confirmed" ? "Kit ✓" : "Pend."}</Badge>
+                    {kitTask ? (
+                      <Badge
+                        variant="outline"
+                        className={`text-[10px] ${kitTask.status === "done" ? "border-success/40 text-success" : "border-warning/40 text-warning"}`}
+                      >
+                        {kitTask.status === "done" ? "Kit ✓" : "Kit pendente"}
+                      </Badge>
+                    ) : (
+                      <span className="text-[10px] text-muted-foreground">—</span>
+                    )}
                   </Link>
                 );
               })
