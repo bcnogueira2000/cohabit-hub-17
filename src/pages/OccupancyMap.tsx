@@ -208,7 +208,8 @@ const OccupancyMap = () => {
   const dayWidth = 8;
   const labelWidth = 200;
   const gridWidth = totalDays * dayWidth;
-  const rowHeight = 30;
+  const rowHeight = 22;
+  const barPad = 3;
 
   const openBar = (bar: Bar) => {
     if (bar.contractId) navigate(`/finance/contracts/${bar.contractId}`);
@@ -217,19 +218,35 @@ const OccupancyMap = () => {
 
   const firstMonthLabel = monthSpans[0]?.label ?? "";
 
+  const jumpMonths = useMemo(() => {
+    const today = new Date();
+    const start = addMonths(today, -3);
+    const end = addMonths(today, 24);
+    const list: { key: string; label: string; offset: number }[] = [];
+    let cursor = start;
+    while (cursor <= end) {
+      const offset = cursor.getMonth() - today.getMonth() + (cursor.getFullYear() - today.getFullYear()) * 12;
+      list.push({ key: monthKey(cursor), label: monthLabel(cursor), offset });
+      cursor = addMonths(cursor, 1);
+    }
+    return list;
+  }, []);
+
   return (
     <div className="px-4 lg:px-10 py-6 lg:py-10 max-w-7xl mx-auto">
       <div className="space-y-5">
-        {/* Header — segmented navigation + month title */}
+        {/* Header — 3-month navigation + month jump */}
         <div className="flex flex-wrap items-end justify-between gap-4">
-          <div className="flex items-center gap-4">
-            <h1 className="font-display text-2xl lg:text-3xl font-semibold tracking-tight min-w-[200px]">{firstMonthLabel}</h1>
+          <div className="flex items-center gap-3 flex-wrap">
+            <h1 className="font-display text-2xl lg:text-3xl font-semibold tracking-tight min-w-[200px] capitalize">
+              {firstMonthLabel}
+            </h1>
             <div className="flex items-center bg-muted p-1 rounded-lg border border-border/50">
               <Button
                 variant="ghost"
                 size="sm"
                 className="h-7 px-2.5 text-xs font-medium text-muted-foreground hover:bg-card hover:text-foreground rounded-md"
-                onClick={() => setMonthOffset((o) => o - 1)}
+                onClick={() => setMonthOffset((o) => o - 3)}
               >
                 <ChevronLeft className="h-3.5 w-3.5" strokeWidth={1.5} />
               </Button>
@@ -245,11 +262,31 @@ const OccupancyMap = () => {
                 variant="ghost"
                 size="sm"
                 className="h-7 px-2.5 text-xs font-medium text-muted-foreground hover:bg-card hover:text-foreground rounded-md"
-                onClick={() => setMonthOffset((o) => o + 1)}
+                onClick={() => setMonthOffset((o) => o + 3)}
               >
                 <ChevronRight className="h-3.5 w-3.5" strokeWidth={1.5} />
               </Button>
             </div>
+
+            <Select
+              value={monthKey(windowStart)}
+              onValueChange={(key) => {
+                const found = jumpMonths.find((m) => m.key === key);
+                if (found) setMonthOffset(found.offset);
+              }}
+            >
+              <SelectTrigger className="w-[180px] h-7 text-xs rounded-lg gap-2">
+                <CalendarDays className="h-3.5 w-3.5 text-muted-foreground" strokeWidth={1.5} />
+                <SelectValue placeholder="Ir para mês" />
+              </SelectTrigger>
+              <SelectContent>
+                {jumpMonths.map((m) => (
+                  <SelectItem key={m.key} value={m.key} className="text-xs capitalize">
+                    {m.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
