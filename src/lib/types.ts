@@ -28,6 +28,9 @@ export interface Resident {
   taxNumber: string | null;
   employerOrSchool: string | null;
   dateOfBirth: string | null;
+  emergencyContactName: string | null;
+  emergencyContactPhone: string | null;
+  specialNeeds: string | null;
 }
 
 export interface ResidentLegalFields {
@@ -37,6 +40,9 @@ export interface ResidentLegalFields {
   taxNumber: string | null;
   employerOrSchool: string | null;
   dateOfBirth: string | null;
+  emergencyContactName: string | null;
+  emergencyContactPhone: string | null;
+  specialNeeds: string | null;
 }
 
 export interface ChecklistItem {
