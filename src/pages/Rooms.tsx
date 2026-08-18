@@ -137,7 +137,7 @@ const Rooms = () => {
                       <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">
                         {sideLabels[side]}
                       </h3>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      <div className="grid grid-cols-1 2xl:grid-cols-2 gap-2">
                         {sorted.map((r) => {
                           const status = effective(r);
                           const d = derived.get(r.id);
