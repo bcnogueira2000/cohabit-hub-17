@@ -118,6 +118,7 @@ export interface OpsTask {
   locationId: string | null;
   residentId: string | null;
   requestId: string | null;
+  sourceRef: string | null;
   dueDate: string | null;
   estimatedCost: number | null;
   finalCost: number | null;
