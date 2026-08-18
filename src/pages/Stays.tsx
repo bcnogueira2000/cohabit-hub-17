@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Plus, Calendar, LogIn, LogOut, Home, Trash2, ArrowRight, CheckCircle2 } from "lucide-react";
+import { Plus, Calendar, LogIn, LogOut, Home, Trash2, ArrowRight, CheckCircle2, Undo2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
