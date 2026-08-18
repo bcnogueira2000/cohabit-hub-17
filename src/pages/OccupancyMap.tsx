@@ -90,7 +90,7 @@ const OccupancyMap = () => {
   const monthSpans = useMemo(() => {
     const spans: { label: string; count: number }[] = [];
     for (const d of days) {
-      const label = d.toLocaleDateString("pt-PT", { month: "long", year: "numeric" });
+      const label = `${d.toLocaleDateString("pt-PT", { month: "long" })} ${d.getFullYear()}`;
       const last = spans[spans.length - 1];
       if (last && last.label === label) last.count++;
       else spans.push({ label, count: 1 });
@@ -100,18 +100,21 @@ const OccupancyMap = () => {
 
   /** Colunas semanais (segunda a domingo), recortadas à janela visível. */
   const weekSpans = useMemo(() => {
-    const spans: { key: string; label: string; startIdx: number; count: number }[] = [];
+    const spans: { key: string; label: string; startIdx: number; count: number; hasToday: boolean }[] = [];
     for (let i = 0; i < totalDays; ) {
       const d = days[i];
       const dow = (d.getDay() + 6) % 7; // 0 = segunda
       const count = Math.min(7 - dow, totalDays - i);
       const last = days[i + count - 1];
       const fmt = (x: Date) => x.toLocaleDateString("pt-PT", { day: "numeric", month: "short" }).replace(".", "");
+      const today = new Date();
+      const hasToday = days.slice(i, i + count).some((x) => diffDays(x, today) === 0);
       spans.push({
         key: d.toISOString(),
         label: `${d.getDate()}–${fmt(last)}`,
         startIdx: i,
         count,
+        hasToday,
       });
       i += count;
     }
@@ -196,25 +199,53 @@ const OccupancyMap = () => {
   const dayWidth = 8;
   const labelWidth = 200;
   const gridWidth = totalDays * dayWidth;
-  const rowHeight = 26;
-
+  const rowHeight = 30;
 
   const openBar = (bar: Bar) => {
     if (bar.contractId) navigate(`/finance/contracts/${bar.contractId}`);
     else navigate(`/rooms/${bar.roomId}`);
   };
 
+  const firstMonthLabel = monthSpans[0]?.label ?? "";
+
   return (
     <div className="px-4 lg:px-10 py-6 lg:py-10 max-w-7xl mx-auto">
-      <div className="space-y-6">
+      <div className="space-y-5">
+        {/* Header — segmented navigation + month title */}
         <div className="flex flex-wrap items-end justify-between gap-4">
-          <div>
-            <h1 className="font-display text-3xl lg:text-4xl font-semibold">Mapa de Ocupação</h1>
-            <p className="text-muted-foreground mt-1">Janela de 3 meses · colunas semanais</p>
+          <div className="flex items-center gap-4">
+            <h1 className="font-display text-2xl lg:text-3xl font-semibold tracking-tight min-w-[200px]">{firstMonthLabel}</h1>
+            <div className="flex items-center bg-muted p-1 rounded-lg border border-border/50">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-7 px-2.5 text-xs font-medium text-muted-foreground hover:bg-card hover:text-foreground rounded-md"
+                onClick={() => setMonthOffset((o) => o - 1)}
+              >
+                <ChevronLeft className="h-3.5 w-3.5" strokeWidth={1.5} />
+              </Button>
+              <Button
+                variant={monthOffset === 0 ? "secondary" : "ghost"}
+                size="sm"
+                className="h-7 px-3 text-xs font-medium rounded-md"
+                onClick={() => setMonthOffset(0)}
+              >
+                Hoje
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-7 px-2.5 text-xs font-medium text-muted-foreground hover:bg-card hover:text-foreground rounded-md"
+                onClick={() => setMonthOffset((o) => o + 1)}
+              >
+                <ChevronRight className="h-3.5 w-3.5" strokeWidth={1.5} />
+              </Button>
+            </div>
           </div>
+
           <div className="flex flex-wrap items-center gap-2">
             <Select value={floor} onValueChange={setFloor}>
-              <SelectTrigger className="w-[140px]"><SelectValue placeholder="Piso" /></SelectTrigger>
+              <SelectTrigger className="w-[140px] h-8 text-xs rounded-lg"><SelectValue placeholder="Piso" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todos os pisos</SelectItem>
                 {floors.map((f) => (
@@ -223,7 +254,7 @@ const OccupancyMap = () => {
               </SelectContent>
             </Select>
             <Select value={typology} onValueChange={setTypology}>
-              <SelectTrigger className="w-[180px]"><SelectValue placeholder="Tipologia" /></SelectTrigger>
+              <SelectTrigger className="w-[180px] h-8 text-xs rounded-lg"><SelectValue placeholder="Tipologia" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todas as tipologias</SelectItem>
                 {typologies.map((t) => (
@@ -231,159 +262,174 @@ const OccupancyMap = () => {
                 ))}
               </SelectContent>
             </Select>
-            <div className="flex items-center gap-1">
-              <Button variant="outline" size="icon" onClick={() => setMonthOffset((o) => o - 1)} aria-label="Mês anterior">
-                <ChevronLeft className="h-4 w-4" strokeWidth={1.5} />
-              </Button>
-              <Button variant="outline" size="sm" onClick={() => setMonthOffset(0)}>Hoje</Button>
-              <Button variant="outline" size="icon" onClick={() => setMonthOffset((o) => o + 1)} aria-label="Mês seguinte">
-                <ChevronRight className="h-4 w-4" strokeWidth={1.5} />
-              </Button>
-            </div>
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
-          <span className="flex items-center gap-2"><span className="h-3 w-6 rounded-full bg-info/20 border border-info/60" />Reservado</span>
-          <span className="flex items-center gap-2"><span className="h-3 w-6 rounded-full bg-primary" />Ocupado</span>
-          <span className="flex items-center gap-2"><span className="h-3 w-6 rounded-full bg-muted border border-border" />Livre</span>
-          <Button variant="ghost" size="sm" className="ml-auto" onClick={() => setShowEmpty((v) => !v)}>
+        {/* Legend + toggle */}
+        <div className="flex flex-wrap items-center gap-4 text-xs font-medium text-muted-foreground">
+          <span className="flex items-center gap-2"><span className="h-3 w-5 rounded-md bg-info/25 border border-dashed border-info/70" />Reservado</span>
+          <span className="flex items-center gap-2"><span className="h-3 w-5 rounded-md bg-primary shadow-sm" />Ocupado</span>
+          <span className="flex items-center gap-2"><span className="h-3 w-5 rounded-md bg-muted border border-border" />Livre</span>
+          <Button variant="ghost" size="sm" className="ml-auto h-7 text-xs" onClick={() => setShowEmpty((v) => !v)}>
             {showEmpty ? "Esconder pisos sem ocupação" : `Mostrar todos os pisos${hiddenCount > 0 ? ` (+${hiddenCount})` : ""}`}
           </Button>
         </div>
 
-        <Card className="overflow-x-auto p-0">
-          {isLoading ? (
-            <div className="p-6 text-muted-foreground">A carregar…</div>
-          ) : (
-            <div style={{ minWidth: labelWidth + gridWidth }}>
-              {/* Cabeçalho meses */}
-              <div className="flex sticky top-0 z-20 bg-card border-b border-border/60">
-                <div
-                  style={{ width: labelWidth }}
-                  className="shrink-0 sticky left-0 z-30 bg-card px-5 py-2.5 text-xs font-medium text-muted-foreground"
-                >
-                  Quarto
-                </div>
-                {monthSpans.map((m) => (
+        {/* Timeline grid */}
+        <Card className="overflow-hidden border border-border/60 shadow-card">
+          <div className="overflow-x-auto">
+            {isLoading ? (
+              <div className="p-8 text-sm text-muted-foreground">A carregar…</div>
+            ) : (
+              <div style={{ minWidth: labelWidth + gridWidth }}>
+                {/* Month header */}
+                <div className="flex sticky top-0 z-20 bg-muted/30 border-b border-border/60">
                   <div
-                    key={m.label}
-                    style={{ width: m.count * dayWidth }}
-                    className="shrink-0 border-l border-border/50 px-2 py-2 text-xs font-medium capitalize truncate"
+                    style={{ width: labelWidth }}
+                    className="shrink-0 sticky left-0 z-30 bg-card border-r border-border/60 px-5 py-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground"
                   >
-                    {m.label}
+                    Quarto
                   </div>
-                ))}
-              </div>
-              {/* Cabeçalho semanas */}
-              <div className="flex border-b border-border/60 bg-muted/20">
-                <div style={{ width: labelWidth }} className="shrink-0 sticky left-0 z-20 bg-card px-5" />
-                {weekSpans.map((w) => (
-                  <div
-                    key={w.key}
-                    style={{ width: w.count * dayWidth }}
-                    className="shrink-0 border-l border-border/40 text-center text-[10px] leading-5 text-muted-foreground truncate px-0.5"
-                  >
-                    {w.label}
-                  </div>
-                ))}
-              </div>
-
-              {visibleFloors.map(([f, rs]) => (
-                <div key={f}>
-                  <div className="flex bg-muted/30 border-y border-border/50">
+                  {monthSpans.map((m) => (
                     <div
-                      style={{ width: labelWidth }}
-                      className="shrink-0 sticky left-0 z-20 bg-muted/60 px-5 py-1.5 text-[11px] font-semibold"
+                      key={m.label}
+                      style={{ width: m.count * dayWidth }}
+                      className="shrink-0 border-l border-border/40 px-3 py-3 text-xs font-semibold capitalize text-foreground"
                     >
-                      Piso {f}
+                      {m.label}
                     </div>
-                    <div style={{ width: gridWidth }} className="shrink-0" />
-                  </div>
-                  {sideOrder.map((side) => {
-                    const list = rs
-                      .filter((r) => parseRoomNumber(r.number).side === side)
-                      .sort(
-                        (a, b) =>
-                          (parseRoomNumber(a.number).sequence ?? 0) - (parseRoomNumber(b.number).sequence ?? 0),
-                      );
-                    if (!list.length) return null;
-                    return (
-                      <div key={side}>
-                        <div className="flex">
-                          <div
-                            style={{ width: labelWidth }}
-                            className="shrink-0 sticky left-0 z-20 bg-card px-5 pt-2 pb-1 text-[9px] uppercase tracking-[0.14em] text-muted-foreground/70"
-                          >
-                            {sideLabels[side]}
-                          </div>
-                          <div style={{ width: gridWidth }} className="shrink-0" />
-                        </div>
-                        {list.map((r) => {
-                          const bars = barsByRoom.get(r.id) ?? [];
-                          return (
-                            <div key={r.id} className="flex group border-b border-border/25 hover:bg-muted/20">
-                              <div
-                                style={{ width: labelWidth }}
-                                className="shrink-0 sticky left-0 z-20 bg-card group-hover:bg-muted/20 px-5 py-1.5 text-xs flex items-center gap-1.5"
-                              >
-                                <span className="font-medium">{r.number}</span>
-                                <span className="text-muted-foreground truncate">· {r.typology}</span>
-                              </div>
-                              <div className="relative shrink-0" style={{ width: gridWidth, height: rowHeight }}>
-                                {weekSpans.map((w) => (
-                                  <div
-                                    key={w.key}
-                                    className="absolute top-0 bottom-0 border-l border-border/25"
-                                    style={{ left: w.startIdx * dayWidth, width: w.count * dayWidth }}
-                                  />
-                                ))}
-                                {bars.map((bar) => {
-                                  const width = (bar.endIdx - bar.startIdx + 1) * dayWidth - 2;
-                                  return (
-                                    <button
-                                      key={bar.stayId}
-                                      type="button"
-                                      onClick={() => openBar(bar)}
-                                      title={`${bar.label} · ${bar.tone === "occupied" ? "Ocupado" : "Reservado"}`}
-                                      className={cn(
-                                        "absolute top-[3px] bottom-[3px] rounded-full pl-1 pr-2.5 text-[10px] font-medium text-left flex items-center gap-1.5 overflow-hidden transition-all hover:brightness-105 hover:shadow-md",
-                                        bar.tone === "occupied"
-                                          ? "bg-gradient-to-b from-primary to-primary/85 text-primary-foreground shadow-sm"
-                                          : "bg-info/15 border border-dashed border-info/70 text-foreground shadow-sm",
-                                      )}
-                                      style={{ left: bar.startIdx * dayWidth + 1, width }}
-                                    >
-                                      <span
-                                        className={cn(
-                                          "shrink-0 h-4 w-4 rounded-full grid place-items-center text-[8px] font-semibold",
-                                          bar.tone === "occupied"
-                                            ? "bg-primary-foreground/20 text-primary-foreground"
-                                            : avatarTones[colorKey(bar.label)],
-                                        )}
-                                      >
-                                        {getInitials(bar.label).slice(0, 2)}
-                                      </span>
-                                      {width > 74 && <span className="truncate">{bar.label}</span>}
-                                    </button>
-                                  );
-                                })}
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    );
-                  })}
+                  ))}
                 </div>
-              ))}
-            </div>
-          )}
+
+                {/* Week header */}
+                <div className="flex border-b border-border/60 bg-muted/20">
+                  <div style={{ width: labelWidth }} className="shrink-0 sticky left-0 z-20 bg-card border-r border-border/60 px-5" />
+                  {weekSpans.map((w) => (
+                    <div
+                      key={w.key}
+                      style={{ width: w.count * dayWidth }}
+                      className={cn(
+                        "shrink-0 border-l border-border/30 text-center text-[10px] leading-5 px-1 py-2 truncate",
+                        w.hasToday ? "bg-primary/5 text-primary font-semibold" : "text-muted-foreground"
+                      )}
+                    >
+                      {w.label}
+                    </div>
+                  ))}
+                </div>
+
+                {visibleFloors.map(([f, rs]) => (
+                  <div key={f}>
+                    {/* Floor row */}
+                    <div className="flex bg-muted/40 border-y border-border/50">
+                      <div
+                        style={{ width: labelWidth }}
+                        className="shrink-0 sticky left-0 z-20 bg-muted/60 border-r border-border/60 px-5 py-2 text-xs font-bold text-foreground"
+                      >
+                        Piso {f}
+                      </div>
+                      <div style={{ width: gridWidth }} className="shrink-0" />
+                    </div>
+
+                    {sideOrder.map((side) => {
+                      const list = rs
+                        .filter((r) => parseRoomNumber(r.number).side === side)
+                        .sort(
+                          (a, b) =>
+                            (parseRoomNumber(a.number).sequence ?? 0) - (parseRoomNumber(b.number).sequence ?? 0),
+                        );
+                      if (!list.length) return null;
+                      return (
+                        <div key={side}>
+                          {/* Side row */}
+                          <div className="flex border-b border-border/30">
+                            <div
+                              style={{ width: labelWidth }}
+                              className="shrink-0 sticky left-0 z-20 bg-card border-r border-border/60 px-5 pt-2 pb-1 text-[10px] uppercase tracking-[0.14em] font-semibold text-muted-foreground/80"
+                            >
+                              {sideLabels[side]}
+                            </div>
+                            <div style={{ width: gridWidth }} className="shrink-0" />
+                          </div>
+
+                          {list.map((r) => {
+                            const bars = barsByRoom.get(r.id) ?? [];
+                            return (
+                              <div
+                                key={r.id}
+                                className="flex group border-b border-border/20 hover:bg-muted/20 transition-smooth"
+                              >
+                                <div
+                                  style={{ width: labelWidth }}
+                                  className="shrink-0 sticky left-0 z-20 bg-card group-hover:bg-muted/20 border-r border-border/60 px-5 py-2 text-sm flex flex-col justify-center transition-smooth"
+                                >
+                                  <span className="font-semibold text-foreground">{r.number}</span>
+                                  <span className="text-[10px] text-muted-foreground truncate">{r.typology}</span>
+                                </div>
+                                <div className="relative shrink-0" style={{ width: gridWidth, height: rowHeight }}>
+                                  {/* weekly grid lines */}
+                                  {weekSpans.map((w) => (
+                                    <div
+                                      key={w.key}
+                                      className={cn(
+                                        "absolute top-0 bottom-0 border-l",
+                                        w.hasToday ? "bg-primary/[0.03] border-primary/20" : "border-border/20"
+                                      )}
+                                      style={{ left: w.startIdx * dayWidth, width: w.count * dayWidth }}
+                                    />
+                                  ))}
+                                  {bars.map((bar) => {
+                                    const width = Math.max(6, (bar.endIdx - bar.startIdx + 1) * dayWidth - 4);
+                                    return (
+                                      <button
+                                        key={bar.stayId}
+                                        type="button"
+                                        onClick={() => openBar(bar)}
+                                        title={`${bar.label} · ${bar.tone === "occupied" ? "Ocupado" : "Reservado"}`}
+                                        className={cn(
+                                          "absolute top-[5px] bottom-[5px] rounded-lg px-2 text-[10px] font-semibold text-left flex items-center gap-1.5 overflow-hidden transition-smooth hover:shadow-md hover:scale-[1.01]",
+                                          bar.tone === "occupied"
+                                            ? "bg-primary text-primary-foreground shadow-sm shadow-primary/20"
+                                            : "bg-info/15 border border-dashed border-info/60 text-foreground shadow-sm"
+                                        )}
+                                        style={{ left: bar.startIdx * dayWidth + 2, width }}
+                                      >
+                                        <span
+                                          className={cn(
+                                            "shrink-0 h-4 w-4 rounded-full grid place-items-center text-[8px] font-bold",
+                                            bar.tone === "occupied"
+                                              ? "bg-primary-foreground/20 text-primary-foreground"
+                                              : avatarTones[colorKey(bar.label)]
+                                          )}
+                                        >
+                                          {getInitials(bar.label).slice(0, 2)}
+                                        </span>
+                                        {width > 70 && <span className="truncate">{bar.label}</span>}
+                                      </button>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      );
+                    })}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </Card>
+
+        {/* Footer info */}
+        <div className="flex items-center justify-between text-xs text-muted-foreground px-1">
+          <span>Janela de 3 meses · colunas semanais</span>
+          <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-primary" />Semana atual destacada</span>
+        </div>
       </div>
     </div>
   );
-
 };
 
 export default OccupancyMap;
