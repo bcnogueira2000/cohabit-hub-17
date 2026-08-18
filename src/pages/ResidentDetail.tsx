@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Progress } from "@/components/ui/progress";
+import { Textarea } from "@/components/ui/textarea";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -43,6 +44,13 @@ const checkInItems = [
 
 const defaultChecklist = (): ChecklistItem[] => checkInItems.map((label) => ({ label, done: false }));
 
+const ByResidentTag = () => (
+  <span className="inline-flex items-center rounded-full bg-primary/10 text-primary text-[10px] font-medium px-2 py-0.5">
+    preenchido pelo residente
+  </span>
+);
+
+
 const ResidentDetail = () => {
   const { id } = useParams();
   const { data: residents = [] } = useResidents();
@@ -63,6 +71,9 @@ const ResidentDetail = () => {
     taxNumber: null,
     employerOrSchool: null,
     dateOfBirth: null,
+    emergencyContactName: null,
+    emergencyContactPhone: null,
+    specialNeeds: null,
   });
 
   useEffect(() => {
@@ -74,8 +85,11 @@ const ResidentDetail = () => {
       taxNumber: resident.taxNumber,
       employerOrSchool: resident.employerOrSchool,
       dateOfBirth: resident.dateOfBirth,
+      emergencyContactName: resident.emergencyContactName,
+      emergencyContactPhone: resident.emergencyContactPhone,
+      specialNeeds: resident.specialNeeds,
     });
-  }, [resident?.id, resident?.nationality, resident?.documentType, resident?.documentNumber, resident?.taxNumber, resident?.employerOrSchool, resident?.dateOfBirth]);
+  }, [resident?.id, resident?.nationality, resident?.documentType, resident?.documentNumber, resident?.taxNumber, resident?.employerOrSchool, resident?.dateOfBirth, resident?.emergencyContactName, resident?.emergencyContactPhone, resident?.specialNeeds]);
 
   const saveLegal = (e: React.FormEvent) => {
     e.preventDefault();
@@ -91,14 +105,34 @@ const ResidentDetail = () => {
           taxNumber: clean(legal.taxNumber),
           employerOrSchool: clean(legal.employerOrSchool),
           dateOfBirth: clean(legal.dateOfBirth),
+          emergencyContactName: clean(legal.emergencyContactName),
+          emergencyContactPhone: clean(legal.emergencyContactPhone),
+          specialNeeds: clean(legal.specialNeeds),
         },
       },
       {
-        onSuccess: () => toast.success("Dados legais guardados"),
+        onSuccess: () => toast.success("Dados pessoais guardados"),
         onError: (e: any) => toast.error(e?.message ?? "Não foi possível guardar"),
       },
     );
   };
+
+  // Prefer o valor que o próprio residente preencheu no portal (profiles); senão o da equipa (residents).
+  const profileEmergency =
+    profile?.emergency_contact_name || profile?.emergency_contact_phone
+      ? [profile?.emergency_contact_name, profile?.emergency_contact_phone].filter(Boolean).join(" · ")
+      : null;
+  const residentEmergency =
+    resident?.emergencyContactName || resident?.emergencyContactPhone
+      ? [resident?.emergencyContactName, resident?.emergencyContactPhone].filter(Boolean).join(" · ")
+      : null;
+
+  const nationalityFromProfile = !!profile?.nationality;
+  const nationalityValue = profile?.nationality || resident?.nationality || null;
+  const emergencyFromProfile = !!profileEmergency;
+  const emergencyValue = profileEmergency || residentEmergency;
+  const specialNeedsFromProfile = !!profile?.special_needs;
+  const specialNeedsValue = profile?.special_needs || resident?.specialNeeds || null;
 
 
   const documentPath = profile?.document_url ?? null;
@@ -238,112 +272,165 @@ const ResidentDetail = () => {
             )}
           </Card>
 
-          <Card className="p-4 border-border/60 shadow-card space-y-3">
-            <h3 className="font-display text-lg font-semibold">Informação pessoal</h3>
+          <Card className="p-4 border-border/60 shadow-card space-y-4">
+            <div className="flex items-center gap-2">
+              <ShieldCheck className="h-4 w-4 text-primary" strokeWidth={1.5} />
+              <h3 className="font-display text-lg font-semibold">Dados pessoais</h3>
+            </div>
+
             <div className="grid sm:grid-cols-2 gap-3 text-sm">
               <div>
                 <div className="text-xs text-muted-foreground flex items-center gap-1 mb-0.5"><Globe className="h-3 w-3" /> Nacionalidade</div>
-                <div className="font-medium">{profile?.nationality || <span className="text-muted-foreground">—</span>}</div>
+                <div className="font-medium flex flex-wrap items-center gap-2">
+                  {nationalityValue || <span className="text-muted-foreground">—</span>}
+                  {nationalityFromProfile && <ByResidentTag />}
+                </div>
               </div>
               <div>
                 <div className="text-xs text-muted-foreground flex items-center gap-1 mb-0.5"><Heart className="h-3 w-3" /> Contacto de emergência</div>
+                <div className="font-medium flex flex-wrap items-center gap-2">
+                  {emergencyValue || <span className="text-muted-foreground">—</span>}
+                  {emergencyFromProfile && <ByResidentTag />}
+                </div>
+              </div>
+              <div>
+                <div className="text-xs text-muted-foreground mb-0.5">Data de nascimento</div>
+                <div className="font-medium">{resident.dateOfBirth || <span className="text-muted-foreground">—</span>}</div>
+              </div>
+              <div>
+                <div className="text-xs text-muted-foreground mb-0.5">Documento</div>
                 <div className="font-medium">
-                  {profile?.emergency_contact_name || profile?.emergency_contact_phone ? (
-                    <>
-                      {profile?.emergency_contact_name ?? ""}
-                      {profile?.emergency_contact_phone ? ` · ${profile.emergency_contact_phone}` : ""}
-                    </>
+                  {resident.documentType || resident.documentNumber ? (
+                    <>{resident.documentType ?? ""}{resident.documentNumber ? ` · ${resident.documentNumber}` : ""}</>
                   ) : (
                     <span className="text-muted-foreground">—</span>
                   )}
                 </div>
               </div>
-            </div>
-            <div>
-              <div className="text-xs text-muted-foreground flex items-center gap-1 mb-0.5"><AlertTriangle className="h-3 w-3" /> Necessidades especiais</div>
-              <div className="text-sm whitespace-pre-wrap">
-                {profile?.special_needs || <span className="text-muted-foreground">Sem indicações.</span>}
+              <div>
+                <div className="text-xs text-muted-foreground mb-0.5">NIF</div>
+                <div className="font-medium">{resident.taxNumber || <span className="text-muted-foreground">—</span>}</div>
+              </div>
+              <div>
+                <div className="text-xs text-muted-foreground mb-0.5">Empresa / escola</div>
+                <div className="font-medium">{resident.employerOrSchool || <span className="text-muted-foreground">—</span>}</div>
               </div>
             </div>
+
+            <div>
+              <div className="text-xs text-muted-foreground flex items-center gap-1 mb-0.5">
+                <AlertTriangle className="h-3 w-3" /> Necessidades especiais
+                {specialNeedsFromProfile && <ByResidentTag />}
+              </div>
+              <div className="text-sm whitespace-pre-wrap">
+                {specialNeedsValue || <span className="text-muted-foreground">Sem indicações.</span>}
+              </div>
+            </div>
+
+            {isStaff && (
+              <div className="pt-4 border-t border-border/60">
+                <p className="text-xs text-muted-foreground mb-4">
+                  Editável apenas pela equipa. Se o residente tiver conta, os valores que ele próprio preencheu no portal
+                  aparecem acima marcados como “preenchido pelo residente” e não são alterados aqui.
+                </p>
+                <form onSubmit={saveLegal} className="grid sm:grid-cols-2 gap-3">
+                  <div>
+                    <Label htmlFor="legal-nationality">Nacionalidade</Label>
+                    <Input
+                      id="legal-nationality"
+                      className="mt-1.5"
+                      value={legal.nationality ?? ""}
+                      onChange={(e) => setLegal((s) => ({ ...s, nationality: e.target.value }))}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="legal-dob">Data de nascimento</Label>
+                    <Input
+                      id="legal-dob"
+                      type="date"
+                      className="mt-1.5"
+                      value={legal.dateOfBirth ?? ""}
+                      onChange={(e) => setLegal((s) => ({ ...s, dateOfBirth: e.target.value }))}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="legal-emg-name">Contacto de emergência (nome)</Label>
+                    <Input
+                      id="legal-emg-name"
+                      className="mt-1.5"
+                      value={legal.emergencyContactName ?? ""}
+                      onChange={(e) => setLegal((s) => ({ ...s, emergencyContactName: e.target.value }))}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="legal-emg-phone">Contacto de emergência (telefone)</Label>
+                    <Input
+                      id="legal-emg-phone"
+                      className="mt-1.5"
+                      value={legal.emergencyContactPhone ?? ""}
+                      onChange={(e) => setLegal((s) => ({ ...s, emergencyContactPhone: e.target.value }))}
+                    />
+                  </div>
+                  <div>
+                    <Label>Tipo de documento</Label>
+                    <Select
+                      value={legal.documentType ?? NONE}
+                      onValueChange={(v) => setLegal((s) => ({ ...s, documentType: v === NONE ? null : v }))}
+                    >
+                      <SelectTrigger className="mt-1.5"><SelectValue placeholder="Escolher" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value={NONE}>Sem indicação</SelectItem>
+                        {DOC_TYPES.map((d) => <SelectItem key={d} value={d}>{d}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label htmlFor="legal-docnum">Número de documento</Label>
+                    <Input
+                      id="legal-docnum"
+                      className="mt-1.5"
+                      value={legal.documentNumber ?? ""}
+                      onChange={(e) => setLegal((s) => ({ ...s, documentNumber: e.target.value }))}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="legal-nif">NIF</Label>
+                    <Input
+                      id="legal-nif"
+                      className="mt-1.5"
+                      value={legal.taxNumber ?? ""}
+                      onChange={(e) => setLegal((s) => ({ ...s, taxNumber: e.target.value }))}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="legal-employer">Empresa / escola</Label>
+                    <Input
+                      id="legal-employer"
+                      className="mt-1.5"
+                      value={legal.employerOrSchool ?? ""}
+                      onChange={(e) => setLegal((s) => ({ ...s, employerOrSchool: e.target.value }))}
+                    />
+                  </div>
+                  <div className="sm:col-span-2">
+                    <Label htmlFor="legal-special">Necessidades especiais</Label>
+                    <Textarea
+                      id="legal-special"
+                      className="mt-1.5"
+                      rows={3}
+                      value={legal.specialNeeds ?? ""}
+                      onChange={(e) => setLegal((s) => ({ ...s, specialNeeds: e.target.value }))}
+                    />
+                  </div>
+                  <div className="sm:col-span-2 flex justify-end">
+                    <Button type="submit" disabled={updateLegal.isPending} className="rounded-full">
+                      {updateLegal.isPending ? "A guardar…" : "Guardar dados pessoais"}
+                    </Button>
+                  </div>
+                </form>
+              </div>
+            )}
           </Card>
 
-          {isStaff && (
-            <Card className="p-4 border-border/60 shadow-card">
-              <div className="flex items-center gap-2 mb-3">
-                <ShieldCheck className="h-4 w-4 text-primary" strokeWidth={1.5} />
-                <h3 className="font-display text-lg font-semibold">Dados legais</h3>
-              </div>
-              <p className="text-xs text-muted-foreground mb-4">
-                Apenas visível e editável pela equipa. O residente não altera estes dados no portal.
-              </p>
-              <form onSubmit={saveLegal} className="grid sm:grid-cols-2 gap-3">
-                <div>
-                  <Label htmlFor="legal-nationality">Nacionalidade</Label>
-                  <Input
-                    id="legal-nationality"
-                    className="mt-1.5"
-                    value={legal.nationality ?? ""}
-                    onChange={(e) => setLegal((s) => ({ ...s, nationality: e.target.value }))}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="legal-dob">Data de nascimento</Label>
-                  <Input
-                    id="legal-dob"
-                    type="date"
-                    className="mt-1.5"
-                    value={legal.dateOfBirth ?? ""}
-                    onChange={(e) => setLegal((s) => ({ ...s, dateOfBirth: e.target.value }))}
-                  />
-                </div>
-                <div>
-                  <Label>Tipo de documento</Label>
-                  <Select
-                    value={legal.documentType ?? NONE}
-                    onValueChange={(v) => setLegal((s) => ({ ...s, documentType: v === NONE ? null : v }))}
-                  >
-                    <SelectTrigger className="mt-1.5"><SelectValue placeholder="Escolher" /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value={NONE}>Sem indicação</SelectItem>
-                      {DOC_TYPES.map((d) => <SelectItem key={d} value={d}>{d}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label htmlFor="legal-docnum">Número de documento</Label>
-                  <Input
-                    id="legal-docnum"
-                    className="mt-1.5"
-                    value={legal.documentNumber ?? ""}
-                    onChange={(e) => setLegal((s) => ({ ...s, documentNumber: e.target.value }))}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="legal-nif">NIF</Label>
-                  <Input
-                    id="legal-nif"
-                    className="mt-1.5"
-                    value={legal.taxNumber ?? ""}
-                    onChange={(e) => setLegal((s) => ({ ...s, taxNumber: e.target.value }))}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="legal-employer">Empresa / escola</Label>
-                  <Input
-                    id="legal-employer"
-                    className="mt-1.5"
-                    value={legal.employerOrSchool ?? ""}
-                    onChange={(e) => setLegal((s) => ({ ...s, employerOrSchool: e.target.value }))}
-                  />
-                </div>
-                <div className="sm:col-span-2 flex justify-end">
-                  <Button type="submit" disabled={updateLegal.isPending} className="rounded-full">
-                    {updateLegal.isPending ? "A guardar…" : "Guardar dados legais"}
-                  </Button>
-                </div>
-              </form>
-            </Card>
-          )}
           <Card className="p-4 border-border/60 shadow-card">
             <h3 className="font-display text-lg font-semibold mb-2">Notas internas</h3>
             <p className="text-sm text-muted-foreground">Sem notas. Adicionar contexto sobre o residente para a equipa de operações.</p>
