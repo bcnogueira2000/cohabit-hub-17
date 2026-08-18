@@ -93,10 +93,112 @@ const Stays = () => {
     });
   };
 
+  const revert = async (s: Stay) => {
+    const undoLabel =
+      s.status === "checked_out" ? "check-out" :
+      s.status === "checked_in" ? "check-in" :
+      s.status === "confirmed" ? "confirmação" : null;
+    if (!undoLabel) return;
+    if (!confirm(`Tens a certeza? Isto desfaz o ${undoLabel}.`)) return;
+
+    try {
+      if (s.status === "checked_out") {
+        // checked_out → checked_in
+        const { error } = await supabase.from("stays").update({ status: "checked_in" }).eq("id", s.id);
+        if (error) throw error;
+        if (s.contractId) {
+          const { error: e2 } = await supabase.from("contracts")
+            .update({ status: "active", actual_end_date: null }).eq("id", s.contractId);
+          if (e2) throw e2;
+        }
+        if (s.residentId) {
+          const { error: e3 } = await supabase.from("residents")
+            .update({ status: "active" }).eq("id", s.residentId);
+          if (e3) throw e3;
+        }
+        if (s.roomId) {
+          const { error: e4 } = await supabase.from("rooms")
+            .update({ status: "occupied", current_resident_id: s.residentId ?? null }).eq("id", s.roomId);
+          if (e4) throw e4;
+        }
+      } else if (s.status === "checked_in") {
+        // checked_in → confirmed (o trigger repõe residente/quarto como reservado)
+        const { error } = await supabase.from("stays").update({ status: "confirmed" }).eq("id", s.id);
+        if (error) throw error;
+        if (s.contractId) {
+          const { error: e2 } = await supabase.from("contracts")
+            .update({ status: "reserved" }).eq("id", s.contractId).eq("status", "active");
+          if (e2) throw e2;
+        }
+        if (s.residentId) {
+          const { error: e3 } = await supabase.from("residents")
+            .update({ status: "upcoming" }).eq("id", s.residentId);
+          if (e3) throw e3;
+        }
+        if (s.roomId) {
+          const { error: e4 } = await supabase.from("rooms")
+            .update({ status: "reserved" }).eq("id", s.roomId);
+          if (e4) throw e4;
+        }
+      } else {
+        // confirmed → pending: desfazer preparação
+        const { error } = await supabase.from("stays").update({ status: "pending" }).eq("id", s.id);
+        if (error) throw error;
+
+        if (s.roomId) {
+          const { error: e2 } = await supabase.from("rooms")
+            .update({ status: "available", current_resident_id: null }).eq("id", s.roomId);
+          if (e2) throw e2;
+        }
+        if (s.residentId) {
+          // por segurança não apagamos residentes, apenas revertemos o estado
+          const { error: e3 } = await supabase.from("residents")
+            .update({ status: "upcoming" }).eq("id", s.residentId);
+          if (e3) throw e3;
+        }
+
+        // limpeza de preparação criada por esta estadia
+        await supabase.from("cleaning_tasks").delete()
+          .eq("source_ref", s.id).eq("source", "manual").eq("type", "room_regular");
+
+        // tarefa "Kit de boas-vindas"
+        if (s.residentId && s.roomId) {
+          await supabase.from("ops_tasks").delete()
+            .eq("resident_id", s.residentId).eq("room_id", s.roomId)
+            .eq("title", `Kit de boas-vindas — ${s.fullName}`);
+        }
+
+        // plano recorrente de limpeza, só se nunca gerou limpezas registadas
+        if (s.roomId) {
+          const { data: schedules } = await supabase.from("cleaning_schedules")
+            .select("id").eq("room_id", s.roomId).eq("type", "room_regular");
+          for (const sch of schedules ?? []) {
+            const { count } = await supabase.from("cleaning_tasks")
+              .select("id", { count: "exact", head: true })
+              .eq("source", "scheduled").eq("source_ref", sch.id);
+            if (!count) await supabase.from("cleaning_schedules").delete().eq("id", sch.id);
+          }
+        }
+      }
+
+      qc.invalidateQueries({ queryKey: ["stays"] });
+      qc.invalidateQueries({ queryKey: ["rooms"] });
+      qc.invalidateQueries({ queryKey: ["residents"] });
+      qc.invalidateQueries({ queryKey: ["ops_tasks"] });
+      qc.invalidateQueries({ queryKey: ["cleaning_tasks"] });
+      qc.invalidateQueries({ queryKey: ["cleaning_schedules"] });
+      qc.invalidateQueries({ queryKey: ["contracts"] });
+      toast.success("Estado revertido");
+    } catch (e: any) {
+      toast.error(e.message ?? "Não foi possível reverter");
+    }
+  };
+
   const remove = (id: string) => {
     if (!confirm("Eliminar estadia? As tarefas geradas mantêm-se.")) return;
     deleteStay.mutate(id, { onSuccess: () => toast.success("Estadia eliminada") });
   };
+
 
   return (
     <div className="px-4 lg:px-10 py-6 lg:py-10 max-w-7xl mx-auto">
