@@ -63,6 +63,7 @@ export const NewTaskDialog = ({ trigger, onCreate }: Props) => {
       locationId: null,
       residentId: null,
       requestId: null,
+      sourceRef: null,
       dueDate: dueDate ? new Date(dueDate).toISOString() : null,
       estimatedCost: null,
       finalCost: null,
