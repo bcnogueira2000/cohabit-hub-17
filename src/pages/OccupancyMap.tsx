@@ -447,7 +447,7 @@ const OccupancyMap = () => {
                                           className={cn(
                                             "shrink-0 h-3 w-3 rounded-full grid place-items-center text-[7px] font-bold",
                                             bar.tone === "occupied"
-                                              ? "bg-white/25 text-white"
+                                              ? "bg-green-50/25 text-green-50"
                                               : "bg-yellow-950/15 text-yellow-950"
                                           )}
                                         >
