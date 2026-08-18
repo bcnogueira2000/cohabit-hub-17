@@ -1070,6 +1070,8 @@ export type Database = {
           document_number: string | null
           document_type: string | null
           email: string
+          emergency_contact_name: string | null
+          emergency_contact_phone: string | null
           employer_or_school: string | null
           full_name: string
           id: string
@@ -1078,6 +1080,7 @@ export type Database = {
           nationality: string | null
           phone: string | null
           room_id: string | null
+          special_needs: string | null
           status: Database["public"]["Enums"]["resident_status"]
           tax_number: string | null
           updated_at: string
@@ -1091,6 +1094,8 @@ export type Database = {
           document_number?: string | null
           document_type?: string | null
           email: string
+          emergency_contact_name?: string | null
+          emergency_contact_phone?: string | null
           employer_or_school?: string | null
           full_name: string
           id?: string
@@ -1099,6 +1104,7 @@ export type Database = {
           nationality?: string | null
           phone?: string | null
           room_id?: string | null
+          special_needs?: string | null
           status?: Database["public"]["Enums"]["resident_status"]
           tax_number?: string | null
           updated_at?: string
@@ -1112,6 +1118,8 @@ export type Database = {
           document_number?: string | null
           document_type?: string | null
           email?: string
+          emergency_contact_name?: string | null
+          emergency_contact_phone?: string | null
           employer_or_school?: string | null
           full_name?: string
           id?: string
@@ -1120,6 +1128,7 @@ export type Database = {
           nationality?: string | null
           phone?: string | null
           room_id?: string | null
+          special_needs?: string | null
           status?: Database["public"]["Enums"]["resident_status"]
           tax_number?: string | null
           updated_at?: string
