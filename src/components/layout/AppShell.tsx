@@ -1,7 +1,7 @@
 import { NavLink, Outlet, useLocation, useNavigate, Link } from "react-router-dom";
 import {
   LayoutDashboard, Inbox, Sparkles, ListChecks, Users, DoorClosed,
-  CalendarRange, BarChart3, Settings, MoreHorizontal, Sun, LogOut, LogIn,
+  CalendarRange, BarChart3, Settings, MoreHorizontal, Sun, LogOut,
   UserCheck, UserPlus, Shield, ArrowLeft, Building2, MapPin, Wallet,
 } from "lucide-react";
 import { usePendingProfiles, useMyRoles, useProfile } from "@/hooks/useProfile";
