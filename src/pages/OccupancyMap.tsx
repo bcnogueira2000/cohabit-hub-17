@@ -205,182 +205,185 @@ const OccupancyMap = () => {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <h1 className="font-display text-3xl lg:text-4xl font-semibold">Mapa de Ocupação</h1>
-          <p className="text-muted-foreground mt-1">Janela de 3 meses · colunas semanais</p>
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <Select value={floor} onValueChange={setFloor}>
-            <SelectTrigger className="w-[140px]"><SelectValue placeholder="Piso" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos os pisos</SelectItem>
-              {floors.map((f) => (
-                <SelectItem key={f} value={String(f)}>Piso {f}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Select value={typology} onValueChange={setTypology}>
-            <SelectTrigger className="w-[180px]"><SelectValue placeholder="Tipologia" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todas as tipologias</SelectItem>
-              {typologies.map((t) => (
-                <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <div className="flex items-center gap-1">
-            <Button variant="outline" size="icon" onClick={() => setMonthOffset((o) => o - 1)} aria-label="Mês anterior">
-              <ChevronLeft className="h-4 w-4" strokeWidth={1.5} />
-            </Button>
-            <Button variant="outline" size="sm" onClick={() => setMonthOffset(0)}>Hoje</Button>
-            <Button variant="outline" size="icon" onClick={() => setMonthOffset((o) => o + 1)} aria-label="Mês seguinte">
-              <ChevronRight className="h-4 w-4" strokeWidth={1.5} />
-            </Button>
+    <div className="px-4 lg:px-10 py-6 lg:py-10 max-w-7xl mx-auto">
+      <div className="space-y-6">
+        <div className="flex flex-wrap items-end justify-between gap-4">
+          <div>
+            <h1 className="font-display text-3xl lg:text-4xl font-semibold">Mapa de Ocupação</h1>
+            <p className="text-muted-foreground mt-1">Janela de 3 meses · colunas semanais</p>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <Select value={floor} onValueChange={setFloor}>
+              <SelectTrigger className="w-[140px]"><SelectValue placeholder="Piso" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos os pisos</SelectItem>
+                {floors.map((f) => (
+                  <SelectItem key={f} value={String(f)}>Piso {f}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select value={typology} onValueChange={setTypology}>
+              <SelectTrigger className="w-[180px]"><SelectValue placeholder="Tipologia" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todas as tipologias</SelectItem>
+                {typologies.map((t) => (
+                  <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <div className="flex items-center gap-1">
+              <Button variant="outline" size="icon" onClick={() => setMonthOffset((o) => o - 1)} aria-label="Mês anterior">
+                <ChevronLeft className="h-4 w-4" strokeWidth={1.5} />
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => setMonthOffset(0)}>Hoje</Button>
+              <Button variant="outline" size="icon" onClick={() => setMonthOffset((o) => o + 1)} aria-label="Mês seguinte">
+                <ChevronRight className="h-4 w-4" strokeWidth={1.5} />
+              </Button>
+            </div>
           </div>
         </div>
-      </div>
 
-      <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
-        <span className="flex items-center gap-2"><span className="h-3 w-6 rounded-full bg-info/20 border border-info/60" />Reservado</span>
-        <span className="flex items-center gap-2"><span className="h-3 w-6 rounded-full bg-primary" />Ocupado</span>
-        <span className="flex items-center gap-2"><span className="h-3 w-6 rounded-full bg-muted border border-border" />Livre</span>
-        <Button variant="ghost" size="sm" className="ml-auto" onClick={() => setShowEmpty((v) => !v)}>
-          {showEmpty ? "Esconder pisos sem ocupação" : `Mostrar todos os pisos${hiddenCount > 0 ? ` (+${hiddenCount})` : ""}`}
-        </Button>
-      </div>
+        <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
+          <span className="flex items-center gap-2"><span className="h-3 w-6 rounded-full bg-info/20 border border-info/60" />Reservado</span>
+          <span className="flex items-center gap-2"><span className="h-3 w-6 rounded-full bg-primary" />Ocupado</span>
+          <span className="flex items-center gap-2"><span className="h-3 w-6 rounded-full bg-muted border border-border" />Livre</span>
+          <Button variant="ghost" size="sm" className="ml-auto" onClick={() => setShowEmpty((v) => !v)}>
+            {showEmpty ? "Esconder pisos sem ocupação" : `Mostrar todos os pisos${hiddenCount > 0 ? ` (+${hiddenCount})` : ""}`}
+          </Button>
+        </div>
 
-      <Card className="overflow-x-auto p-0">
-        {isLoading ? (
-          <div className="p-6 text-muted-foreground">A carregar…</div>
-        ) : (
-          <div style={{ minWidth: labelWidth + gridWidth }}>
-            {/* Cabeçalho meses */}
-            <div className="flex sticky top-0 z-20 bg-card border-b border-border/60">
-              <div
-                style={{ width: labelWidth }}
-                className="shrink-0 sticky left-0 z-30 bg-card px-4 py-2 text-xs font-medium text-muted-foreground"
-              >
-                Quarto
-              </div>
-              {monthSpans.map((m) => (
+        <Card className="overflow-x-auto p-0">
+          {isLoading ? (
+            <div className="p-6 text-muted-foreground">A carregar…</div>
+          ) : (
+            <div style={{ minWidth: labelWidth + gridWidth }}>
+              {/* Cabeçalho meses */}
+              <div className="flex sticky top-0 z-20 bg-card border-b border-border/60">
                 <div
-                  key={m.label}
-                  style={{ width: m.count * dayWidth }}
-                  className="shrink-0 border-l border-border/50 px-2 py-2 text-xs font-medium capitalize truncate"
+                  style={{ width: labelWidth }}
+                  className="shrink-0 sticky left-0 z-30 bg-card px-5 py-2.5 text-xs font-medium text-muted-foreground"
                 >
-                  {m.label}
+                  Quarto
                 </div>
-              ))}
-            </div>
-            {/* Cabeçalho semanas */}
-            <div className="flex border-b border-border/60 bg-muted/20">
-              <div style={{ width: labelWidth }} className="shrink-0 sticky left-0 z-20 bg-card" />
-              {weekSpans.map((w) => (
-                <div
-                  key={w.key}
-                  style={{ width: w.count * dayWidth }}
-                  className="shrink-0 border-l border-border/40 text-center text-[10px] leading-5 text-muted-foreground truncate px-0.5"
-                >
-                  {w.label}
-                </div>
-              ))}
-            </div>
-
-            {visibleFloors.map(([f, rs]) => (
-              <div key={f}>
-                <div className="flex bg-muted/30 border-y border-border/50">
+                {monthSpans.map((m) => (
                   <div
-                    style={{ width: labelWidth }}
-                    className="shrink-0 sticky left-0 z-20 bg-muted/60 px-4 py-1 text-[11px] font-semibold"
+                    key={m.label}
+                    style={{ width: m.count * dayWidth }}
+                    className="shrink-0 border-l border-border/50 px-2 py-2 text-xs font-medium capitalize truncate"
                   >
-                    Piso {f}
+                    {m.label}
                   </div>
-                  <div style={{ width: gridWidth }} className="shrink-0" />
-                </div>
-                {sideOrder.map((side) => {
-                  const list = rs
-                    .filter((r) => parseRoomNumber(r.number).side === side)
-                    .sort(
-                      (a, b) =>
-                        (parseRoomNumber(a.number).sequence ?? 0) - (parseRoomNumber(b.number).sequence ?? 0),
-                    );
-                  if (!list.length) return null;
-                  return (
-                    <div key={side}>
-                      <div className="flex">
-                        <div
-                          style={{ width: labelWidth }}
-                          className="shrink-0 sticky left-0 z-20 bg-card px-4 pt-1.5 pb-0.5 text-[9px] uppercase tracking-[0.14em] text-muted-foreground/70"
-                        >
-                          {sideLabels[side]}
-                        </div>
-                        <div style={{ width: gridWidth }} className="shrink-0" />
-                      </div>
-                      {list.map((r) => {
-                        const bars = barsByRoom.get(r.id) ?? [];
-                        return (
-                          <div key={r.id} className="flex group border-b border-border/25 hover:bg-muted/20">
-                            <div
-                              style={{ width: labelWidth }}
-                              className="shrink-0 sticky left-0 z-20 bg-card group-hover:bg-muted/20 px-4 py-1 text-xs flex items-center gap-1.5"
-                            >
-                              <span className="font-medium">{r.number}</span>
-                              <span className="text-muted-foreground truncate">· {r.typology}</span>
-                            </div>
-                            <div className="relative shrink-0" style={{ width: gridWidth, height: rowHeight }}>
-                              {weekSpans.map((w) => (
-                                <div
-                                  key={w.key}
-                                  className="absolute top-0 bottom-0 border-l border-border/25"
-                                  style={{ left: w.startIdx * dayWidth, width: w.count * dayWidth }}
-                                />
-                              ))}
-                              {bars.map((bar) => {
-                                const width = (bar.endIdx - bar.startIdx + 1) * dayWidth - 2;
-                                return (
-                                  <button
-                                    key={bar.stayId}
-                                    type="button"
-                                    onClick={() => openBar(bar)}
-                                    title={`${bar.label} · ${bar.tone === "occupied" ? "Ocupado" : "Reservado"}`}
-                                    className={cn(
-                                      "absolute top-[3px] bottom-[3px] rounded-full pl-1 pr-2.5 text-[10px] font-medium text-left flex items-center gap-1.5 overflow-hidden transition-all hover:brightness-105 hover:shadow-md",
-                                      bar.tone === "occupied"
-                                        ? "bg-gradient-to-b from-primary to-primary/85 text-primary-foreground shadow-sm"
-                                        : "bg-info/15 border border-dashed border-info/70 text-foreground shadow-sm",
-                                    )}
-                                    style={{ left: bar.startIdx * dayWidth + 1, width }}
-                                  >
-                                    <span
-                                      className={cn(
-                                        "shrink-0 h-4 w-4 rounded-full grid place-items-center text-[8px] font-semibold",
-                                        bar.tone === "occupied"
-                                          ? "bg-primary-foreground/20 text-primary-foreground"
-                                          : avatarTones[colorKey(bar.label)],
-                                      )}
-                                    >
-                                      {getInitials(bar.label).slice(0, 2)}
-                                    </span>
-                                    {width > 74 && <span className="truncate">{bar.label}</span>}
-                                  </button>
-                                );
-                              })}
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  );
-                })}
+                ))}
               </div>
-            ))}
-          </div>
-        )}
-      </Card>
+              {/* Cabeçalho semanas */}
+              <div className="flex border-b border-border/60 bg-muted/20">
+                <div style={{ width: labelWidth }} className="shrink-0 sticky left-0 z-20 bg-card px-5" />
+                {weekSpans.map((w) => (
+                  <div
+                    key={w.key}
+                    style={{ width: w.count * dayWidth }}
+                    className="shrink-0 border-l border-border/40 text-center text-[10px] leading-5 text-muted-foreground truncate px-0.5"
+                  >
+                    {w.label}
+                  </div>
+                ))}
+              </div>
+
+              {visibleFloors.map(([f, rs]) => (
+                <div key={f}>
+                  <div className="flex bg-muted/30 border-y border-border/50">
+                    <div
+                      style={{ width: labelWidth }}
+                      className="shrink-0 sticky left-0 z-20 bg-muted/60 px-5 py-1.5 text-[11px] font-semibold"
+                    >
+                      Piso {f}
+                    </div>
+                    <div style={{ width: gridWidth }} className="shrink-0" />
+                  </div>
+                  {sideOrder.map((side) => {
+                    const list = rs
+                      .filter((r) => parseRoomNumber(r.number).side === side)
+                      .sort(
+                        (a, b) =>
+                          (parseRoomNumber(a.number).sequence ?? 0) - (parseRoomNumber(b.number).sequence ?? 0),
+                      );
+                    if (!list.length) return null;
+                    return (
+                      <div key={side}>
+                        <div className="flex">
+                          <div
+                            style={{ width: labelWidth }}
+                            className="shrink-0 sticky left-0 z-20 bg-card px-5 pt-2 pb-1 text-[9px] uppercase tracking-[0.14em] text-muted-foreground/70"
+                          >
+                            {sideLabels[side]}
+                          </div>
+                          <div style={{ width: gridWidth }} className="shrink-0" />
+                        </div>
+                        {list.map((r) => {
+                          const bars = barsByRoom.get(r.id) ?? [];
+                          return (
+                            <div key={r.id} className="flex group border-b border-border/25 hover:bg-muted/20">
+                              <div
+                                style={{ width: labelWidth }}
+                                className="shrink-0 sticky left-0 z-20 bg-card group-hover:bg-muted/20 px-5 py-1.5 text-xs flex items-center gap-1.5"
+                              >
+                                <span className="font-medium">{r.number}</span>
+                                <span className="text-muted-foreground truncate">· {r.typology}</span>
+                              </div>
+                              <div className="relative shrink-0" style={{ width: gridWidth, height: rowHeight }}>
+                                {weekSpans.map((w) => (
+                                  <div
+                                    key={w.key}
+                                    className="absolute top-0 bottom-0 border-l border-border/25"
+                                    style={{ left: w.startIdx * dayWidth, width: w.count * dayWidth }}
+                                  />
+                                ))}
+                                {bars.map((bar) => {
+                                  const width = (bar.endIdx - bar.startIdx + 1) * dayWidth - 2;
+                                  return (
+                                    <button
+                                      key={bar.stayId}
+                                      type="button"
+                                      onClick={() => openBar(bar)}
+                                      title={`${bar.label} · ${bar.tone === "occupied" ? "Ocupado" : "Reservado"}`}
+                                      className={cn(
+                                        "absolute top-[3px] bottom-[3px] rounded-full pl-1 pr-2.5 text-[10px] font-medium text-left flex items-center gap-1.5 overflow-hidden transition-all hover:brightness-105 hover:shadow-md",
+                                        bar.tone === "occupied"
+                                          ? "bg-gradient-to-b from-primary to-primary/85 text-primary-foreground shadow-sm"
+                                          : "bg-info/15 border border-dashed border-info/70 text-foreground shadow-sm",
+                                      )}
+                                      style={{ left: bar.startIdx * dayWidth + 1, width }}
+                                    >
+                                      <span
+                                        className={cn(
+                                          "shrink-0 h-4 w-4 rounded-full grid place-items-center text-[8px] font-semibold",
+                                          bar.tone === "occupied"
+                                            ? "bg-primary-foreground/20 text-primary-foreground"
+                                            : avatarTones[colorKey(bar.label)],
+                                        )}
+                                      >
+                                        {getInitials(bar.label).slice(0, 2)}
+                                      </span>
+                                      {width > 74 && <span className="truncate">{bar.label}</span>}
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    );
+                  })}
+                </div>
+              ))}
+            </div>
+          )}
+        </Card>
+      </div>
     </div>
   );
+
 };
 
 export default OccupancyMap;
