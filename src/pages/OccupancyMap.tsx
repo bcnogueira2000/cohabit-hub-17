@@ -1,24 +1,18 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, CalendarDays } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { cn, colorKey, getInitials, parseRoomNumber, type RoomSide } from "@/lib/utils";
-
-type RoomRow = { id: string; number: string; floor: number; typology: string; typology_id: string | null };
-type StayRow = {
-  id: string;
-  room_id: string | null;
-  check_in: string;
-  check_out: string;
-  status: string;
-  contract_id: string | null;
-  full_name: string;
-  contract: { id: string; status: string; start_date: string; end_date: string; actual_end_date: string | null } | null;
-};
 
 const sideOrder: RoomSide[] = ["esquerdo", "direito", "indefinido"];
 const sideLabels: Record<RoomSide, string> = {
@@ -32,6 +26,9 @@ const toDay = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
 const parseDay = (s: string) => toDay(new Date(s));
 const addMonths = (d: Date, n: number) => new Date(d.getFullYear(), d.getMonth() + n, 1);
 const diffDays = (a: Date, b: Date) => Math.round((a.getTime() - b.getTime()) / dayMs);
+const monthLabel = (d: Date) =>
+  `${d.toLocaleDateString("pt-PT", { month: "long" })} ${d.getFullYear()}`;
+const monthKey = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
 
 const useOccupancyData = () =>
   useQuery({
