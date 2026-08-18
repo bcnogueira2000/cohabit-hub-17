@@ -407,10 +407,10 @@ const OccupancyMap = () => {
                               >
                                 <div
                                   style={{ width: labelWidth }}
-                                  className="shrink-0 sticky left-0 z-20 bg-card group-hover:bg-muted/20 border-r border-border/60 px-5 py-2 text-sm flex flex-col justify-center transition-smooth"
+                                  className="shrink-0 sticky left-0 z-20 bg-card group-hover:bg-muted/20 border-r border-border/60 px-5 py-1 text-sm flex flex-col justify-center transition-smooth"
                                 >
-                                  <span className="font-semibold text-foreground">{r.number}</span>
-                                  <span className="text-[10px] text-muted-foreground truncate">{r.typology}</span>
+                                  <span className="font-semibold text-foreground leading-tight">{r.number}</span>
+                                  <span className="text-[10px] text-muted-foreground truncate leading-tight">{r.typology}</span>
                                 </div>
                                 <div className="relative shrink-0" style={{ width: gridWidth, height: rowHeight }}>
                                   {/* weekly grid lines */}
@@ -419,7 +419,7 @@ const OccupancyMap = () => {
                                       key={w.key}
                                       className={cn(
                                         "absolute top-0 bottom-0 border-l",
-                                        w.hasToday ? "bg-primary/[0.03] border-primary/20" : "border-border/20"
+                                        w.hasToday ? "bg-green-600/[0.03] border-green-600/20" : "border-border/20"
                                       )}
                                       style={{ left: w.startIdx * dayWidth, width: w.count * dayWidth }}
                                     />
@@ -433,29 +433,27 @@ const OccupancyMap = () => {
                                         onClick={() => openBar(bar)}
                                         title={`${bar.label} · ${bar.tone === "occupied" ? "Ocupado" : "Reservado"}`}
                                         className={cn(
-                                          "absolute rounded-lg px-1.5 text-[10px] font-semibold text-left flex items-center gap-1 overflow-hidden transition-smooth hover:shadow-md hover:scale-[1.01]",
+                                          "absolute inset-y-0 rounded-sm px-1 text-[9px] font-semibold text-left flex items-center gap-1 overflow-hidden transition-smooth hover:shadow-md hover:scale-[1.01]",
                                           bar.tone === "occupied"
-                                            ? "bg-primary text-primary-foreground shadow-sm shadow-primary/20"
-                                            : "bg-info/15 border border-dashed border-info/60 text-foreground shadow-sm"
+                                            ? "bg-green-600 text-green-50 shadow-sm shadow-green-600/20"
+                                            : "bg-yellow-400 text-yellow-950 shadow-sm"
                                         )}
                                         style={{
                                           left: bar.startIdx * dayWidth + 2,
                                           width,
-                                          top: barPad,
-                                          bottom: barPad,
                                         }}
                                       >
                                         <span
                                           className={cn(
-                                            "shrink-0 h-3.5 w-3.5 rounded-full grid place-items-center text-[7px] font-bold",
+                                            "shrink-0 h-3 w-3 rounded-full grid place-items-center text-[7px] font-bold",
                                             bar.tone === "occupied"
-                                              ? "bg-primary-foreground/20 text-primary-foreground"
-                                              : avatarTones[colorKey(bar.label)]
+                                              ? "bg-green-50/25 text-green-50"
+                                              : "bg-yellow-950/15 text-yellow-950"
                                           )}
                                         >
                                           {getInitials(bar.label).slice(0, 2)}
                                         </span>
-                                        {width > 60 && <span className="truncate">{bar.label}</span>}
+                                        {width > 55 && <span className="truncate">{bar.label}</span>}
                                       </button>
                                     );
                                   })}
