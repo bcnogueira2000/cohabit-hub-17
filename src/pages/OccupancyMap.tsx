@@ -433,16 +433,21 @@ const OccupancyMap = () => {
                                         onClick={() => openBar(bar)}
                                         title={`${bar.label} · ${bar.tone === "occupied" ? "Ocupado" : "Reservado"}`}
                                         className={cn(
-                                          "absolute top-[5px] bottom-[5px] rounded-lg px-2 text-[10px] font-semibold text-left flex items-center gap-1.5 overflow-hidden transition-smooth hover:shadow-md hover:scale-[1.01]",
+                                          "absolute rounded-lg px-1.5 text-[10px] font-semibold text-left flex items-center gap-1 overflow-hidden transition-smooth hover:shadow-md hover:scale-[1.01]",
                                           bar.tone === "occupied"
                                             ? "bg-primary text-primary-foreground shadow-sm shadow-primary/20"
                                             : "bg-info/15 border border-dashed border-info/60 text-foreground shadow-sm"
                                         )}
-                                        style={{ left: bar.startIdx * dayWidth + 2, width }}
+                                        style={{
+                                          left: bar.startIdx * dayWidth + 2,
+                                          width,
+                                          top: barPad,
+                                          bottom: barPad,
+                                        }}
                                       >
                                         <span
                                           className={cn(
-                                            "shrink-0 h-4 w-4 rounded-full grid place-items-center text-[8px] font-bold",
+                                            "shrink-0 h-3.5 w-3.5 rounded-full grid place-items-center text-[7px] font-bold",
                                             bar.tone === "occupied"
                                               ? "bg-primary-foreground/20 text-primary-foreground"
                                               : avatarTones[colorKey(bar.label)]
@@ -450,7 +455,7 @@ const OccupancyMap = () => {
                                         >
                                           {getInitials(bar.label).slice(0, 2)}
                                         </span>
-                                        {width > 70 && <span className="truncate">{bar.label}</span>}
+                                        {width > 60 && <span className="truncate">{bar.label}</span>}
                                       </button>
                                     );
                                   })}
@@ -470,7 +475,7 @@ const OccupancyMap = () => {
 
         {/* Footer info */}
         <div className="flex items-center justify-between text-xs text-muted-foreground px-1">
-          <span>Janela de 3 meses · colunas semanais</span>
+          <span>Janela de 3 meses · colunas semanais · use os saltos para ver até 2 anos</span>
           <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-primary" />Semana atual destacada</span>
         </div>
       </div>
