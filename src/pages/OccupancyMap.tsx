@@ -412,7 +412,7 @@ const OccupancyMap = () => {
                                     <span className="text-[10px] text-muted-foreground truncate leading-tight">{r.typology}</span>
                                   </div>
                                 </div>
-                                <div className="relative shrink-0 h-full" style={{ width: gridWidth }}>
+                                <div className="relative shrink-0 h-7 flex items-center" style={{ width: gridWidth }}>
                                   {/* weekly grid lines */}
                                   {weekSpans.map((w) => (
                                     <div
