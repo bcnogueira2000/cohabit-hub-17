@@ -1,13 +1,30 @@
 import { useState } from "react";
-import { Link, useParams } from "react-router-dom";
-import { ArrowLeft, ArrowRight, CalendarRange, LogIn, LogOut, Pencil, Repeat, ShieldCheck, User } from "lucide-react";
+import { Link, useNavigate, useParams } from "react-router-dom";
+import { ArrowLeft, ArrowRight, CalendarRange, Info, LogIn, LogOut, Pencil, Repeat, ShieldCheck, Trash2, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { useContract, useContractStays } from "@/hooks/useContracts";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { toast } from "sonner";
+import {
+  useContract,
+  useContractStays,
+  useContractPaymentsCount,
+  useDeleteContract,
+} from "@/hooks/useContracts";
 import { ContractStatusBadge } from "@/components/contracts/ContractStatusBadge";
 import { useRooms } from "@/hooks/useData";
 import { RentPeriodsSection } from "@/components/contracts/RentPeriodsSection";
 import { EditContractSheet } from "@/components/contracts/EditContractSheet";
+
 
 
 const eur = (v: number | null | undefined) =>
@@ -25,10 +42,28 @@ const Field = ({ label, children }: { label: string; children: React.ReactNode }
 
 const ContractDetail = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
   const { data: contract, isLoading } = useContract(id);
   const { data: stays = [] } = useContractStays(id);
   const { data: rooms = [] } = useRooms();
+  const { data: paymentsCount = 0 } = useContractPaymentsCount(id);
+  const deleteContract = useDeleteContract();
   const [editOpen, setEditOpen] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const canDelete = paymentsCount === 0;
+
+  const handleDelete = async () => {
+    if (!contract) return;
+    try {
+      await deleteContract.mutateAsync(contract.id);
+      toast.success("Contrato eliminado");
+      navigate("/finance/contracts");
+    } catch (err: any) {
+      toast.error(err?.message ?? "Não foi possível eliminar o contrato");
+    }
+  };
+
+
 
 
   if (isLoading) return <div className="p-10"><p className="text-muted-foreground text-sm">A carregar…</p></div>;
@@ -69,8 +104,51 @@ const ContractDetail = () => {
           <Button variant="outline" size="sm" onClick={() => setEditOpen(true)}>
             <Pencil className="h-4 w-4 mr-1.5" strokeWidth={1.5} /> Editar contrato
           </Button>
+          {canDelete && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="text-destructive hover:text-destructive"
+              onClick={() => setDeleteOpen(true)}
+            >
+              <Trash2 className="h-4 w-4 mr-1.5" strokeWidth={1.5} /> Eliminar contrato
+            </Button>
+          )}
         </div>
       </div>
+
+      {!canDelete && (
+        <div className="flex items-start gap-2 rounded-xl border border-border/60 bg-muted/40 p-3 mb-4 text-xs text-muted-foreground">
+          <Info className="h-4 w-4 mt-0.5 shrink-0" strokeWidth={1.5} />
+          <span>
+            Este contrato já tem pagamentos registados e não pode ser eliminado. Usa o campo de
+            estado para cancelar, se necessário.
+          </span>
+        </div>
+      )}
+
+      <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Eliminar contrato?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Isto elimina o contrato, a estadia associada e o histórico de rendas. Não pode ser
+              desfeito.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDelete}
+              disabled={deleteContract.isPending}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deleteContract.isPending ? "A eliminar…" : "Eliminar"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
 
       <EditContractSheet
         key={`${contract.endDate}-${contract.paymentDay}-${contract.depositDue}`}
