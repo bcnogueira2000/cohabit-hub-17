@@ -1,3 +1,4 @@
+import { useRef, useState } from "react";
 import { Clock, ChevronDown, Phone, User as UserIcon, CheckCircle2 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
