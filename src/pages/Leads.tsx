@@ -146,6 +146,14 @@ const Leads = () => {
       setEditNextActionDate(selected.nextActionDate || "");
       setEditNotes(selected.notes || "");
       setEditLostReason(selected.lostReason || "");
+      setEditName(selected.fullName || "");
+      setEditEmail(selected.email || "");
+      setEditPhone(selected.phone || "");
+      setEditNationality(selected.nationality || "");
+      setEditAge(selected.age || "");
+      setEditGender(selected.gender || "");
+      setEditProfile(selected.profile || "__none__");
+      setEditProfileOther(selected.profileOther || "");
     }
   }, [selected?.id]);
 
