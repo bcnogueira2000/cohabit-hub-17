@@ -1,13 +1,15 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { toast } from "sonner";
-import { useUpdateContract, type Contract, type RecalculationResult } from "@/hooks/useContracts";
+import { useUpdateContract, useContractStays, type Contract, type RecalculationResult } from "@/hooks/useContracts";
+import { useRooms } from "@/hooks/useData";
 
 const eur = (v: number) =>
   new Intl.NumberFormat("pt-PT", { style: "currency", currency: "EUR" }).format(v);
@@ -20,12 +22,28 @@ type Props = {
 
 export const EditContractSheet = ({ contract, open, onOpenChange }: Props) => {
   const update = useUpdateContract();
+  const { data: stays = [] } = useContractStays(contract.id);
+  const { data: rooms = [] } = useRooms();
   const [endDate, setEndDate] = useState(contract.endDate);
   const [paymentDay, setPaymentDay] = useState(String(contract.paymentDay));
   const [depositDue, setDepositDue] = useState(String(contract.depositDue));
   const [autoRenew, setAutoRenew] = useState(contract.autoRenew);
   const [notes, setNotes] = useState(contract.notes ?? "");
   const [locked, setLocked] = useState<RecalculationResult["locked"]>([]);
+
+  /** Estadia ligada, editável apenas antes do check-in */
+  const editableStay = useMemo(
+    () => (stays as any[]).find((s) => s.status === "confirmed") ?? null,
+    [stays]
+  );
+  const [roomId, setRoomId] = useState<string>("");
+  const currentRoomId = editableStay?.room_id ?? null;
+  const selectedRoomId = roomId || currentRoomId || "";
+  const sortedRooms = useMemo(
+    () => [...rooms].sort((a, b) => a.number.localeCompare(b.number, "pt", { numeric: true })),
+    [rooms]
+  );
+
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
