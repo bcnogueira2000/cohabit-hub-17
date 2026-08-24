@@ -34,6 +34,7 @@ export const NewContractDialog = ({ open, onOpenChange, defaults, leadId, onCrea
   const qc = useQueryClient();
   const [roomId, setRoomId] = useState<string>("");
   const [submitting, setSubmitting] = useState(false);
+  const [transitional, setTransitional] = useState(false);
 
   const sortedRooms = useMemo(() => {
     const pref = defaults?.preferredRoomType?.trim().toLowerCase();
