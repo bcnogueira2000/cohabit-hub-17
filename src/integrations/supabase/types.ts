@@ -289,6 +289,7 @@ export type Database = {
         Row: {
           actual_end_date: string | null
           auto_renew: boolean
+          code: string | null
           created_at: string
           deposit_due: number
           deposit_received: number
@@ -299,6 +300,7 @@ export type Database = {
           notes: string | null
           payment_day: number
           resident_id: string
+          signed_at: string | null
           start_date: string
           status: Database["public"]["Enums"]["contract_status"]
           updated_at: string
@@ -306,6 +308,7 @@ export type Database = {
         Insert: {
           actual_end_date?: string | null
           auto_renew?: boolean
+          code?: string | null
           created_at?: string
           deposit_due?: number
           deposit_received?: number
@@ -316,6 +319,7 @@ export type Database = {
           notes?: string | null
           payment_day?: number
           resident_id: string
+          signed_at?: string | null
           start_date: string
           status?: Database["public"]["Enums"]["contract_status"]
           updated_at?: string
@@ -323,6 +327,7 @@ export type Database = {
         Update: {
           actual_end_date?: string | null
           auto_renew?: boolean
+          code?: string | null
           created_at?: string
           deposit_due?: number
           deposit_received?: number
@@ -333,6 +338,7 @@ export type Database = {
           notes?: string | null
           payment_day?: number
           resident_id?: string
+          signed_at?: string | null
           start_date?: string
           status?: Database["public"]["Enums"]["contract_status"]
           updated_at?: string
@@ -1063,12 +1069,14 @@ export type Database = {
       }
       residents: {
         Row: {
+          address: string | null
           avatar_color: string | null
           checkin_checklist: Json
           created_at: string
           date_of_birth: string | null
           document_number: string | null
           document_type: string | null
+          document_validity: string | null
           email: string
           emergency_contact_name: string | null
           emergency_contact_phone: string | null
@@ -1079,6 +1087,7 @@ export type Database = {
           move_out: string | null
           nationality: string | null
           phone: string | null
+          profile: string | null
           room_id: string | null
           special_needs: string | null
           status: Database["public"]["Enums"]["resident_status"]
@@ -1087,12 +1096,14 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
+          address?: string | null
           avatar_color?: string | null
           checkin_checklist?: Json
           created_at?: string
           date_of_birth?: string | null
           document_number?: string | null
           document_type?: string | null
+          document_validity?: string | null
           email: string
           emergency_contact_name?: string | null
           emergency_contact_phone?: string | null
@@ -1103,6 +1114,7 @@ export type Database = {
           move_out?: string | null
           nationality?: string | null
           phone?: string | null
+          profile?: string | null
           room_id?: string | null
           special_needs?: string | null
           status?: Database["public"]["Enums"]["resident_status"]
@@ -1111,12 +1123,14 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
+          address?: string | null
           avatar_color?: string | null
           checkin_checklist?: Json
           created_at?: string
           date_of_birth?: string | null
           document_number?: string | null
           document_type?: string | null
+          document_validity?: string | null
           email?: string
           emergency_contact_name?: string | null
           emergency_contact_phone?: string | null
@@ -1127,6 +1141,7 @@ export type Database = {
           move_out?: string | null
           nationality?: string | null
           phone?: string | null
+          profile?: string | null
           room_id?: string | null
           special_needs?: string | null
           status?: Database["public"]["Enums"]["resident_status"]
@@ -1465,6 +1480,10 @@ export type Database = {
       }
     }
     Functions: {
+      compensation_months: {
+        Args: { p_end: string; p_start: string }
+        Returns: number
+      }
       compute_rent_for_month: {
         Args: { p_contract_id: string; p_month: number; p_year: number }
         Returns: Record<string, unknown>
