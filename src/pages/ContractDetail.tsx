@@ -60,9 +60,12 @@ const ContractDetail = () => {
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [generatedDoc, setGeneratedDoc] = useState<{ fileName: string; signedUrl: string } | null>(null);
+  const [legalOpen, setLegalOpen] = useState(false);
+  const [legalResident, setLegalResident] = useState<ResidentLegalData>({});
+  const [legalMissing, setLegalMissing] = useState<LegalField[]>([]);
   const canDelete = paymentsCount === 0;
 
-  const handleGenerate = async () => {
+  const doGenerate = async () => {
     if (!contract) return;
     setGenerating(true);
     try {
@@ -74,6 +77,33 @@ const ContractDetail = () => {
     } finally {
       setGenerating(false);
     }
+  };
+
+  const handleGenerate = async () => {
+    if (!contract) return;
+    setGenerating(true);
+    try {
+      const { data: resident, error } = await supabase
+        .from("residents" as any)
+        .select("nationality, date_of_birth, address, document_number, document_validity, profile, employer_or_school")
+        .eq("id", contract.residentId)
+        .maybeSingle();
+      if (error) throw error;
+      const missing = missingLegalFields(resident as any);
+      if (missing.length > 0) {
+        setLegalResident((resident ?? {}) as any);
+        setLegalMissing(missing);
+        setLegalOpen(true);
+        setGenerating(false);
+        return;
+      }
+    } catch (err: any) {
+      toast.error(err?.message ?? "Não foi possível verificar os dados do residente");
+      setGenerating(false);
+      return;
+    }
+    setGenerating(false);
+    await doGenerate();
   };
 
   const handleDelete = async () => {
