@@ -204,8 +204,9 @@ export const useDeleteLead = () => {
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["leads"] }),
-
+  });
 };
+
 
 export interface LeadActivity {
   id: string;
