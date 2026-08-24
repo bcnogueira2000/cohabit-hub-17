@@ -292,3 +292,74 @@ export const useUpdateContract = () => {
   });
 };
 
+
+/** Nº de pagamentos registados no contrato (salvaguarda para eliminação) */
+export const useContractPaymentsCount = (contractId: string | undefined) =>
+  useQuery({
+    enabled: !!contractId,
+    queryKey: ["contract-payments-count", contractId],
+    queryFn: async (): Promise<number> => {
+      if (!contractId) return 0;
+      const { count, error } = await supabase
+        .from("payments" as any)
+        .select("id", { count: "exact", head: true })
+        .eq("contract_id", contractId);
+      if (error) throw error;
+      return count ?? 0;
+    },
+  });
+
+/** Elimina contrato sem pagamentos: estadia ligada + contrato (cascade nas rendas) */
+export const useDeleteContract = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (contractId: string) => {
+      const { count, error: cErr } = await supabase
+        .from("payments" as any)
+        .select("id", { count: "exact", head: true })
+        .eq("contract_id", contractId);
+      if (cErr) throw cErr;
+      if ((count ?? 0) > 0)
+        throw new Error("Este contrato já tem pagamentos registados e não pode ser eliminado.");
+
+      const { data: stays, error: sErr } = await supabase
+        .from("stays" as any)
+        .select("id, room_id")
+        .eq("contract_id", contractId);
+      if (sErr) throw sErr;
+      const rows = (stays ?? []) as any[];
+      const stayIds = rows.map((s) => s.id);
+      const roomIds = [...new Set(rows.map((s) => s.room_id).filter(Boolean))] as string[];
+
+      if (stayIds.length) {
+        const { error: delStayErr } = await supabase.from("stays" as any).delete().in("id", stayIds);
+        if (delStayErr) throw delStayErr;
+      }
+
+      const { error: delErr } = await supabase.from("contracts" as any).delete().eq("id", contractId);
+      if (delErr) throw delErr;
+
+      // Libertar quartos que ficaram sem estadias vigentes
+      for (const roomId of roomIds) {
+        const { count: remaining } = await supabase
+          .from("stays" as any)
+          .select("id", { count: "exact", head: true })
+          .eq("room_id", roomId)
+          .in("status", ["confirmed", "checked_in"]);
+        if ((remaining ?? 0) === 0) {
+          await supabase
+            .from("rooms" as any)
+            .update({ status: "available", current_resident_id: null } as any)
+            .eq("id", roomId);
+        }
+      }
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["contracts"] });
+      qc.invalidateQueries({ queryKey: ["stays"] });
+      qc.invalidateQueries({ queryKey: ["stays-by-contract"] });
+      qc.invalidateQueries({ queryKey: ["rooms"] });
+      qc.invalidateQueries({ queryKey: ["rent-current-month"] });
+    },
+  });
+};
