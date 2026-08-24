@@ -25,6 +25,13 @@ import { useRooms } from "@/hooks/useData";
 import { RentPeriodsSection } from "@/components/contracts/RentPeriodsSection";
 import { EditContractSheet } from "@/components/contracts/EditContractSheet";
 import { generateContractDocx } from "@/lib/generateContractDocx";
+import {
+  ResidentLegalDataDialog,
+  missingLegalFields,
+  type LegalField,
+  type ResidentLegalData,
+} from "@/components/contracts/ResidentLegalDataDialog";
+import { supabase } from "@/integrations/supabase/client";
 
 
 
