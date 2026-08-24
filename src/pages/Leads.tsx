@@ -64,7 +64,7 @@ const groupLabels: Record<Exclude<Filter, "all">, string> = {
   new: "Novos",
   contact: "Em contacto",
   negotiation: "Em negociação",
-  won: "Ganhos",
+  won: "Contratados",
   lost: "Perdidos",
 };
 
@@ -339,7 +339,7 @@ const Leads = () => {
             <TabsTrigger value="new">Novos . {counts.new}</TabsTrigger>
             <TabsTrigger value="contact">Em contacto . {counts.contact}</TabsTrigger>
             <TabsTrigger value="negotiation">Em negociação . {counts.negotiation}</TabsTrigger>
-            <TabsTrigger value="won">Ganhos . {counts.won}</TabsTrigger>
+            <TabsTrigger value="won">Contratados . {counts.won}</TabsTrigger>
             <TabsTrigger value="lost">Perdidos . {counts.lost}</TabsTrigger>
             <TabsTrigger value="all">Todos</TabsTrigger>
           </TabsList>
