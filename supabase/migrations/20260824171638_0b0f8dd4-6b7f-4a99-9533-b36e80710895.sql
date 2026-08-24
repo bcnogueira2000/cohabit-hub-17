@@ -1,0 +1,1 @@
+REVOKE ALL ON FUNCTION public.sync_resident_from_stay() FROM PUBLIC, anon, authenticated;
