@@ -57,9 +57,9 @@ export const EditContractSheet = ({ contract, open, onOpenChange }: Props) => {
 
     const endDateChanged = endDate !== contract.endDate;
     const paymentDayChanged = day !== contract.paymentDay;
-    try {
     const roomChanged = !!editableStay && !!selectedRoomId && selectedRoomId !== currentRoomId;
     try {
+
       const result = await update.mutateAsync({
         id: contract.id,
         endDate,
