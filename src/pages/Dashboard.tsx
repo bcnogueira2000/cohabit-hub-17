@@ -11,6 +11,7 @@ import { NewTaskDialog } from "@/components/NewTaskDialog";
 import { useRequests, useCleaningTasks, useRooms, useResidents, useCreateOpsTask, useStays, useOpsTasks } from "@/hooks/useData";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
+import { useContracts, useStaysByContract } from "@/hooks/useContracts";
 import { capitalize, formatDate } from "@/lib/utils";
 
 const greeting = () => {
@@ -29,6 +30,8 @@ const Dashboard = () => {
   const { data: residents = [] } = useResidents();
   const { data: stays = [], isLoading: loadingStays } = useStays();
   const { data: opsTasks = [] } = useOpsTasks();
+  const { data: contracts = [] } = useContracts();
+  const { data: stayByContract = {} } = useStaysByContract();
   const createTask = useCreateOpsTask();
 
   const isLoadingKpis = loadingRequests || loadingCleaning || loadingRooms || loadingStays;
@@ -54,9 +57,22 @@ const Dashboard = () => {
     const d = new Date(t.scheduledFor).getTime();
     return d >= startOfToday.getTime() && d < endOfToday.getTime();
   });
-  const occupied = rooms.filter((r) => r.status === "occupied").length;
+  // Ocupação vem das DATAS do contrato (igual a Contratos e Mapa de Ocupação)
+  const todayStr = new Date().toISOString().slice(0, 10);
+  const occupiedRoomIds = new Set<string>();
+  for (const c of contracts) {
+    if (c.status === "cancelled") continue;
+    const end = c.actualEndDate ?? c.endDate;
+    if (c.startDate > todayStr || end < todayStr) continue;
+    const roomId = stayByContract[c.id]?.roomId;
+    if (roomId) occupiedRoomIds.add(roomId);
+  }
+  const occupied = occupiedRoomIds.size;
   const occupancy = rooms.length ? Math.round((occupied / rooms.length) * 100) : 0;
-  const checkingOut = residents.filter((r) => r.status === "checking_out").length;
+  const in7d = now + 7 * 86400000;
+  const checkingOut = stays.filter(
+    (s) => s.status === "checked_in" && new Date(s.checkOut).getTime() >= now && new Date(s.checkOut).getTime() <= in7d,
+  ).length;
 
   // Prefer profile name, fallback to capitalized email local part.
   const firstName =
