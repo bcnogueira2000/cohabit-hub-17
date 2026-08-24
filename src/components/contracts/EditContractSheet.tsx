@@ -58,6 +58,8 @@ export const EditContractSheet = ({ contract, open, onOpenChange }: Props) => {
     const endDateChanged = endDate !== contract.endDate;
     const paymentDayChanged = day !== contract.paymentDay;
     try {
+    const roomChanged = !!editableStay && !!selectedRoomId && selectedRoomId !== currentRoomId;
+    try {
       const result = await update.mutateAsync({
         id: contract.id,
         endDate,
@@ -67,7 +69,10 @@ export const EditContractSheet = ({ contract, open, onOpenChange }: Props) => {
         notes,
         endDateChanged,
         paymentDayChanged,
+        stayId: roomChanged ? editableStay.id : null,
+        newRoomId: roomChanged ? selectedRoomId : null,
       });
+
       setLocked(result?.locked ?? []);
       const lockedCount = result?.locked_count ?? 0;
       if (lockedCount > 0) {
