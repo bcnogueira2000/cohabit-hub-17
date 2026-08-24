@@ -49,12 +49,19 @@ export const NewContractDialog = ({ open, onOpenChange, defaults, leadId, onCrea
     const fd = new FormData(e.currentTarget);
     const checkInDate = String(fd.get("checkIn"));
     const checkOutDate = String(fd.get("checkOut"));
-    const monthlyAmount = Number(fd.get("monthlyAmount"));
     const paymentDay = Number(fd.get("paymentDay") || 1);
     const depositDue = Number(fd.get("depositDue") || 0);
+    // Com renda transitória: cobra-se a transitória desde já; a regular fica guardada.
+    const transitionalAmount = Number(fd.get("transitionalAmount") || 0);
+    const regularAmount = Number(fd.get("regularAmount") || 0);
+    const monthlyAmount = transitional ? transitionalAmount : Number(fd.get("monthlyAmount"));
 
     if (!monthlyAmount || monthlyAmount <= 0) {
-      toast.error("Indica a renda mensal");
+      toast.error(transitional ? "Indica a renda transitória" : "Indica a renda mensal");
+      return;
+    }
+    if (transitional && (!regularAmount || regularAmount <= 0)) {
+      toast.error("Indica a renda regular");
       return;
     }
 
