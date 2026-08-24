@@ -322,14 +322,26 @@ export const useDeleteContract = () => {
       if ((count ?? 0) > 0)
         throw new Error("Este contrato já tem pagamentos registados e não pode ser eliminado.");
 
+      const { data: contractRow, error: ctErr } = await supabase
+        .from("contracts" as any)
+        .select("resident_id")
+        .eq("id", contractId)
+        .maybeSingle();
+      if (ctErr) throw ctErr;
+
       const { data: stays, error: sErr } = await supabase
         .from("stays" as any)
-        .select("id, room_id")
+        .select("id, room_id, resident_id")
         .eq("contract_id", contractId);
       if (sErr) throw sErr;
       const rows = (stays ?? []) as any[];
       const stayIds = rows.map((s) => s.id);
       const roomIds = [...new Set(rows.map((s) => s.room_id).filter(Boolean))] as string[];
+      const residentIds = [
+        ...new Set(
+          [...rows.map((s) => s.resident_id), (contractRow as any)?.resident_id].filter(Boolean)
+        ),
+      ] as string[];
 
       if (stayIds.length) {
         const { error: delStayErr } = await supabase.from("stays" as any).delete().in("id", stayIds);
@@ -338,6 +350,35 @@ export const useDeleteContract = () => {
 
       const { error: delErr } = await supabase.from("contracts" as any).delete().eq("id", contractId);
       if (delErr) throw delErr;
+
+      // Residentes sem qualquer outra estadia (em qualquer estado) são removidos
+      for (const residentId of residentIds) {
+        const { count: otherStays, error: osErr } = await supabase
+          .from("stays" as any)
+          .select("id", { count: "exact", head: true })
+          .eq("resident_id", residentId);
+        if (osErr) throw osErr;
+        if ((otherStays ?? 0) > 0) continue;
+
+        const { count: otherContracts, error: ocErr } = await supabase
+          .from("contracts" as any)
+          .select("id", { count: "exact", head: true })
+          .eq("resident_id", residentId);
+        if (ocErr) throw ocErr;
+        if ((otherContracts ?? 0) > 0) continue;
+
+        await supabase
+          .from("rooms" as any)
+          .update({ current_resident_id: null } as any)
+          .eq("current_resident_id", residentId);
+
+        const { error: delResErr } = await supabase
+          .from("residents" as any)
+          .delete()
+          .eq("id", residentId);
+        if (delResErr) throw delResErr;
+      }
+
 
       // Libertar quartos que ficaram sem estadias vigentes
       for (const roomId of roomIds) {
@@ -357,6 +398,7 @@ export const useDeleteContract = () => {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["contracts"] });
       qc.invalidateQueries({ queryKey: ["stays"] });
+      qc.invalidateQueries({ queryKey: ["residents"] });
       qc.invalidateQueries({ queryKey: ["stays-by-contract"] });
       qc.invalidateQueries({ queryKey: ["rooms"] });
       qc.invalidateQueries({ queryKey: ["rent-current-month"] });
