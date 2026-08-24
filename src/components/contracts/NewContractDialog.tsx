@@ -145,6 +145,30 @@ export const NewContractDialog = ({ open, onOpenChange, defaults, leadId, onCrea
         }
       }
 
+      // 1c. Dados legais introduzidos no formulário (prevalecem sobre os da lead)
+      {
+        const legal: Record<string, any> = {};
+        const put = (key: string, raw: FormDataEntryValue | null) => {
+          const v = String(raw ?? "").trim();
+          if (v) legal[key] = v;
+        };
+        if (nationality.trim()) legal.nationality = nationality.trim();
+        if (profile) legal.profile = profile;
+        put("date_of_birth", fd.get("dateOfBirth"));
+        put("address", fd.get("address"));
+        put("document_number", fd.get("documentNumber"));
+        put("document_validity", fd.get("documentValidity"));
+        put("tax_number", fd.get("taxNumber"));
+        put("employer_or_school", fd.get("employerOrSchool"));
+        if (Object.keys(legal).length > 0) {
+          const { error: legalErr } = await supabase
+            .from("residents" as any)
+            .update(legal as any)
+            .eq("id", residentId);
+          if (legalErr) throw legalErr;
+        }
+      }
+
 
       // 2. Contrato
       const { data: contract, error: contractErr } = await supabase
