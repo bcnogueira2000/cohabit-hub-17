@@ -31,7 +31,7 @@ const LocationDetail = () => {
   const history = cleanings.filter((c) => c.locationId === location.id).slice(0, 10);
 
   return (
-    <div className="px-4 lg:px-10 py-6 lg:py-10 max-w-5xl mx-auto">
+    <div className="px-4 lg:px-10 py-6 lg:py-10 max-w-6xl mx-auto">
       <Button asChild variant="ghost" size="sm" className="mb-4 -ml-2">
         <Link to="/locations"><ArrowLeft className="h-4 w-4 mr-1.5" /> Locais</Link>
       </Button>

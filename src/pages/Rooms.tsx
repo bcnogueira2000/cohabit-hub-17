@@ -93,7 +93,7 @@ const Rooms = () => {
   );
 
   return (
-    <div className="px-4 lg:px-10 py-6 lg:py-10 max-w-7xl mx-auto">
+    <div className="px-4 lg:px-10 2xl:px-14 py-6 lg:py-10 max-w-[1600px] mx-auto">
       <div className="mb-6">
         <h1 className="font-display text-3xl lg:text-4xl font-semibold">Rooms</h1>
         <p className="text-muted-foreground mt-1">
