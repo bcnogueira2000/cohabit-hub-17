@@ -212,8 +212,7 @@ export const useAddRentPeriod = () => {
       qc.invalidateQueries({ queryKey: ["contracts"] });
       qc.invalidateQueries({ queryKey: ["rent-charges", input.contractId] });
       qc.invalidateQueries({ queryKey: ["rent-current-month"] });
-      qc.invalidateQueries({ queryKey: ["contract-stays", input.id] });
-      qc.invalidateQueries({ queryKey: ["stays"] });
+      qc.invalidateQueries({ queryKey: ["contract-stays", input.contractId] });
     },
   });
 };
