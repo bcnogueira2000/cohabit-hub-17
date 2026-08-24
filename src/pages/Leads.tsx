@@ -528,24 +528,94 @@ const Leads = () => {
           {selected && (
             <div className="space-y-5">
               <Section title="Dados pessoais">
-                <div className="grid grid-cols-2 gap-3">
-                  <Field label="Nome completo" value={selected.fullName} />
-                  <Field label="Email" value={selected.email} />
-                  <Field label="Telefone" value={selected.phone} />
-                  <Field label="Nacionalidade" value={selected.nationality} />
-                  <Field label="Idade" value={selected.age} />
-                  <Field label="Género" value={selected.gender} />
+                <div className="space-y-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="space-y-1">
+                      <label className="text-[11px] uppercase tracking-wide text-muted-foreground">Nome completo</label>
+                      <Input value={editName} onChange={(e) => setEditName(e.target.value)} />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[11px] uppercase tracking-wide text-muted-foreground">Email</label>
+                      <Input type="email" value={editEmail} onChange={(e) => setEditEmail(e.target.value)} />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[11px] uppercase tracking-wide text-muted-foreground">Telefone</label>
+                      <Input value={editPhone} onChange={(e) => setEditPhone(e.target.value)} placeholder="—" />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[11px] uppercase tracking-wide text-muted-foreground">Nacionalidade</label>
+                      <Input value={editNationality} onChange={(e) => setEditNationality(e.target.value)} placeholder="—" />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[11px] uppercase tracking-wide text-muted-foreground">Idade</label>
+                      <Input value={editAge} onChange={(e) => setEditAge(e.target.value)} placeholder="—" />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[11px] uppercase tracking-wide text-muted-foreground">Género</label>
+                      <Input value={editGender} onChange={(e) => setEditGender(e.target.value)} placeholder="—" />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[11px] uppercase tracking-wide text-muted-foreground">Perfil</label>
+                      <Select value={editProfile} onValueChange={setEditProfile}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Sem perfil" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="__none__">Sem perfil</SelectItem>
+                          {Object.keys(leadProfileLabels).map((p) => (
+                            <SelectItem key={p} value={p}>{leadProfileLabels[p]}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    {editProfile === "other" && (
+                      <div className="space-y-1">
+                        <label className="text-[11px] uppercase tracking-wide text-muted-foreground">Perfil (outro)</label>
+                        <Input
+                          value={editProfileOther}
+                          onChange={(e) => setEditProfileOther(e.target.value)}
+                          placeholder="Especificar"
+                        />
+                      </div>
+                    )}
+                  </div>
+                  <Button
+                    variant="outline"
+                    className="w-full rounded-full"
+                    disabled={updateLead.isPending || !editName.trim() || !editEmail.trim()}
+                    onClick={() => {
+                      if (!selected) return;
+                      const profile = editProfile === "__none__" ? null : editProfile;
+                      const patch = {
+                        fullName: editName.trim(),
+                        email: editEmail.trim(),
+                        phone: editPhone.trim() || null,
+                        nationality: editNationality.trim() || null,
+                        age: editAge.trim() || null,
+                        gender: editGender.trim() || null,
+                        profile,
+                        profileOther: profile === "other" ? (editProfileOther.trim() || null) : null,
+                      };
+                      updateLead.mutate(
+                        { id: selected.id, patch },
+                        {
+                          onSuccess: () => {
+                            setSelected((prev) => (prev ? { ...prev, ...patch } : null));
+                            toast.success("Dados pessoais atualizados");
+                          },
+                          onError: (error) =>
+                            toast.error(
+                              error instanceof Error ? error.message : "Não foi possível guardar os dados."
+                            ),
+                        }
+                      );
+                    }}
+                  >
+                    Guardar dados pessoais
+                  </Button>
                 </div>
               </Section>
 
-              {selected.profile && (
-                <Section title="Perfil">
-                  <div className="text-sm">
-                    {leadProfileLabels[selected.profile] ?? selected.profile}
-                    {selected.profile === "other" && selected.profileOther && ` · ${selected.profileOther}`}
-                  </div>
-                </Section>
-              )}
 
               <Section title="Origem">
                 <div>
