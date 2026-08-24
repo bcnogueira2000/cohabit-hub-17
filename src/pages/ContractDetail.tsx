@@ -215,6 +215,17 @@ const ContractDetail = () => {
       </AlertDialog>
 
 
+      {contract && (
+        <ResidentLegalDataDialog
+          open={legalOpen}
+          onOpenChange={setLegalOpen}
+          residentId={contract.residentId}
+          resident={legalResident}
+          missing={legalMissing}
+          onSaved={doGenerate}
+        />
+      )}
+
       <EditContractSheet
         key={`${contract.endDate}-${contract.paymentDay}-${contract.depositDue}`}
         contract={contract}
