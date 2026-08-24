@@ -60,12 +60,21 @@ export async function generateContractDocx(contractId: string): Promise<Generate
   // Quarto via estadia ligada ao contrato
   const { data: stay } = await supabase
     .from("stays" as any)
-    .select("room_id, rooms:room_id(number)")
+    .select("room_id")
     .eq("contract_id", contractId)
     .order("check_in", { ascending: false })
     .limit(1)
     .maybeSingle();
-  const roomNumber = (stay as any)?.rooms?.number ?? "";
+  let roomNumber = "";
+  const stayRoomId = (stay as any)?.room_id;
+  if (stayRoomId) {
+    const { data: room } = await supabase
+      .from("rooms" as any)
+      .select("number")
+      .eq("id", stayRoomId)
+      .maybeSingle();
+    roomNumber = (room as any)?.number ?? "";
+  }
 
   // Renda atual = período com valid_from mais recente
   const periods = ((c.contract_rent_periods ?? []) as any[])
