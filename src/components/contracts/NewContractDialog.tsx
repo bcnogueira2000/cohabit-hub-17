@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,6 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { RoomCombobox } from "@/components/rooms/RoomCombobox";
+import { ShieldCheck } from "lucide-react";
 
 export type NewContractResult = { contractId: string; stayId: string };
 
@@ -29,6 +30,8 @@ type Props = {
   onCreated?: (result: NewContractResult) => void;
 };
 
+const PROFILES = ["Estudante", "Profissional", "Nómada digital", "Outro"];
+
 export const NewContractDialog = ({ open, onOpenChange, defaults, leadId, onCreated }: Props) => {
   const { data: rooms = [] } = useRooms();
   const createStay = useCreateStay();
@@ -36,6 +39,32 @@ export const NewContractDialog = ({ open, onOpenChange, defaults, leadId, onCrea
   const [roomId, setRoomId] = useState<string>("");
   const [submitting, setSubmitting] = useState(false);
   const [transitional, setTransitional] = useState(false);
+  const [profile, setProfile] = useState<string>("");
+  const [nationality, setNationality] = useState<string>("");
+
+  // Pré-preencher a partir da lead de origem (nacionalidade / perfil)
+  useEffect(() => {
+    if (!open || !leadId) return;
+    let cancelled = false;
+    (async () => {
+      const { data: lead } = await supabase
+        .from("leads" as any)
+        .select("nationality, profile")
+        .eq("id", leadId)
+        .maybeSingle();
+      if (cancelled || !lead) return;
+      const ln = (lead as any).nationality as string | null;
+      const lp = (lead as any).profile as string | null;
+      if (ln) setNationality((v) => v || ln);
+      if (lp) {
+        const match = PROFILES.find((p) => p.toLowerCase() === String(lp).toLowerCase());
+        setProfile((v) => v || match || "Outro");
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [open, leadId]);
 
   const sortedRooms = useMemo(() => {
     const pref = defaults?.preferredRoomType?.trim().toLowerCase();
@@ -44,6 +73,7 @@ export const NewContractDialog = ({ open, onOpenChange, defaults, leadId, onCrea
     const rest = rooms.filter((r) => r.typology?.trim().toLowerCase() !== pref);
     return [...match, ...rest];
   }, [rooms, defaults?.preferredRoomType]);
+
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
