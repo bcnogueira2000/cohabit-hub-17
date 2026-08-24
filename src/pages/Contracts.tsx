@@ -51,26 +51,35 @@ const Contracts = () => {
     return true;
   });
 
-  const occupancy = useMemo(() => {
-    if (rooms.length === 0) return 0;
-    const occupied = rooms.filter((r) => r.status === "occupied").length;
-    return Math.round((occupied / rooms.length) * 100);
-  }, [rooms]);
-
   const today = new Date().toISOString().slice(0, 10);
 
-  /** quartos ocupados por contratos ativos hoje */
+  /** contratos não cancelados que cobrem hoje (ocupação vem das DATAS) */
+  const activeByDates = useMemo(
+    () =>
+      contracts.filter((c) => {
+        if (c.status === "cancelled") return false;
+        const end = c.actualEndDate ?? c.endDate;
+        return c.startDate <= today && end >= today;
+      }),
+    [contracts, today]
+  );
+
+  /** quartos ocupados por contratos a decorrer hoje */
   const occupiedByContract = useMemo(() => {
     const set = new Set<string>();
-    for (const c of contracts) {
-      if (c.status !== "active") continue;
+    for (const c of activeByDates) {
       const roomId = stayByContract[c.id]?.roomId;
       if (roomId) set.add(roomId);
     }
     return set;
-  }, [contracts, stayByContract]);
+  }, [activeByDates, stayByContract]);
 
-  /** perda mensal estimada: preço promocional (ou de tabela) dos quartos sem contrato ativo */
+  const occupancy = useMemo(() => {
+    if (rooms.length === 0) return 0;
+    return Math.round((occupiedByContract.size / rooms.length) * 100);
+  }, [rooms, occupiedByContract]);
+
+  /** perda mensal estimada: preço promocional (ou de tabela) dos quartos sem contrato a decorrer */
   const vacancyLoss = useMemo(() => {
     const priceByName = new Map<string, number>();
     for (const t of pricing) {
@@ -93,11 +102,12 @@ const Contracts = () => {
     limit.setDate(limit.getDate() + 30);
     const limitStr = limit.toISOString().slice(0, 10);
     return contracts.filter((c) => {
-      if (c.status !== "active") return false;
+      if (c.status === "cancelled") return false;
       const end = c.actualEndDate ?? c.endDate;
       return end >= today && end <= limitStr;
     }).length;
   }, [contracts, today]);
+
 
   return (
     <div className="px-4 lg:px-10 2xl:px-14 py-6 lg:py-10 max-w-[1600px] mx-auto">
