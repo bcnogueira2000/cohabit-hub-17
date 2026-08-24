@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
+
 
 export type LeadStatus =
   | "new" | "contacted" | "visit_scheduled" | "visited"
@@ -204,11 +204,9 @@ export const useDeleteLead = () => {
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["leads"] }),
-    onError: (error: any) => {
-      toast.error(error?.message || "Não foi possível eliminar a lead. Tenta novamente.");
-    },
   });
 };
+
 
 export interface LeadActivity {
   id: string;

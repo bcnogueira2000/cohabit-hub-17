@@ -487,7 +487,16 @@ const Leads = () => {
                             setSelected(null);
                             toast.success("Lead eliminado");
                           },
+                          onError: (error) => {
+                            setDeleteOpen(false);
+                            toast.error(
+                              error instanceof Error
+                                ? error.message
+                                : "Não foi possível eliminar a lead."
+                            );
+                          },
                         });
+
                       }}
                     >
                       Eliminar
