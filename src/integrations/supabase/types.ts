@@ -1070,6 +1070,7 @@ export type Database = {
       residents: {
         Row: {
           address: string | null
+          age: string | null
           avatar_color: string | null
           checkin_checklist: Json
           created_at: string
@@ -1082,6 +1083,7 @@ export type Database = {
           emergency_contact_phone: string | null
           employer_or_school: string | null
           full_name: string
+          gender: string | null
           id: string
           move_in: string | null
           move_out: string | null
@@ -1097,6 +1099,7 @@ export type Database = {
         }
         Insert: {
           address?: string | null
+          age?: string | null
           avatar_color?: string | null
           checkin_checklist?: Json
           created_at?: string
@@ -1109,6 +1112,7 @@ export type Database = {
           emergency_contact_phone?: string | null
           employer_or_school?: string | null
           full_name: string
+          gender?: string | null
           id?: string
           move_in?: string | null
           move_out?: string | null
@@ -1124,6 +1128,7 @@ export type Database = {
         }
         Update: {
           address?: string | null
+          age?: string | null
           avatar_color?: string | null
           checkin_checklist?: Json
           created_at?: string
@@ -1136,6 +1141,7 @@ export type Database = {
           emergency_contact_phone?: string | null
           employer_or_school?: string | null
           full_name?: string
+          gender?: string | null
           id?: string
           move_in?: string | null
           move_out?: string | null
