@@ -126,6 +126,7 @@ export const NewContractDialog = ({ open, onOpenChange, defaults, leadId, onCrea
           status: "reserved",
           payment_day: paymentDay,
           deposit_due: depositDue,
+          regular_rent_amount: transitional ? regularAmount : null,
           notes: String(fd.get("notes") || "") || null,
         } as any)
         .select("id")
