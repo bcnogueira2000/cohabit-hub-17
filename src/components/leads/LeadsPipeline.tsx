@@ -152,8 +152,58 @@ export const LeadsPipeline = ({
   const ownerName = (l: Lead) =>
     l.assignedTo || staff.find((s) => s.user_id === l.assignedToUserId)?.full_name || null;
 
+  const scrollerRef = useRef<HTMLDivElement>(null);
+  const drag = useRef({ active: false, moved: false, startX: 0, startScroll: 0 });
+  const [dragging, setDragging] = useState(false);
+
+  const onMouseDown = (e: React.MouseEvent) => {
+    if (e.button !== 0) return;
+    const el = scrollerRef.current;
+    if (!el) return;
+    if ((e.target as HTMLElement).closest("button,a,input,textarea,select,[role='menuitem']")) return;
+    drag.current = { active: true, moved: false, startX: e.clientX, startScroll: el.scrollLeft };
+  };
+
+  const onMouseMove = (e: React.MouseEvent) => {
+    const el = scrollerRef.current;
+    if (!drag.current.active || !el) return;
+    const dx = e.clientX - drag.current.startX;
+    if (!drag.current.moved && Math.abs(dx) > 4) {
+      drag.current.moved = true;
+      setDragging(true);
+    }
+    if (drag.current.moved) {
+      el.scrollLeft = drag.current.startScroll - dx;
+      e.preventDefault();
+    }
+  };
+
+  const endDrag = () => {
+    drag.current.active = false;
+    if (drag.current.moved) setTimeout(() => setDragging(false), 0);
+  };
+
+  const onClickCapture = (e: React.MouseEvent) => {
+    if (drag.current.moved) {
+      e.preventDefault();
+      e.stopPropagation();
+      drag.current.moved = false;
+    }
+  };
+
   return (
-    <div className="hidden lg:flex gap-4 overflow-x-auto pb-4 min-h-[60vh]">
+    <div
+      ref={scrollerRef}
+      onMouseDown={onMouseDown}
+      onMouseMove={onMouseMove}
+      onMouseUp={endDrag}
+      onMouseLeave={endDrag}
+      onClickCapture={onClickCapture}
+      className={`hidden lg:flex gap-4 overflow-x-auto pb-4 min-h-[60vh] select-none ${
+        dragging ? "cursor-grabbing" : "cursor-grab"
+      }`}
+    >
+
       {columns.map((col) => (
         <div
           key={col.key}
