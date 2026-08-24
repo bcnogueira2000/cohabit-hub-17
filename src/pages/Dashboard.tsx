@@ -72,7 +72,7 @@ const Dashboard = () => {
   ];
 
   return (
-    <div className="px-4 lg:px-10 py-6 lg:py-8 max-w-7xl mx-auto">
+    <div className="px-4 lg:px-10 2xl:px-14 py-6 lg:py-8 max-w-[1600px] mx-auto">
       <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-7">
         <div>
           <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1.5">

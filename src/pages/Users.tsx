@@ -42,7 +42,7 @@ const Users = () => {
   };
 
   return (
-    <div className="px-4 lg:px-10 py-6 lg:py-10 max-w-5xl mx-auto">
+    <div className="px-4 lg:px-10 py-6 lg:py-10 max-w-6xl mx-auto">
       <div className="mb-6">
         <h1 className="font-display text-3xl lg:text-4xl font-semibold">Utilizadores</h1>
         <p className="text-muted-foreground mt-1">
