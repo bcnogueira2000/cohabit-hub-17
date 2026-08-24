@@ -243,7 +243,26 @@ export const useUpdateContract = () => {
       notes: string | null;
       endDateChanged: boolean;
       paymentDayChanged: boolean;
+      /** Mudança de quarto da estadia ligada (só permitido antes do check-in) */
+      stayId?: string | null;
+      newRoomId?: string | null;
     }) => {
+      if (input.stayId && input.newRoomId) {
+        const { error: roomErr } = await supabase
+          .from("stays" as any)
+          .update({ room_id: input.newRoomId } as any)
+          .eq("id", input.stayId);
+        if (roomErr) {
+          const code = (roomErr as any).code;
+          if (code === "23P01" || /sobreposicao|overlap|exclusion/i.test(roomErr.message ?? "")) {
+            throw new Error(
+              "Esse quarto já está atribuído a outra pessoa neste período. Escolhe outro quarto ou ajusta as datas."
+            );
+          }
+          throw roomErr;
+        }
+      }
+
       const { error } = await supabase
         .from("contracts" as any)
         .update({
