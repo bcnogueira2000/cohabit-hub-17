@@ -149,18 +149,18 @@ const OccupancyMap = () => {
       let end = parseDay(s.check_out);
       const c = s.contract;
       if (s.contract_id && c) {
-        if (c.status === "reserved") tone = "reserved";
-        else if (c.status === "active") tone = "occupied";
-        else if (c.status === "terminated") {
-          tone = "occupied";
-          start = parseDay(c.start_date);
-          end = parseDay(c.actual_end_date ?? c.end_date);
-        }
+        if (c.status === "cancelled") continue;
+        // ocupação vem das DATAS do contrato, não do status
+        start = parseDay(c.start_date);
+        end = parseDay(c.actual_end_date ?? c.end_date);
+        const today = parseDay(new Date().toISOString().slice(0, 10));
+        tone = start > today ? "reserved" : "occupied";
       } else if (!s.contract_id) {
         if (s.status === "confirmed") tone = "reserved";
         else if (s.status === "checked_in") tone = "occupied";
       }
       if (!tone) continue;
+
       // sobreposição com a janela visível
       if (end < windowStart || start >= windowEnd) continue;
       const startIdx = Math.max(0, diffDays(start, windowStart));
