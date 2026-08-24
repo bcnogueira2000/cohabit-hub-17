@@ -50,7 +50,23 @@ const ContractDetail = () => {
   const deleteContract = useDeleteContract();
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const [generating, setGenerating] = useState(false);
+  const [generatedDoc, setGeneratedDoc] = useState<{ fileName: string; signedUrl: string } | null>(null);
   const canDelete = paymentsCount === 0;
+
+  const handleGenerate = async () => {
+    if (!contract) return;
+    setGenerating(true);
+    try {
+      const doc = await generateContractDocx(contract.id);
+      setGeneratedDoc(doc);
+      toast.success("Contrato gerado");
+    } catch (err: any) {
+      toast.error(err?.message ?? "Não foi possível gerar o contrato");
+    } finally {
+      setGenerating(false);
+    }
+  };
 
   const handleDelete = async () => {
     if (!contract) return;
