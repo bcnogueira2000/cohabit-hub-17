@@ -121,6 +121,17 @@ const ContractDetail = () => {
           <Button variant="outline" size="sm" onClick={() => setEditOpen(true)}>
             <Pencil className="h-4 w-4 mr-1.5" strokeWidth={1.5} /> Editar contrato
           </Button>
+          <Button variant="outline" size="sm" onClick={handleGenerate} disabled={generating}>
+            <FileText className="h-4 w-4 mr-1.5" strokeWidth={1.5} />
+            {generating ? "A gerar…" : "Gerar contrato"}
+          </Button>
+          {generatedDoc?.signedUrl && (
+            <Button asChild variant="ghost" size="sm">
+              <a href={generatedDoc.signedUrl} target="_blank" rel="noreferrer" download={generatedDoc.fileName}>
+                <Download className="h-4 w-4 mr-1.5" strokeWidth={1.5} /> {generatedDoc.fileName}
+              </a>
+            </Button>
+          )}
           {canDelete && (
             <Button
               variant="outline"
