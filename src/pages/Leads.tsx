@@ -117,6 +117,14 @@ const Leads = () => {
   const [editNextActionDate, setEditNextActionDate] = useState<string>("");
   const [editNotes, setEditNotes] = useState<string>("");
   const [editLostReason, setEditLostReason] = useState<string>("");
+  const [editName, setEditName] = useState<string>("");
+  const [editEmail, setEditEmail] = useState<string>("");
+  const [editPhone, setEditPhone] = useState<string>("");
+  const [editNationality, setEditNationality] = useState<string>("");
+  const [editAge, setEditAge] = useState<string>("");
+  const [editGender, setEditGender] = useState<string>("");
+  const [editProfile, setEditProfile] = useState<string>("__none__");
+  const [editProfileOther, setEditProfileOther] = useState<string>("");
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [convertOpen, setConvertOpen] = useState(false);
   const qc = useQueryClient();
