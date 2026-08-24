@@ -103,6 +103,27 @@ export const EditContractSheet = ({ contract, open, onOpenChange }: Props) => {
         </SheetHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4 mt-5">
+          {editableStay && (
+            <div>
+              <Label>Quarto</Label>
+              <Select value={selectedRoomId} onValueChange={setRoomId}>
+                <SelectTrigger className="mt-1.5">
+                  <SelectValue placeholder="Escolher quarto" />
+                </SelectTrigger>
+                <SelectContent className="max-h-72">
+                  {sortedRooms.map((r) => (
+                    <SelectItem key={r.id} value={r.id}>
+                      Quarto {r.number} · {r.typology}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground mt-1.5">
+                Ainda é possível corrigir o quarto porque a estadia não tem check-in feito.
+              </p>
+            </div>
+          )}
+
           <div>
             <Label>Data de fim</Label>
             <Input
