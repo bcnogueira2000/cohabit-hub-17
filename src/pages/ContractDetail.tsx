@@ -1,13 +1,30 @@
 import { useState } from "react";
-import { Link, useParams } from "react-router-dom";
-import { ArrowLeft, ArrowRight, CalendarRange, LogIn, LogOut, Pencil, Repeat, ShieldCheck, User } from "lucide-react";
+import { Link, useNavigate, useParams } from "react-router-dom";
+import { ArrowLeft, ArrowRight, CalendarRange, Info, LogIn, LogOut, Pencil, Repeat, ShieldCheck, Trash2, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { useContract, useContractStays } from "@/hooks/useContracts";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { toast } from "sonner";
+import {
+  useContract,
+  useContractStays,
+  useContractPaymentsCount,
+  useDeleteContract,
+} from "@/hooks/useContracts";
 import { ContractStatusBadge } from "@/components/contracts/ContractStatusBadge";
 import { useRooms } from "@/hooks/useData";
 import { RentPeriodsSection } from "@/components/contracts/RentPeriodsSection";
 import { EditContractSheet } from "@/components/contracts/EditContractSheet";
+
 
 
 const eur = (v: number | null | undefined) =>
