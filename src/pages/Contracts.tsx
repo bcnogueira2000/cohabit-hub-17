@@ -131,7 +131,7 @@ const Contracts = () => {
           </div>
           <div className="font-display text-2xl font-semibold">{occupancy}%</div>
           <div className="text-xs text-muted-foreground mt-0.5">
-            {rooms.filter((r) => r.status === "occupied").length}/{rooms.length} quartos
+            {occupiedByContract.size}/{rooms.length} quartos
           </div>
         </Card>
         <Card className="p-4 border-border/60 shadow-card">
