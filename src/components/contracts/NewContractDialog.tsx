@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,6 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { RoomCombobox } from "@/components/rooms/RoomCombobox";
+import { ShieldCheck } from "lucide-react";
 
 export type NewContractResult = { contractId: string; stayId: string };
 
@@ -29,6 +30,8 @@ type Props = {
   onCreated?: (result: NewContractResult) => void;
 };
 
+const PROFILES = ["Estudante", "Profissional", "Nómada digital", "Outro"];
+
 export const NewContractDialog = ({ open, onOpenChange, defaults, leadId, onCreated }: Props) => {
   const { data: rooms = [] } = useRooms();
   const createStay = useCreateStay();
@@ -36,6 +39,32 @@ export const NewContractDialog = ({ open, onOpenChange, defaults, leadId, onCrea
   const [roomId, setRoomId] = useState<string>("");
   const [submitting, setSubmitting] = useState(false);
   const [transitional, setTransitional] = useState(false);
+  const [profile, setProfile] = useState<string>("");
+  const [nationality, setNationality] = useState<string>("");
+
+  // Pré-preencher a partir da lead de origem (nacionalidade / perfil)
+  useEffect(() => {
+    if (!open || !leadId) return;
+    let cancelled = false;
+    (async () => {
+      const { data: lead } = await supabase
+        .from("leads" as any)
+        .select("nationality, profile")
+        .eq("id", leadId)
+        .maybeSingle();
+      if (cancelled || !lead) return;
+      const ln = (lead as any).nationality as string | null;
+      const lp = (lead as any).profile as string | null;
+      if (ln) setNationality((v) => v || ln);
+      if (lp) {
+        const match = PROFILES.find((p) => p.toLowerCase() === String(lp).toLowerCase());
+        setProfile((v) => v || match || "Outro");
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [open, leadId]);
 
   const sortedRooms = useMemo(() => {
     const pref = defaults?.preferredRoomType?.trim().toLowerCase();
@@ -44,6 +73,7 @@ export const NewContractDialog = ({ open, onOpenChange, defaults, leadId, onCrea
     const rest = rooms.filter((r) => r.typology?.trim().toLowerCase() !== pref);
     return [...match, ...rest];
   }, [rooms, defaults?.preferredRoomType]);
+
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -112,6 +142,30 @@ export const NewContractDialog = ({ open, onOpenChange, defaults, leadId, onCrea
           if (Object.keys(patch).length > 0) {
             await supabase.from("residents" as any).update(patch as any).eq("id", residentId);
           }
+        }
+      }
+
+      // 1c. Dados legais introduzidos no formulário (prevalecem sobre os da lead)
+      {
+        const legal: Record<string, any> = {};
+        const put = (key: string, raw: FormDataEntryValue | null) => {
+          const v = String(raw ?? "").trim();
+          if (v) legal[key] = v;
+        };
+        if (nationality.trim()) legal.nationality = nationality.trim();
+        if (profile) legal.profile = profile;
+        put("date_of_birth", fd.get("dateOfBirth"));
+        put("address", fd.get("address"));
+        put("document_number", fd.get("documentNumber"));
+        put("document_validity", fd.get("documentValidity"));
+        put("tax_number", fd.get("taxNumber"));
+        put("employer_or_school", fd.get("employerOrSchool"));
+        if (Object.keys(legal).length > 0) {
+          const { error: legalErr } = await supabase
+            .from("residents" as any)
+            .update(legal as any)
+            .eq("id", residentId);
+          if (legalErr) throw legalErr;
         }
       }
 
@@ -250,6 +304,60 @@ export const NewContractDialog = ({ open, onOpenChange, defaults, leadId, onCrea
             <div>
               <Label>Caução devida (€)</Label>
               <Input name="depositDue" type="number" min="0" step="0.01" className="mt-1.5" />
+            </div>
+          </div>
+          <div className="rounded-xl border border-border/60 p-3 space-y-3">
+            <div className="flex items-center gap-2">
+              <ShieldCheck className="h-4 w-4 text-primary" strokeWidth={1.5} />
+              <h3 className="font-display text-base font-semibold">Dados legais</h3>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Opcionais — usados para gerar o contrato. Podes completar mais tarde na ficha do residente.
+            </p>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label>Nacionalidade</Label>
+                <Input value={nationality} onChange={(e) => setNationality(e.target.value)} className="mt-1.5" />
+              </div>
+              <div>
+                <Label>Data de nascimento</Label>
+                <Input name="dateOfBirth" type="date" className="mt-1.5" />
+              </div>
+            </div>
+            <div>
+              <Label>Morada de residência</Label>
+              <Input name="address" className="mt-1.5" />
+            </div>
+            <div className="grid grid-cols-3 gap-3">
+              <div>
+                <Label>Nº do documento</Label>
+                <Input name="documentNumber" className="mt-1.5" />
+              </div>
+              <div>
+                <Label>Validade</Label>
+                <Input name="documentValidity" type="date" className="mt-1.5" />
+              </div>
+              <div>
+                <Label>NIF</Label>
+                <Input name="taxNumber" className="mt-1.5" />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label>Perfil</Label>
+                <Select value={profile} onValueChange={setProfile}>
+                  <SelectTrigger className="mt-1.5"><SelectValue placeholder="Escolher" /></SelectTrigger>
+                  <SelectContent>
+                    {PROFILES.map((p) => (
+                      <SelectItem key={p} value={p}>{p}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>{profile === "Estudante" ? "Instituição de ensino" : "Local de trabalho"}</Label>
+                <Input name="employerOrSchool" className="mt-1.5" />
+              </div>
             </div>
           </div>
           <div><Label>Notas</Label><Textarea name="notes" className="mt-1.5" rows={2} /></div>
