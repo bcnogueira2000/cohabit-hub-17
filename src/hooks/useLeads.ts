@@ -204,10 +204,7 @@ export const useDeleteLead = () => {
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["leads"] }),
-    onError: (error: any) => {
-      toast.error(error?.message || "Não foi possível eliminar a lead. Tenta novamente.");
-    },
-  });
+
 };
 
 export interface LeadActivity {
