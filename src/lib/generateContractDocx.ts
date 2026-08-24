@@ -84,30 +84,44 @@ export async function generateContractDocx(contractId: string): Promise<Generate
   const regularRent = c.regular_rent_amount == null ? null : Number(c.regular_rent_amount);
 
   const today = new Date();
-  const isStudent = String(resident.profile ?? "").toLowerCase() === "student";
+  const profileRaw = String(resident.profile ?? "");
+  const isStudent = /student|estudante/i.test(profileRaw);
+  const parsedRoom = roomNumber ? parseRoomNumber(roomNumber) : null;
 
   const data: Record<string, string> = {
-    Nome_Residente: resident.full_name ?? "",
-    Nacionalidade: resident.nationality ?? "",
+    // Nomes usados pelo modelo Word (MERGEFIELD)
+    Nome_Completo: resident.full_name ?? "",
+    Nacionalidade_PT: resident.nationality ?? "",
     Data_Nascimento: fmtDate(resident.date_of_birth),
-    Morada: resident.address ?? "",
-    Numero_Documento: resident.document_number ?? "",
-    Validade_Documento: fmtDate(resident.document_validity),
+    Morada_Residencia: resident.address ?? "",
+    "Nº_Doc_Identificacao": resident.document_number ?? "",
+    Validade_Doc_Identificacao: fmtDate(resident.document_validity),
     NIF: resident.tax_number || "___ ___ ___",
-    Perfil: resident.profile ?? "",
-    Instituicao_Ensino: isStudent ? resident.employer_or_school ?? "" : "N/A",
+    Perfil: profileRaw,
+    Instituicao_Ensino: resident.employer_or_school ?? "",
     Local_Trabalho: isStudent ? "N/A" : resident.employer_or_school ?? "",
-    Numero_Quarto: String(roomNumber ?? ""),
+    "Nº_Quarto": String(roomNumber ?? ""),
+    Piso: parsedRoom?.floor != null ? String(parsedRoom.floor) : "",
+    Lado: parsedRoom?.side ?? "",
     Data_Inicio: fmtDate(c.start_date),
-    Data_Fim: fmtDate(c.end_date),
+    Data_Termo: fmtDate(c.end_date),
     Duracao_Contrato: duracaoContrato(c.start_date, c.end_date),
     Compensacao_Denuncia: compensacaoDenuncia(c.start_date, c.end_date),
     Contacto_Notificacao: resident.email ?? "",
     Codigo_Contrato: c.code ?? "",
     Dia_Assinatura: String(today.getDate()),
-    Mes_Assinatura: MESES_PT[today.getMonth()],
+    Mes_Assinatura_PT: MESES_PT[today.getMonth()],
     Ano_Assinatura: String(today.getFullYear()),
   };
+  // Aliases legados
+  data.Nome_Residente = data.Nome_Completo;
+  data.Nacionalidade = data.Nacionalidade_PT;
+  data.Morada = data.Morada_Residencia;
+  data.Numero_Documento = data["Nº_Doc_Identificacao"];
+  data.Validade_Documento = data.Validade_Doc_Identificacao;
+  data.Numero_Quarto = data["Nº_Quarto"];
+  data.Data_Fim = data.Data_Termo;
+  data.Mes_Assinatura = data.Mes_Assinatura_PT;
 
   if (regularRent != null) {
     setMoney(data, "Valor_Remuneracao_Mensal", regularRent);
@@ -119,6 +133,12 @@ export async function generateContractDocx(contractId: string): Promise<Generate
     setMoney(data, "Valor_Reducao_Periodo_Transitorio", null);
   }
   setMoney(data, "Valor_Caucao", Number(c.deposit_due ?? 0));
+  // Aliases "_Extenso_PT" usados pelo modelo
+  data.Valor_Remuneracao_Mensal_Extenso_PT = data.Valor_Remuneracao_Mensal_Extenso;
+  data.Valor_Remuneracao_Transitorio_Extenso_PT = data.Valor_Remuneracao_Periodo_Transitorio_Extenso;
+  data.Valor_Reducao_Extenso_PT = data.Valor_Reducao_Periodo_Transitorio_Extenso;
+  data.Valor_Caucao_Extenso_PT = data.Valor_Caucao_Extenso;
+
 
   // 2. Template do Storage
   const { data: file, error: dlErr } = await supabase.storage.from(TEMPLATE_BUCKET).download(TEMPLATE_PATH);
