@@ -31,7 +31,13 @@ export interface Resident {
   emergencyContactName: string | null;
   emergencyContactPhone: string | null;
   specialNeeds: string | null;
+  address: string | null;
+  documentValidity: string | null;
+  profile: string | null;
+  gender: string | null;
+  age: string | null;
 }
+
 
 export interface ResidentLegalFields {
   nationality: string | null;

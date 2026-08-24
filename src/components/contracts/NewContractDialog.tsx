@@ -81,6 +81,32 @@ export const NewContractDialog = ({ open, onOpenChange, defaults, leadId, onCrea
       const residentId = (freshStay as any)?.resident_id;
       if (!residentId) throw new Error("Residente não foi criado a partir da estadia");
 
+      // 1b. Copiar dados da lead de origem para o residente (só campos vazios)
+      if (leadId) {
+        const { data: lead } = await supabase
+          .from("leads" as any)
+          .select("nationality, profile, age, gender")
+          .eq("id", leadId)
+          .maybeSingle();
+        const { data: res } = await supabase
+          .from("residents" as any)
+          .select("nationality, profile, age, gender")
+          .eq("id", residentId)
+          .maybeSingle();
+        if (lead) {
+          const patch: Record<string, any> = {};
+          (["nationality", "profile", "age", "gender"] as const).forEach((k) => {
+            const leadVal = (lead as any)[k];
+            const resVal = (res as any)?.[k];
+            if (leadVal && !resVal) patch[k] = leadVal;
+          });
+          if (Object.keys(patch).length > 0) {
+            await supabase.from("residents" as any).update(patch as any).eq("id", residentId);
+          }
+        }
+      }
+
+
       // 2. Contrato
       const { data: contract, error: contractErr } = await supabase
         .from("contracts" as any)

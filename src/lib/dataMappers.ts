@@ -32,7 +32,13 @@ export const mapResident = (r: any): Resident => ({
   emergencyContactName: r.emergency_contact_name ?? null,
   emergencyContactPhone: r.emergency_contact_phone ?? null,
   specialNeeds: r.special_needs ?? null,
+  address: r.address ?? null,
+  documentValidity: r.document_validity ?? null,
+  profile: r.profile ?? null,
+  gender: r.gender ?? null,
+  age: r.age ?? null,
 });
+
 
 export const mapRequest = (r: any): Request => ({
   id: r.id,
