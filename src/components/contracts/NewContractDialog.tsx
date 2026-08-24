@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useCreateStay, useRooms } from "@/hooks/useData";
 import { supabase } from "@/integrations/supabase/client";
@@ -34,6 +35,7 @@ export const NewContractDialog = ({ open, onOpenChange, defaults, leadId, onCrea
   const qc = useQueryClient();
   const [roomId, setRoomId] = useState<string>("");
   const [submitting, setSubmitting] = useState(false);
+  const [transitional, setTransitional] = useState(false);
 
   const sortedRooms = useMemo(() => {
     const pref = defaults?.preferredRoomType?.trim().toLowerCase();
@@ -48,12 +50,19 @@ export const NewContractDialog = ({ open, onOpenChange, defaults, leadId, onCrea
     const fd = new FormData(e.currentTarget);
     const checkInDate = String(fd.get("checkIn"));
     const checkOutDate = String(fd.get("checkOut"));
-    const monthlyAmount = Number(fd.get("monthlyAmount"));
     const paymentDay = Number(fd.get("paymentDay") || 1);
     const depositDue = Number(fd.get("depositDue") || 0);
+    // Com renda transitória: cobra-se a transitória desde já; a regular fica guardada.
+    const transitionalAmount = Number(fd.get("transitionalAmount") || 0);
+    const regularAmount = Number(fd.get("regularAmount") || 0);
+    const monthlyAmount = transitional ? transitionalAmount : Number(fd.get("monthlyAmount"));
 
     if (!monthlyAmount || monthlyAmount <= 0) {
-      toast.error("Indica a renda mensal");
+      toast.error(transitional ? "Indica a renda transitória" : "Indica a renda mensal");
+      return;
+    }
+    if (transitional && (!regularAmount || regularAmount <= 0)) {
+      toast.error("Indica a renda regular");
       return;
     }
 
@@ -118,6 +127,7 @@ export const NewContractDialog = ({ open, onOpenChange, defaults, leadId, onCrea
           status: "reserved",
           payment_day: paymentDay,
           deposit_due: depositDue,
+          regular_rent_amount: transitional ? regularAmount : null,
           notes: String(fd.get("notes") || "") || null,
         } as any)
         .select("id")
@@ -198,11 +208,41 @@ export const NewContractDialog = ({ open, onOpenChange, defaults, leadId, onCrea
             <div><Label>Check-in</Label><Input name="checkIn" type="date" required className="mt-1.5" /></div>
             <div><Label>Check-out</Label><Input name="checkOut" type="date" required className="mt-1.5" /></div>
           </div>
-          <div className="grid grid-cols-3 gap-3">
+          <div className="flex items-start gap-2 rounded-xl border border-border/60 p-3">
+            <Checkbox
+              id="transitional"
+              checked={transitional}
+              onCheckedChange={(v) => setTransitional(v === true)}
+              className="mt-0.5"
+            />
             <div>
-              <Label>Renda mensal (€)</Label>
-              <Input name="monthlyAmount" type="number" min="0" step="0.01" required className="mt-1.5" />
+              <Label htmlFor="transitional" className="cursor-pointer">
+                Aplicar renda transitória (obras em curso)
+              </Label>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Cobra-se a renda transitória desde já; a renda regular fica guardada no contrato.
+              </p>
             </div>
+          </div>
+          {transitional && (
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label>Renda transitória (já em vigor) (€)</Label>
+                <Input name="transitionalAmount" type="number" min="0" step="0.01" required className="mt-1.5" />
+              </div>
+              <div>
+                <Label>Renda regular (após período transitório) (€)</Label>
+                <Input name="regularAmount" type="number" min="0" step="0.01" required className="mt-1.5" />
+              </div>
+            </div>
+          )}
+          <div className="grid grid-cols-3 gap-3">
+            {!transitional && (
+              <div>
+                <Label>Renda mensal (€)</Label>
+                <Input name="monthlyAmount" type="number" min="0" step="0.01" required className="mt-1.5" />
+              </div>
+            )}
             <div>
               <Label>Dia de vencimento</Label>
               <Input name="paymentDay" type="number" min="1" max="28" defaultValue={1} required className="mt-1.5" />

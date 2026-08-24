@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, ArrowRight, CalendarRange, Info, LogIn, LogOut, Pencil, Repeat, ShieldCheck, Trash2, User } from "lucide-react";
+import { ArrowLeft, ArrowRight, CalendarRange, Download, FileText, Info, LogIn, LogOut, Pencil, Repeat, ShieldCheck, Trash2, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
@@ -24,6 +24,7 @@ import { ContractStatusBadge } from "@/components/contracts/ContractStatusBadge"
 import { useRooms } from "@/hooks/useData";
 import { RentPeriodsSection } from "@/components/contracts/RentPeriodsSection";
 import { EditContractSheet } from "@/components/contracts/EditContractSheet";
+import { generateContractDocx } from "@/lib/generateContractDocx";
 
 
 
@@ -50,7 +51,23 @@ const ContractDetail = () => {
   const deleteContract = useDeleteContract();
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const [generating, setGenerating] = useState(false);
+  const [generatedDoc, setGeneratedDoc] = useState<{ fileName: string; signedUrl: string } | null>(null);
   const canDelete = paymentsCount === 0;
+
+  const handleGenerate = async () => {
+    if (!contract) return;
+    setGenerating(true);
+    try {
+      const doc = await generateContractDocx(contract.id);
+      setGeneratedDoc(doc);
+      toast.success("Contrato gerado");
+    } catch (err: any) {
+      toast.error(err?.message ?? "Não foi possível gerar o contrato");
+    } finally {
+      setGenerating(false);
+    }
+  };
 
   const handleDelete = async () => {
     if (!contract) return;
@@ -104,6 +121,17 @@ const ContractDetail = () => {
           <Button variant="outline" size="sm" onClick={() => setEditOpen(true)}>
             <Pencil className="h-4 w-4 mr-1.5" strokeWidth={1.5} /> Editar contrato
           </Button>
+          <Button variant="outline" size="sm" onClick={handleGenerate} disabled={generating}>
+            <FileText className="h-4 w-4 mr-1.5" strokeWidth={1.5} />
+            {generating ? "A gerar…" : "Gerar contrato"}
+          </Button>
+          {generatedDoc?.signedUrl && (
+            <Button asChild variant="ghost" size="sm">
+              <a href={generatedDoc.signedUrl} target="_blank" rel="noreferrer" download={generatedDoc.fileName}>
+                <Download className="h-4 w-4 mr-1.5" strokeWidth={1.5} /> {generatedDoc.fileName}
+              </a>
+            </Button>
+          )}
           {canDelete && (
             <Button
               variant="outline"
