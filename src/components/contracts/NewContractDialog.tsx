@@ -207,11 +207,41 @@ export const NewContractDialog = ({ open, onOpenChange, defaults, leadId, onCrea
             <div><Label>Check-in</Label><Input name="checkIn" type="date" required className="mt-1.5" /></div>
             <div><Label>Check-out</Label><Input name="checkOut" type="date" required className="mt-1.5" /></div>
           </div>
-          <div className="grid grid-cols-3 gap-3">
+          <div className="flex items-start gap-2 rounded-xl border border-border/60 p-3">
+            <Checkbox
+              id="transitional"
+              checked={transitional}
+              onCheckedChange={(v) => setTransitional(v === true)}
+              className="mt-0.5"
+            />
             <div>
-              <Label>Renda mensal (€)</Label>
-              <Input name="monthlyAmount" type="number" min="0" step="0.01" required className="mt-1.5" />
+              <Label htmlFor="transitional" className="cursor-pointer">
+                Aplicar renda transitória (obras em curso)
+              </Label>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Cobra-se a renda transitória desde já; a renda regular fica guardada no contrato.
+              </p>
             </div>
+          </div>
+          {transitional && (
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label>Renda transitória (já em vigor) (€)</Label>
+                <Input name="transitionalAmount" type="number" min="0" step="0.01" required className="mt-1.5" />
+              </div>
+              <div>
+                <Label>Renda regular (após período transitório) (€)</Label>
+                <Input name="regularAmount" type="number" min="0" step="0.01" required className="mt-1.5" />
+              </div>
+            </div>
+          )}
+          <div className="grid grid-cols-3 gap-3">
+            {!transitional && (
+              <div>
+                <Label>Renda mensal (€)</Label>
+                <Input name="monthlyAmount" type="number" min="0" step="0.01" required className="mt-1.5" />
+              </div>
+            )}
             <div>
               <Label>Dia de vencimento</Label>
               <Input name="paymentDay" type="number" min="1" max="28" defaultValue={1} required className="mt-1.5" />
