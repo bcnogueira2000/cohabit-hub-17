@@ -306,6 +306,60 @@ export const NewContractDialog = ({ open, onOpenChange, defaults, leadId, onCrea
               <Input name="depositDue" type="number" min="0" step="0.01" className="mt-1.5" />
             </div>
           </div>
+          <div className="rounded-xl border border-border/60 p-3 space-y-3">
+            <div className="flex items-center gap-2">
+              <ShieldCheck className="h-4 w-4 text-primary" strokeWidth={1.5} />
+              <h3 className="font-display text-base font-semibold">Dados legais</h3>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Opcionais — usados para gerar o contrato. Podes completar mais tarde na ficha do residente.
+            </p>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label>Nacionalidade</Label>
+                <Input value={nationality} onChange={(e) => setNationality(e.target.value)} className="mt-1.5" />
+              </div>
+              <div>
+                <Label>Data de nascimento</Label>
+                <Input name="dateOfBirth" type="date" className="mt-1.5" />
+              </div>
+            </div>
+            <div>
+              <Label>Morada de residência</Label>
+              <Input name="address" className="mt-1.5" />
+            </div>
+            <div className="grid grid-cols-3 gap-3">
+              <div>
+                <Label>Nº do documento</Label>
+                <Input name="documentNumber" className="mt-1.5" />
+              </div>
+              <div>
+                <Label>Validade</Label>
+                <Input name="documentValidity" type="date" className="mt-1.5" />
+              </div>
+              <div>
+                <Label>NIF</Label>
+                <Input name="taxNumber" className="mt-1.5" />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label>Perfil</Label>
+                <Select value={profile} onValueChange={setProfile}>
+                  <SelectTrigger className="mt-1.5"><SelectValue placeholder="Escolher" /></SelectTrigger>
+                  <SelectContent>
+                    {PROFILES.map((p) => (
+                      <SelectItem key={p} value={p}>{p}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>{profile === "Estudante" ? "Instituição de ensino" : "Local de trabalho"}</Label>
+                <Input name="employerOrSchool" className="mt-1.5" />
+              </div>
+            </div>
+          </div>
           <div><Label>Notas</Label><Textarea name="notes" className="mt-1.5" rows={2} /></div>
           <Button
             type="submit"
