@@ -74,3 +74,14 @@ export function formatDate(input: string | number | Date, fmt: DateFormat = "sho
       return d.toLocaleDateString(DATE_LOCALE, { day: "numeric", month: "short", year: "numeric" });
   }
 }
+
+/** Meses de compensação por denúncia antecipada, conforme a duração do contrato. */
+export function compensationMonths(startDate: string | Date, endDate: string | Date): number {
+  const s = new Date(startDate);
+  const e = new Date(endDate);
+  let months = (e.getFullYear() - s.getFullYear()) * 12 + (e.getMonth() - s.getMonth());
+  if (e.getDate() < s.getDate()) months -= 1;
+  if (months <= 3) return 1;
+  if (months <= 6) return 2;
+  return 3;
+}
