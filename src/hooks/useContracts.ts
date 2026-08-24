@@ -398,6 +398,7 @@ export const useDeleteContract = () => {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["contracts"] });
       qc.invalidateQueries({ queryKey: ["stays"] });
+      qc.invalidateQueries({ queryKey: ["residents"] });
       qc.invalidateQueries({ queryKey: ["stays-by-contract"] });
       qc.invalidateQueries({ queryKey: ["rooms"] });
       qc.invalidateQueries({ queryKey: ["rent-current-month"] });
