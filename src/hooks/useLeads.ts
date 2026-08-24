@@ -186,10 +186,26 @@ export const useDeleteLead = () => {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (id: string) => {
+      // Leads com contrato associado não podem ser eliminadas (bloqueio na BD)
+      const { data: lead, error: readError } = await supabase
+        .from("leads" as any)
+        .select("contract_id")
+        .eq("id", id)
+        .maybeSingle();
+      if (readError) throw readError;
+      if ((lead as any)?.contract_id) {
+        throw new Error(
+          "Esta lead já tem um contrato associado. Para remover, cancela o contrato primeiro (ficha do contrato)."
+        );
+      }
+
       const { error } = await supabase.from("leads" as any).delete().eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["leads"] }),
+    onError: (error: any) => {
+      toast.error(error?.message || "Não foi possível eliminar a lead. Tenta novamente.");
+    },
   });
 };
 
