@@ -9,6 +9,7 @@ import { usePendingProfiles, useApproveProfile, useRejectProfile, type Profile }
 import { useResidents, useRooms } from "@/hooks/useData";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
+import { RoomCombobox } from "@/components/rooms/RoomCombobox";
 
 const formatDate = (d: string | null) =>
   d ? new Date(d).toLocaleDateString("pt-PT") : "—";
@@ -212,14 +213,9 @@ const PendingCard = ({ profile, residents, rooms, onApprove, onReject, onCreateA
                   <>
                     <div>
                       <label className="text-xs font-medium">Quarto</label>
-                      <Select value={roomId} onValueChange={setRoomId}>
-                        <SelectTrigger className="mt-1"><SelectValue placeholder="Sem quarto" /></SelectTrigger>
-                        <SelectContent>
-                          {rooms.map((r) => (
-                            <SelectItem key={r.id} value={r.id}>Quarto {r.number} · piso {r.floor}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <div className="mt-1">
+                        <RoomCombobox rooms={rooms} value={roomId} onChange={setRoomId} placeholder="Sem quarto" detail="floor" />
+                      </div>
                     </div>
                     <div>
                       <label className="text-xs font-medium">Data de entrada</label>

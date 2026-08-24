@@ -10,6 +10,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sh
 import { toast } from "sonner";
 import { useUpdateContract, useContractStays, type Contract, type RecalculationResult } from "@/hooks/useContracts";
 import { useRooms } from "@/hooks/useData";
+import { RoomCombobox } from "@/components/rooms/RoomCombobox";
 
 const eur = (v: number) =>
   new Intl.NumberFormat("pt-PT", { style: "currency", currency: "EUR" }).format(v);
@@ -106,18 +107,9 @@ export const EditContractSheet = ({ contract, open, onOpenChange }: Props) => {
           {editableStay && (
             <div>
               <Label>Quarto</Label>
-              <Select value={selectedRoomId} onValueChange={setRoomId}>
-                <SelectTrigger className="mt-1.5">
-                  <SelectValue placeholder="Escolher quarto" />
-                </SelectTrigger>
-                <SelectContent className="max-h-72">
-                  {sortedRooms.map((r) => (
-                    <SelectItem key={r.id} value={r.id}>
-                      Quarto {r.number} · {r.typology}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <div className="mt-1.5">
+                <RoomCombobox rooms={sortedRooms} value={selectedRoomId} onChange={setRoomId} sort={false} />
+              </div>
               <p className="text-xs text-muted-foreground mt-1.5">
                 Ainda é possível corrigir o quarto porque a estadia não tem check-in feito.
               </p>

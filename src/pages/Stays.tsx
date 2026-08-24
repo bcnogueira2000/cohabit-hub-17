@@ -16,6 +16,7 @@ import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { Stay, StayStatus } from "@/lib/types";
+import { RoomCombobox } from "@/components/rooms/RoomCombobox";
 
 const statusLabel: Record<StayStatus, string> = {
   pending: "Pendente",
@@ -242,12 +243,9 @@ const Stays = () => {
                 <div><Label>Telefone</Label><Input name="phone" className="mt-1.5" /></div>
                 <div>
                   <Label>Quarto</Label>
-                  <Select value={roomId} onValueChange={setRoomId}>
-                    <SelectTrigger className="mt-1.5"><SelectValue placeholder="Escolher" /></SelectTrigger>
-                    <SelectContent>
-                      {rooms.map((r) => <SelectItem key={r.id} value={r.id}>Quarto {r.number} · {r.typology}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
+                  <div className="mt-1.5">
+                    <RoomCombobox rooms={rooms} value={roomId} onChange={setRoomId} placeholder="Escolher" />
+                  </div>
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-3">
