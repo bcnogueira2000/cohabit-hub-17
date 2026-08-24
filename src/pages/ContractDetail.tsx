@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, ArrowRight, CalendarRange, Info, LogIn, LogOut, Pencil, Repeat, ShieldCheck, Trash2, User } from "lucide-react";
+import { ArrowLeft, ArrowRight, CalendarRange, Download, FileText, Info, LogIn, LogOut, Pencil, Repeat, ShieldCheck, Trash2, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
@@ -24,6 +24,7 @@ import { ContractStatusBadge } from "@/components/contracts/ContractStatusBadge"
 import { useRooms } from "@/hooks/useData";
 import { RentPeriodsSection } from "@/components/contracts/RentPeriodsSection";
 import { EditContractSheet } from "@/components/contracts/EditContractSheet";
+import { generateContractDocx } from "@/lib/generateContractDocx";
 
 
 
