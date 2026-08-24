@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useResidents, useRooms, useCreateRequest } from "@/hooks/useData";
 import { categoryLabels } from "@/lib/labels";
 import { toast } from "sonner";
+import { RoomCombobox } from "@/components/rooms/RoomCombobox";
 
 const NewRequest = () => {
   const navigate = useNavigate();
@@ -92,13 +93,9 @@ const NewRequest = () => {
             </div>
             <div>
               <Label>Quarto / Local</Label>
-              <Select value={roomId} onValueChange={setRoomId}>
-                <SelectTrigger className="mt-1.5"><SelectValue placeholder="Selecionar…" /></SelectTrigger>
-                <SelectContent>
-                  {rooms.map((r) => <SelectItem key={r.id} value={r.id}>Quarto {r.number}</SelectItem>)}
-                  <SelectItem value="common">Área comum</SelectItem>
-                </SelectContent>
-              </Select>
+              <div className="mt-1.5">
+                <RoomCombobox rooms={rooms} value={roomId} onChange={setRoomId} placeholder="Selecionar…" detail="none" extraOptions={[{ value: "common", label: "Área comum" }]} />
+              </div>
             </div>
           </div>
 

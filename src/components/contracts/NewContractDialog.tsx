@@ -9,6 +9,7 @@ import { useCreateStay, useRooms } from "@/hooks/useData";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { RoomCombobox } from "@/components/rooms/RoomCombobox";
 
 export type NewContractResult = { contractId: string; stayId: string };
 
@@ -162,14 +163,9 @@ export const NewContractDialog = ({ open, onOpenChange, defaults, leadId, onCrea
             </div>
             <div>
               <Label>Quarto</Label>
-              <Select value={roomId} onValueChange={setRoomId}>
-                <SelectTrigger className="mt-1.5"><SelectValue placeholder="Escolher" /></SelectTrigger>
-                <SelectContent>
-                  {sortedRooms.map((r) => (
-                    <SelectItem key={r.id} value={r.id}>Quarto {r.number} · {r.typology}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <div className="mt-1.5">
+                <RoomCombobox rooms={sortedRooms} value={roomId} onChange={setRoomId} placeholder="Escolher" sort={false} />
+              </div>
             </div>
           </div>
           <div className="grid grid-cols-2 gap-3">
