@@ -42,10 +42,28 @@ const Field = ({ label, children }: { label: string; children: React.ReactNode }
 
 const ContractDetail = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
   const { data: contract, isLoading } = useContract(id);
   const { data: stays = [] } = useContractStays(id);
   const { data: rooms = [] } = useRooms();
+  const { data: paymentsCount = 0 } = useContractPaymentsCount(id);
+  const deleteContract = useDeleteContract();
   const [editOpen, setEditOpen] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const canDelete = paymentsCount === 0;
+
+  const handleDelete = async () => {
+    if (!contract) return;
+    try {
+      await deleteContract.mutateAsync(contract.id);
+      toast.success("Contrato eliminado");
+      navigate("/finance/contracts");
+    } catch (err: any) {
+      toast.error(err?.message ?? "Não foi possível eliminar o contrato");
+    }
+  };
+
+
 
 
   if (isLoading) return <div className="p-10"><p className="text-muted-foreground text-sm">A carregar…</p></div>;
