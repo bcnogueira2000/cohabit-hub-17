@@ -104,8 +104,51 @@ const ContractDetail = () => {
           <Button variant="outline" size="sm" onClick={() => setEditOpen(true)}>
             <Pencil className="h-4 w-4 mr-1.5" strokeWidth={1.5} /> Editar contrato
           </Button>
+          {canDelete && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="text-destructive hover:text-destructive"
+              onClick={() => setDeleteOpen(true)}
+            >
+              <Trash2 className="h-4 w-4 mr-1.5" strokeWidth={1.5} /> Eliminar contrato
+            </Button>
+          )}
         </div>
       </div>
+
+      {!canDelete && (
+        <div className="flex items-start gap-2 rounded-xl border border-border/60 bg-muted/40 p-3 mb-4 text-xs text-muted-foreground">
+          <Info className="h-4 w-4 mt-0.5 shrink-0" strokeWidth={1.5} />
+          <span>
+            Este contrato já tem pagamentos registados e não pode ser eliminado. Usa o campo de
+            estado para cancelar, se necessário.
+          </span>
+        </div>
+      )}
+
+      <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Eliminar contrato?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Isto elimina o contrato, a estadia associada e o histórico de rendas. Não pode ser
+              desfeito.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDelete}
+              disabled={deleteContract.isPending}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deleteContract.isPending ? "A eliminar…" : "Eliminar"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
 
       <EditContractSheet
         key={`${contract.endDate}-${contract.paymentDay}-${contract.depositDue}`}
