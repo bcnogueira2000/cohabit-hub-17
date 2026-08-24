@@ -212,6 +212,8 @@ export const useAddRentPeriod = () => {
       qc.invalidateQueries({ queryKey: ["contracts"] });
       qc.invalidateQueries({ queryKey: ["rent-charges", input.contractId] });
       qc.invalidateQueries({ queryKey: ["rent-current-month"] });
+      qc.invalidateQueries({ queryKey: ["contract-stays", input.id] });
+      qc.invalidateQueries({ queryKey: ["stays"] });
     },
   });
 };
@@ -236,27 +238,33 @@ export const useUpdateContract = () => {
   return useMutation({
     mutationFn: async (input: {
       id: string;
+      startDate: string;
       endDate: string;
       paymentDay: number;
       depositDue: number;
       autoRenew: boolean;
       notes: string | null;
       endDateChanged: boolean;
+      startDateChanged: boolean;
       paymentDayChanged: boolean;
       /** Mudança de quarto da estadia ligada (só permitido antes do check-in) */
       stayId?: string | null;
       newRoomId?: string | null;
     }) => {
-      if (input.stayId && input.newRoomId) {
+      // Estadia ligada (antes do check-in): quarto e/ou data de entrada
+      if (input.stayId && (input.newRoomId || input.startDateChanged)) {
+        const stayPatch: Record<string, unknown> = {};
+        if (input.newRoomId) stayPatch.room_id = input.newRoomId;
+        if (input.startDateChanged) stayPatch.check_in = input.startDate;
         const { error: roomErr } = await supabase
           .from("stays" as any)
-          .update({ room_id: input.newRoomId } as any)
+          .update(stayPatch as any)
           .eq("id", input.stayId);
         if (roomErr) {
           const code = (roomErr as any).code;
           if (code === "23P01" || /sobreposicao|overlap|exclusion/i.test(roomErr.message ?? "")) {
             throw new Error(
-              "Esse quarto já está atribuído a outra pessoa neste período. Escolhe outro quarto ou ajusta as datas."
+              "O quarto já está ocupado por outro contrato neste período. Ajusta as datas ou escolhe outro quarto — nada foi gravado."
             );
           }
           throw roomErr;
@@ -266,6 +274,7 @@ export const useUpdateContract = () => {
       const { error } = await supabase
         .from("contracts" as any)
         .update({
+          start_date: input.startDate,
           end_date: input.endDate,
           payment_day: input.paymentDay,
           deposit_due: input.depositDue,
@@ -275,7 +284,7 @@ export const useUpdateContract = () => {
         .eq("id", input.id);
       if (error) throw error;
 
-      if (!input.endDateChanged && !input.paymentDayChanged) return null;
+      if (!input.endDateChanged && !input.paymentDayChanged && !input.startDateChanged) return null;
 
       const { data, error: rpcErr } = await supabase.rpc("recalculate_rent_charges" as any, {
         p_contract_id: input.id,

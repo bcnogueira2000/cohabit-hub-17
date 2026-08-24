@@ -25,6 +25,7 @@ export const EditContractSheet = ({ contract, open, onOpenChange }: Props) => {
   const update = useUpdateContract();
   const { data: stays = [] } = useContractStays(contract.id);
   const { data: rooms = [] } = useRooms();
+  const [startDate, setStartDate] = useState(contract.startDate);
   const [endDate, setEndDate] = useState(contract.endDate);
   const [paymentDay, setPaymentDay] = useState(String(contract.paymentDay));
   const [depositDue, setDepositDue] = useState(String(contract.depositDue));
@@ -50,12 +51,14 @@ export const EditContractSheet = ({ contract, open, onOpenChange }: Props) => {
     e.preventDefault();
     const day = Number(paymentDay);
     const deposit = Number(depositDue);
+    if (!startDate) return toast.error("Indica a data de início");
     if (!endDate) return toast.error("Indica a data de fim");
-    if (endDate <= contract.startDate) return toast.error("A data de fim tem de ser depois do início");
+    if (endDate <= startDate) return toast.error("A data de fim tem de ser depois do início");
     if (!Number.isInteger(day) || day < 1 || day > 28)
       return toast.error("O dia de vencimento tem de estar entre 1 e 28");
     if (Number.isNaN(deposit) || deposit < 0) return toast.error("Caução inválida");
 
+    const startDateChanged = startDate !== contract.startDate;
     const endDateChanged = endDate !== contract.endDate;
     const paymentDayChanged = day !== contract.paymentDay;
     const roomChanged = !!editableStay && !!selectedRoomId && selectedRoomId !== currentRoomId;
@@ -63,14 +66,16 @@ export const EditContractSheet = ({ contract, open, onOpenChange }: Props) => {
 
       const result = await update.mutateAsync({
         id: contract.id,
+        startDate,
         endDate,
         paymentDay: day,
         depositDue: deposit,
         autoRenew,
         notes,
         endDateChanged,
+        startDateChanged,
         paymentDayChanged,
-        stayId: roomChanged ? editableStay.id : null,
+        stayId: editableStay ? editableStay.id : null,
         newRoomId: roomChanged ? selectedRoomId : null,
       });
 
@@ -80,7 +85,7 @@ export const EditContractSheet = ({ contract, open, onOpenChange }: Props) => {
         toast.warning(
           `${lockedCount} ${lockedCount === 1 ? "renda não foi removida porque já tem pagamentos registados" : "rendas não foram removidas porque já têm pagamentos registados"}`
         );
-      } else if (endDateChanged || paymentDayChanged) {
+      } else if (endDateChanged || paymentDayChanged || startDateChanged) {
         toast.success("Contrato atualizado e rendas recalculadas");
         onOpenChange(false);
       } else {
@@ -98,8 +103,8 @@ export const EditContractSheet = ({ contract, open, onOpenChange }: Props) => {
         <SheetHeader>
           <SheetTitle className="font-display">Editar contrato</SheetTitle>
           <p className="text-sm text-muted-foreground text-left">
-            Alterar a data de fim recalcula as rendas: meses que deixam de existir são removidos,
-            exceto se já tiverem pagamentos registados.
+            Alterar as datas de início ou fim recalcula as rendas: meses novos são criados e meses
+            que deixam de existir são removidos, exceto se já tiverem pagamentos registados.
           </p>
         </SheetHeader>
 
@@ -116,15 +121,26 @@ export const EditContractSheet = ({ contract, open, onOpenChange }: Props) => {
             </div>
           )}
 
-          <div>
-            <Label>Data de fim</Label>
-            <Input
-              type="date"
-              value={endDate}
-              min={contract.startDate}
-              onChange={(e) => setEndDate(e.target.value)}
-              className="mt-1.5"
-            />
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <Label>Data de início</Label>
+              <Input
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                className="mt-1.5"
+              />
+            </div>
+            <div>
+              <Label>Data de fim</Label>
+              <Input
+                type="date"
+                value={endDate}
+                min={startDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                className="mt-1.5"
+              />
+            </div>
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
