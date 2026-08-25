@@ -3,16 +3,29 @@ import Docxtemplater from "docxtemplater";
 import { supabase } from "@/integrations/supabase/client";
 import { amountToWords } from "@/lib/amountToWords";
 import { compensacaoDenuncia, duracaoContrato } from "@/lib/contractDuration";
+import { isPortuguese, nationalityToEN } from "@/lib/nationalityEN";
 import { parseRoomNumber } from "@/lib/utils";
 
 const TEMPLATE_BUCKET = "contract-templates";
-const TEMPLATE_PATH = "PT_Template.docx";
+const TEMPLATE_PT = "PT_Template.docx";
+const TEMPLATE_BILINGUE = "Bilingue_Template.docx";
 const OUTPUT_BUCKET = "resident-documents";
+
+/** Escolhe o modelo Word conforme a nacionalidade do residente. */
+export function getTemplateForContract(resident: { nationality?: string | null }): string {
+  return isPortuguese(resident?.nationality) ? TEMPLATE_PT : TEMPLATE_BILINGUE;
+}
 
 const MESES_PT = [
   "janeiro", "fevereiro", "março", "abril", "maio", "junho",
   "julho", "agosto", "setembro", "outubro", "novembro", "dezembro",
 ];
+
+const MESES_EN = [
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December",
+];
+
 
 const fmtDate = (d: string | null | undefined): string => {
   if (!d) return "";
