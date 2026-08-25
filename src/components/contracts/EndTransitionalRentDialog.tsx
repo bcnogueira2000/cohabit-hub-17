@@ -40,6 +40,19 @@ export const EndTransitionalRentDialog = ({ open, onOpenChange, contracts, roomL
     [contracts]
   );
 
+  // A renda regular só se aplica a meses completos: dia 1 do mês seguinte ao fim das obras.
+  const effectiveFrom = useMemo(() => {
+    if (!date) return "";
+    const [y, m] = date.split("-").map(Number);
+    if (!y || !m) return "";
+    const ny = m === 12 ? y + 1 : y;
+    const nm = m === 12 ? 1 : m + 1;
+    return `${ny}-${String(nm).padStart(2, "0")}-01`;
+  }, [date]);
+
+  const monthLabel = (iso: string, opts: Intl.DateTimeFormatOptions) =>
+    iso ? new Date(`${iso}T00:00:00`).toLocaleDateString("pt-PT", opts) : "";
+
   const reset = () => {
     setDate("");
     setStep("form");
