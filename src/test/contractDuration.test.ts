@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { duracaoContrato, compensacaoDenuncia } from "@/lib/contractDuration";
+import { duracaoContrato, compensacaoDenuncia, duracaoContratoEN, compensacaoDenunciaEN } from "@/lib/contractDuration";
 
 function endDate(start: string, months: number): string {
   const d = new Date(start);
@@ -41,5 +41,16 @@ describe("compensacaoDenuncia", () => {
   ];
   it.each(cases)("%i meses → %s", (months, expected) => {
     expect(compensacaoDenuncia(START, endDate(START, months))).toBe(expected);
+  });
+});
+
+describe("versão inglesa", () => {
+  it("duracaoContratoEN", () => {
+    expect(duracaoContratoEN(START, endDate(START, 12))).toBe("12 (twelve) months");
+    expect(duracaoContratoEN(START, endDate(START, 1))).toBe("1 (one) month");
+  });
+  it("compensacaoDenunciaEN", () => {
+    expect(compensacaoDenunciaEN(START, endDate(START, 12))).toBe("3 (three) months' Fee");
+    expect(compensacaoDenunciaEN(START, endDate(START, 3))).toBe("1 (one) month's Fee");
   });
 });
