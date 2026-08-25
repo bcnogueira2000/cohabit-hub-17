@@ -80,7 +80,7 @@ const ContractDetail = () => {
   };
 
   /** Devolve true se os dados legais estiverem completos; senão abre o formulário. */
-  const ensureLegalData = async (target: "contract" | "reservation") => {
+  const ensureLegalData = async () => {
     if (!contract) return false;
     const { data: resident, error } = await supabase
       .from("residents" as any)
@@ -92,32 +92,17 @@ const ContractDetail = () => {
     if (missing.length > 0) {
       setLegalResident((resident ?? {}) as any);
       setLegalMissing(missing);
-      setPendingDoc(target);
       setLegalOpen(true);
       return false;
     }
     return true;
   };
 
-  const doGenerateReservation = async () => {
-    if (!contract) return;
-    const { data, error } = await supabase
-      .from("contracts" as any)
-      .select("reservation_deadline, reservation_fee_amount")
-      .eq("id", contract.id)
-      .maybeSingle();
-    if (error) throw error;
-    const deadline = (data as any)?.reservation_deadline ?? null;
-    const fee = (data as any)?.reservation_fee_amount == null ? null : Number((data as any).reservation_fee_amount);
-    setReservationValues({ deadline, fee });
-    setReservationOpen(true);
-  };
-
   const handleGenerate = async () => {
     if (!contract) return;
     setGenerating(true);
     try {
-      const ok = await ensureLegalData("contract");
+      const ok = await ensureLegalData();
       if (!ok) return;
     } catch (err: any) {
       toast.error(err?.message ?? "Não foi possível verificar os dados do residente");
@@ -126,20 +111,6 @@ const ContractDetail = () => {
       setGenerating(false);
     }
     await doGenerate();
-  };
-
-  const handleGenerateReservation = async () => {
-    if (!contract) return;
-    setGenerating(true);
-    try {
-      const ok = await ensureLegalData("reservation");
-      if (!ok) return;
-      await doGenerateReservation();
-    } catch (err: any) {
-      toast.error(err?.message ?? "Não foi possível preparar o acordo de reserva");
-    } finally {
-      setGenerating(false);
-    }
   };
 
   const handleDelete = async () => {
