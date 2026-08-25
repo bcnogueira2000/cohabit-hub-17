@@ -41,6 +41,11 @@ export const NewContractDialog = ({ open, onOpenChange, defaults, leadId, onCrea
   const [transitional, setTransitional] = useState(false);
   const [profile, setProfile] = useState<string>("");
   const [nationality, setNationality] = useState<string>("");
+  const [address, setAddress] = useState<string>("");
+  const [documentNumber, setDocumentNumber] = useState<string>("");
+  const [documentValidity, setDocumentValidity] = useState<string>("");
+  const [taxNumber, setTaxNumber] = useState<string>("");
+  const [dateOfBirth, setDateOfBirth] = useState<string>("");
 
   // Pré-preencher a partir da lead de origem (nacionalidade / perfil)
   useEffect(() => {
