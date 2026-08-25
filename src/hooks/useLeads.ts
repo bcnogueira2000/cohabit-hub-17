@@ -39,6 +39,8 @@ export interface Lead {
   externalRef: string | null;
   gdprConsent: boolean;
   language: string | null;
+  reservationDeadline: string | null;
+  reservationFeeAmount: number | null;
   createdAt: string;
   updatedAt: string;
 }
