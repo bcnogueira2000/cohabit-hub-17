@@ -267,7 +267,15 @@ const Contracts = () => {
                     <td className="px-4 py-3"><ContractStatusBadge status={c.status} /></td>
                     <td className="px-4 py-3 text-muted-foreground">{fmtDate(c.startDate)}</td>
                     <td className="px-4 py-3 text-muted-foreground">{fmtDate(c.actualEndDate ?? c.endDate)}</td>
-                    <td className="px-4 py-3 text-right">{eur(c.currentRent)}</td>
+                    <td className="px-4 py-3 text-right">
+                      <div>{eur(c.currentRent)}</div>
+                      {c.regularRentAmount != null && (
+                        <div className="flex items-center justify-end gap-1 text-xs text-muted-foreground mt-0.5">
+                          <ArrowRight className="h-3 w-3" strokeWidth={1.5} />
+                          {eur(c.regularRentAmount)} após obras
+                        </div>
+                      )}
+                    </td>
                     <td className={`px-4 py-3 text-right ${(c.balance?.overdue ?? 0) > 0 ? "text-destructive font-medium" : "text-muted-foreground"}`}>
                       {eur(c.balance?.overdue ?? 0)}
                     </td>
