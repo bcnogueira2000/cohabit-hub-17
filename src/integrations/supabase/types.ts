@@ -300,6 +300,8 @@ export type Database = {
           notes: string | null
           payment_day: number
           regular_rent_amount: number | null
+          reservation_deadline: string | null
+          reservation_fee_amount: number | null
           resident_id: string
           signed_at: string | null
           start_date: string
@@ -320,6 +322,8 @@ export type Database = {
           notes?: string | null
           payment_day?: number
           regular_rent_amount?: number | null
+          reservation_deadline?: string | null
+          reservation_fee_amount?: number | null
           resident_id: string
           signed_at?: string | null
           start_date: string
@@ -340,6 +344,8 @@ export type Database = {
           notes?: string | null
           payment_day?: number
           regular_rent_amount?: number | null
+          reservation_deadline?: string | null
+          reservation_fee_amount?: number | null
           resident_id?: string
           signed_at?: string | null
           start_date?: string
