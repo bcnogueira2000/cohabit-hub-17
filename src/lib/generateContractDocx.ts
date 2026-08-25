@@ -37,6 +37,15 @@ const setMoney = (data: Record<string, string>, key: string, value: number | nul
   data[`${key}_Extenso`] = value > 0 ? amountToWords(value, "pt") : "";
 };
 
+/** Remove acentos e espaços para usar em caminhos de Storage. */
+const slugifyForPath = (s: string): string =>
+  s
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-zA-Z0-9._-]+/g, "_")
+    .replace(/_+/g, "_")
+    .replace(/^_|_$/g, "");
+
 export type GeneratedContractDoc = {
   path: string;
   fileName: string;
@@ -163,8 +172,11 @@ export async function generateContractDocx(contractId: string): Promise<Generate
   });
 
   // 4. Guardar
-  const fileName = `contrato-${c.code ?? c.id}.docx`;
-  const path = `${resident.id}/${fileName}`;
+  const residentName = String(resident.full_name ?? "").trim() || "Residente";
+  const roomPart = roomNumber ? `${roomNumber}_` : "";
+  const fileName = `Contrato_${roomPart}${residentName}.docx`;
+  const safeFileName = `${slugifyForPath(`Contrato_${roomPart}${residentName}`)}.docx`;
+  const path = `${resident.id}/${safeFileName}`;
   const { error: upErr } = await supabase.storage.from(OUTPUT_BUCKET).upload(path, out, {
     upsert: true,
     contentType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
@@ -177,7 +189,9 @@ export async function generateContractDocx(contractId: string): Promise<Generate
     .update({ signed_at: new Date().toISOString() } as any)
     .eq("id", contractId);
 
-  const { data: signed } = await supabase.storage.from(OUTPUT_BUCKET).createSignedUrl(path, 60 * 60);
+  const { data: signed } = await supabase.storage
+    .from(OUTPUT_BUCKET)
+    .createSignedUrl(path, 60 * 60, { download: fileName });
 
   return { path, fileName, signedUrl: signed?.signedUrl ?? "" };
 }
