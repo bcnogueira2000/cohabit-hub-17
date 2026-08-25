@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, ArrowRight, CalendarRange, Download, FileText, Info, LogIn, LogOut, Pencil, Repeat, ShieldCheck, Trash2, User } from "lucide-react";
+import { ArrowLeft, ArrowRight, CalendarRange, Download, FileSignature, FileText, Info, LogIn, LogOut, Pencil, Repeat, ShieldCheck, Trash2, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
@@ -25,6 +25,7 @@ import { useRooms } from "@/hooks/useData";
 import { RentPeriodsSection } from "@/components/contracts/RentPeriodsSection";
 import { EditContractSheet } from "@/components/contracts/EditContractSheet";
 import { generateContractDocx } from "@/lib/generateContractDocx";
+import { ContractReservationDialog } from "@/components/contracts/ContractReservationDialog";
 import {
   ResidentLegalDataDialog,
   missingLegalFields,
@@ -275,7 +276,18 @@ const ContractDetail = () => {
           residentId={contract.residentId}
           resident={legalResident}
           missing={legalMissing}
-          onSaved={doGenerate}
+          onSaved={pendingDoc === "reservation" ? doGenerateReservation : doGenerate}
+        />
+      )}
+
+      {contract && (
+        <ContractReservationDialog
+          contractId={contract.id}
+          deadline={reservationValues.deadline}
+          feeAmount={reservationValues.fee}
+          open={reservationOpen}
+          onOpenChange={setReservationOpen}
+          onGenerated={setReservationDoc}
         />
       )}
 
