@@ -60,16 +60,9 @@ const ContractDetail = () => {
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [generatedDoc, setGeneratedDoc] = useState<{ fileName: string; signedUrl: string } | null>(null);
-  const [reservationDoc, setReservationDoc] = useState<{ fileName: string; signedUrl: string } | null>(null);
   const [legalOpen, setLegalOpen] = useState(false);
   const [legalResident, setLegalResident] = useState<ResidentLegalData>({});
   const [legalMissing, setLegalMissing] = useState<LegalField[]>([]);
-  const [pendingDoc, setPendingDoc] = useState<"contract" | "reservation">("contract");
-  const [reservationOpen, setReservationOpen] = useState(false);
-  const [reservationValues, setReservationValues] = useState<{ deadline: string | null; fee: number | null }>({
-    deadline: null,
-    fee: null,
-  });
   const canDelete = paymentsCount === 0;
 
   const doGenerate = async () => {
