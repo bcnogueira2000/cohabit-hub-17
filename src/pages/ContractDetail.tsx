@@ -257,6 +257,15 @@ const ContractDetail = () => {
         </div>
 
         <div className="mt-4 pt-4 border-t border-border grid sm:grid-cols-4 gap-4">
+          <Field label="Renda atual">{eur(contract.currentRent)}</Field>
+          {contract.regularRentAmount != null && (
+            <Field label="Renda regular (após obras)">
+              <span className="flex items-center gap-1.5">
+                <ArrowRight className="h-4 w-4 text-muted-foreground" strokeWidth={1.5} />
+                {eur(contract.regularRentAmount)}
+              </span>
+            </Field>
+          )}
           <Field label="Caução devida">{eur(contract.depositDue)}</Field>
           <Field label="Caução recebida">{eur(contract.depositReceived)}</Field>
           <Field label="Caução devolvida">{eur(contract.depositReturned)}</Field>
