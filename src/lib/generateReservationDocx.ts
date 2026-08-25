@@ -125,10 +125,7 @@ export async function generateReservationDocx(leadId: string): Promise<Generated
     Piso: parsedRoom?.floor != null ? String(parsedRoom.floor) : "",
     Lado: parsedRoom?.side ?? "",
     // O modelo já escreve "EUR" antes do marcador
-    Valor_Taxa_Reserva: new Intl.NumberFormat("pt-PT", {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }).format(fee),
+    Valor_Taxa_Reserva: num2(fee),
     Valor_Taxa_Reserva_Extenso: fee > 0 ? amountToWords(fee, "pt") : "",
     Data_Limite_Reserva: fmtDateLong(l.reservation_deadline, "pt"),
     Data_Limite_Reserva_Curta: fmtDate(l.reservation_deadline),
