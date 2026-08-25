@@ -39,6 +39,8 @@ export interface Lead {
   externalRef: string | null;
   gdprConsent: boolean;
   language: string | null;
+  reservationDeadline: string | null;
+  reservationFeeAmount: number | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -72,6 +74,8 @@ export const mapLead = (r: any): Lead => ({
   externalRef: r.external_ref ?? null,
   gdprConsent: !!r.gdpr_consent,
   language: r.language ?? null,
+  reservationDeadline: r.reservation_deadline ?? null,
+  reservationFeeAmount: r.reservation_fee_amount == null ? null : Number(r.reservation_fee_amount),
   createdAt: r.created_at,
   updatedAt: r.updated_at,
 });
@@ -103,6 +107,8 @@ export interface LeadInput {
   language?: string | null;
   stayId?: string | null;
   contractId?: string | null;
+  reservationDeadline?: string | null;
+  reservationFeeAmount?: number | null;
 }
 
 
@@ -134,6 +140,8 @@ const toDbPatch = (i: Partial<LeadInput>) => {
   if (i.language !== undefined) p.language = i.language;
   if (i.stayId !== undefined) p.stay_id = i.stayId;
   if (i.contractId !== undefined) p.contract_id = i.contractId;
+  if (i.reservationDeadline !== undefined) p.reservation_deadline = i.reservationDeadline;
+  if (i.reservationFeeAmount !== undefined) p.reservation_fee_amount = i.reservationFeeAmount;
 
   return p;
 };

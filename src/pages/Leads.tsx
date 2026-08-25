@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Search, Clock, User as UserIcon, X, ChevronDown, Trash2, LayoutList, Columns3, AlertTriangle, UserCheck, CheckCircle2, ArrowRight } from "lucide-react";
+import { Search, Clock, User as UserIcon, X, ChevronDown, Trash2, LayoutList, Columns3, AlertTriangle, UserCheck, CheckCircle2, ArrowRight, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -45,6 +45,7 @@ import {
 } from "@/components/leads/LeadsPipeline";
 import { leadStatusLabels, leadSourceLabels, leadProfileLabels } from "@/lib/labels";
 import { NewContractDialog } from "@/components/contracts/NewContractDialog";
+import { ReservationAgreementDialog } from "@/components/leads/ReservationAgreementDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -111,6 +112,7 @@ const Leads = () => {
   const [source, setSource] = useState("all");
   const [owner, setOwner] = useState("all");
   const [selected, setSelected] = useState<Lead | null>(null);
+  const [reservationOpen, setReservationOpen] = useState(false);
   const [editStatus, setEditStatus] = useState<LeadStatus>("new");
   const [editOwnerId, setEditOwnerId] = useState<string>("");
   const [editNextAction, setEditNextAction] = useState<string>("");
@@ -754,6 +756,15 @@ const Leads = () => {
                       <UserCheck className="h-4 w-4 mr-1.5" strokeWidth={1.5} /> Criar contrato
                     </Button>
                   )}
+                  {selected.fullName && selected.email && selected.preferredRoomType && (
+                    <Button
+                      variant="outline"
+                      className="w-full rounded-full mt-2"
+                      onClick={() => setReservationOpen(true)}
+                    >
+                      <FileText className="h-4 w-4 mr-1.5" strokeWidth={1.5} /> Gerar acordo de reserva
+                    </Button>
+                  )}
                   {selected.contractId && (
                     <Button asChild variant="outline" className="w-full rounded-full mt-2">
                       <Link to={`/finance/contracts/${selected.contractId}`}>
@@ -769,6 +780,14 @@ const Leads = () => {
           )}
         </DialogContent>
       </Dialog>
+
+      {selected && (
+        <ReservationAgreementDialog
+          lead={selected}
+          open={reservationOpen}
+          onOpenChange={setReservationOpen}
+        />
+      )}
 
       {selected && (
         <NewContractDialog
