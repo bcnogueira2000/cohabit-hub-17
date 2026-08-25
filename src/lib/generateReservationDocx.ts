@@ -44,8 +44,8 @@ const fmtDateLong = (d: string | null | undefined, lang: "pt" | "en" = "pt"): st
     : `${MESES_EN[dt.getMonth()]} ${dt.getDate()}, ${dt.getFullYear()}`;
 };
 
-const eur = (v: number): string =>
-  new Intl.NumberFormat("pt-PT", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(v) + " €";
+const num2 = (v: number): string =>
+  new Intl.NumberFormat("pt-PT", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(v);
 
 const slugifyForPath = (s: string): string =>
   s
