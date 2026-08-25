@@ -47,24 +47,36 @@ export const NewContractDialog = ({ open, onOpenChange, defaults, leadId, onCrea
   const [taxNumber, setTaxNumber] = useState<string>("");
   const [dateOfBirth, setDateOfBirth] = useState<string>("");
 
-  // Pré-preencher a partir da lead de origem (nacionalidade / perfil)
+  // Pré-preencher a partir da lead de origem (dados legais)
   useEffect(() => {
     if (!open || !leadId) return;
     let cancelled = false;
     (async () => {
       const { data: lead } = await supabase
         .from("leads" as any)
-        .select("nationality, profile")
+        .select(
+          "nationality, profile, address, document_number, document_validity, tax_number, date_of_birth, age, gender"
+        )
         .eq("id", leadId)
         .maybeSingle();
       if (cancelled || !lead) return;
       const ln = (lead as any).nationality as string | null;
       const lp = (lead as any).profile as string | null;
+      const ldob = (lead as any).date_of_birth as string | null;
+      const laddr = (lead as any).address as string | null;
+      const ldoc = (lead as any).document_number as string | null;
+      const ldocv = (lead as any).document_validity as string | null;
+      const ltin = (lead as any).tax_number as string | null;
       if (ln) setNationality((v) => v || ln);
       if (lp) {
         const match = PROFILES.find((p) => p.toLowerCase() === String(lp).toLowerCase());
         setProfile((v) => v || match || "Outro");
       }
+      if (ldob) setDateOfBirth((v) => v || String(ldob).split("T")[0]);
+      if (laddr) setAddress((v) => v || laddr);
+      if (ldoc) setDocumentNumber((v) => v || ldoc);
+      if (ldocv) setDocumentValidity((v) => v || String(ldocv).split("T")[0]);
+      if (ltin) setTaxNumber((v) => v || ltin);
     })();
     return () => {
       cancelled = true;
