@@ -35,6 +35,8 @@ export interface Contract {
   depositReturned: number;
   notes: string | null;
   createdAt: string;
+  /** renda regular a aplicar depois do período transitório (null se não aplicável) */
+  regularRentAmount: number | null;
   rentPeriods: RentPeriod[];
   /** valor do escalão em vigor (valid_from mais recente) */
   currentRent: number | null;
@@ -69,6 +71,10 @@ const mapContract = (c: any, balances: Record<string, ContractBalance>): Contrac
     depositReturned: Number(c.deposit_returned ?? 0),
     notes: c.notes ?? null,
     createdAt: c.created_at,
+    regularRentAmount:
+      c.regular_rent_amount === null || c.regular_rent_amount === undefined
+        ? null
+        : Number(c.regular_rent_amount),
     rentPeriods: periods,
     currentRent: periods[0]?.monthlyAmount ?? null,
     balance: balances[c.id] ?? null,
@@ -213,6 +219,69 @@ export const useAddRentPeriod = () => {
       qc.invalidateQueries({ queryKey: ["rent-charges", input.contractId] });
       qc.invalidateQueries({ queryKey: ["rent-current-month"] });
       qc.invalidateQueries({ queryKey: ["contract-stays", input.contractId] });
+    },
+  });
+};
+
+export interface BulkEndTransitionResultItem {
+  contractId: string;
+  residentName: string;
+  ok: boolean;
+  error?: string;
+  locked?: number;
+}
+
+/** Fim do período transitório em bloco: novo escalão + recálculo + limpeza de regular_rent_amount */
+export const useEndTransitionalRentBulk = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: {
+      validFrom: string;
+      contracts: Array<{ id: string; residentName: string; regularRentAmount: number }>;
+    }): Promise<BulkEndTransitionResultItem[]> => {
+      const results: BulkEndTransitionResultItem[] = [];
+      for (const c of input.contracts) {
+        try {
+          const { error } = await supabase.from("contract_rent_periods" as any).insert({
+            contract_id: c.id,
+            valid_from: input.validFrom,
+            monthly_amount: c.regularRentAmount,
+            reason: "Fim do período transitório (obras)",
+          } as any);
+          if (error) throw error;
+
+          const { data, error: rpcErr } = await supabase.rpc("recalculate_rent_charges" as any, {
+            p_contract_id: c.id,
+          });
+          if (rpcErr) throw rpcErr;
+
+          const { error: updErr } = await supabase
+            .from("contracts" as any)
+            .update({ regular_rent_amount: null } as any)
+            .eq("id", c.id);
+          if (updErr) throw updErr;
+
+          results.push({
+            contractId: c.id,
+            residentName: c.residentName,
+            ok: true,
+            locked: (data as any)?.locked_count ?? 0,
+          });
+        } catch (e: any) {
+          results.push({
+            contractId: c.id,
+            residentName: c.residentName,
+            ok: false,
+            error: e?.message ?? "Erro desconhecido",
+          });
+        }
+      }
+      return results;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["contracts"] });
+      qc.invalidateQueries({ queryKey: ["rent-current-month"] });
+      qc.invalidateQueries({ queryKey: ["payments-map"] });
     },
   });
 };
