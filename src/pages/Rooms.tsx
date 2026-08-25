@@ -76,8 +76,8 @@ const statusTone: Record<RoomStatus, string> = {
 // Card surface per status — disponíveis ficam brancos (card default)
 const cardTone: Record<RoomStatus, string> = {
   available: "bg-card border-border/60",
-  occupied: "bg-success/10 border-success/30",
-  reserved: "bg-warning/10 border-warning/30",
+  occupied: "bg-success/15 border-success/40",
+  reserved: "bg-warning/15 border-warning/40",
   maintenance: "bg-warning/10 border-warning/30",
   cleaning_required: "bg-accent/60 border-accent",
   out_of_service: "bg-destructive/10 border-destructive/30",
@@ -217,7 +217,7 @@ const Rooms = () => {
                           const occupantName = resident?.fullName ?? d?.name ?? null;
                           return (
                             <Link key={r.id} to={`/rooms/${r.id}`}>
-                              <Card className={cn("px-3 py-2.5 hover:shadow-elegant transition-smooth cursor-pointer h-full", cardTone[status])}>
+                              <Card className={cn("px-3 py-2.5 transition-smooth cursor-pointer h-full", cardTone[status])}>
                                 <div className="flex items-center gap-2 min-w-0">
                                   <DoorClosed className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
                                   <span className="font-display text-sm font-semibold">{r.number}</span>
