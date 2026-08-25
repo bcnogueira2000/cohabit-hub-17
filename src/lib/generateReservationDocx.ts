@@ -106,9 +106,9 @@ export async function generateReservationDocx(leadId: string): Promise<Generated
   }
   if (!roomNumber) roomNumber = l.preferred_room_type ?? "";
 
-  const fullName = resident?.full_name || l.full_name || "";
-  const nationality = resident?.nationality || l.nationality || "";
-  const email = resident?.email || l.email || "";
+  const fullName = l.full_name || resident?.full_name || "";
+  const nationality = l.nationality || resident?.nationality || "";
+  const email = l.email || resident?.email || "";
   const fee = Number(l.reservation_fee_amount);
   const parsedRoom = roomNumber ? parseRoomNumber(roomNumber) : null;
   const today = new Date();
@@ -117,10 +117,10 @@ export async function generateReservationDocx(leadId: string): Promise<Generated
     Nome_Completo: fullName,
     Nacionalidade_PT: nationality,
     Data_Nascimento: fmtDate(resident?.date_of_birth),
-    Morada_Residencia: resident?.address ?? "",
-    "Nº_Doc_Identificacao": resident?.document_number ?? "",
-    Validade_Doc_Identificacao: fmtDate(resident?.document_validity),
-    NIF: resident?.tax_number || "___ ___ ___",
+    Morada_Residencia: l.address || resident?.address || "",
+    "Nº_Doc_Identificacao": l.document_number || resident?.document_number || "",
+    Validade_Doc_Identificacao: fmtDate(l.document_validity || resident?.document_validity),
+    NIF: l.tax_number || resident?.tax_number || "___ ___ ___",
     "Nº_Quarto": String(roomNumber ?? ""),
     Piso: parsedRoom?.floor != null ? String(parsedRoom.floor) : "",
     Lado: parsedRoom?.side ?? "",
