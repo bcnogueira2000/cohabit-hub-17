@@ -200,7 +200,7 @@ const Rooms = () => {
                         {sorted.map((r) => {
                           const status = effective(r);
                           const d = derived.get(r.id);
-                          const resident = residents.find((p) => p.id === (d?.residentId ?? r.currentResidentId));
+                          const resident = d?.residentId ? residents.find((p) => p.id === d.residentId) : null;
                           const occupantName = resident?.fullName ?? d?.name ?? null;
                           return (
                             <Link key={r.id} to={`/rooms/${r.id}`}>
