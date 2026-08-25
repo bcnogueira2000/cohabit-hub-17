@@ -66,7 +66,7 @@ export const EndTransitionalRentDialog = ({ open, onOpenChange, contracts, roomL
 
   const apply = async () => {
     const res = await bulk.mutateAsync({
-      validFrom: date,
+      validFrom: effectiveFrom,
       contracts: rows.map((c) => ({
         id: c.id,
         residentName: c.residentName,
