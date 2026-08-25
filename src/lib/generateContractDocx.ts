@@ -96,6 +96,7 @@ export async function generateContractDocx(contractId: string): Promise<Generate
   const today = new Date();
   const profileRaw = String(resident.profile ?? "");
   const isStudent = /student|estudante/i.test(profileRaw);
+  const employerOrSchool = String(resident.employer_or_school ?? "").trim();
   const parsedRoom = roomNumber ? parseRoomNumber(roomNumber) : null;
 
   const data: Record<string, string> = {
@@ -108,8 +109,9 @@ export async function generateContractDocx(contractId: string): Promise<Generate
     Validade_Doc_Identificacao: fmtDate(resident.document_validity),
     NIF: resident.tax_number || "___ ___ ___",
     Perfil: profileRaw,
-    Instituicao_Ensino: resident.employer_or_school ?? "",
-    Local_Trabalho: isStudent ? "N/A" : resident.employer_or_school ?? "",
+    Perfil_Profissional: employerOrSchool
+      ? (isStudent ? `Estudante na ${employerOrSchool}` : `trabalhador na ${employerOrSchool}`)
+      : "",
     "Nº_Quarto": String(roomNumber ?? ""),
     Piso: parsedRoom?.floor != null ? String(parsedRoom.floor) : "",
     Lado: parsedRoom?.side ?? "",
