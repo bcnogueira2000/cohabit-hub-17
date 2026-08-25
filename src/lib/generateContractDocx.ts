@@ -3,16 +3,29 @@ import Docxtemplater from "docxtemplater";
 import { supabase } from "@/integrations/supabase/client";
 import { amountToWords } from "@/lib/amountToWords";
 import { compensacaoDenuncia, duracaoContrato } from "@/lib/contractDuration";
+import { isPortuguese, nationalityToEN } from "@/lib/nationalityEN";
 import { parseRoomNumber } from "@/lib/utils";
 
 const TEMPLATE_BUCKET = "contract-templates";
-const TEMPLATE_PATH = "PT_Template.docx";
+const TEMPLATE_PT = "PT_Template.docx";
+const TEMPLATE_BILINGUE = "Bilingue_Template.docx";
 const OUTPUT_BUCKET = "resident-documents";
+
+/** Escolhe o modelo Word conforme a nacionalidade do residente. */
+export function getTemplateForContract(resident: { nationality?: string | null }): string {
+  return isPortuguese(resident?.nationality) ? TEMPLATE_PT : TEMPLATE_BILINGUE;
+}
 
 const MESES_PT = [
   "janeiro", "fevereiro", "março", "abril", "maio", "junho",
   "julho", "agosto", "setembro", "outubro", "novembro", "dezembro",
 ];
+
+const MESES_EN = [
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December",
+];
+
 
 const fmtDate = (d: string | null | undefined): string => {
   if (!d) return "";
@@ -151,14 +164,35 @@ export async function generateContractDocx(contractId: string): Promise<Generate
   }
   setMoney(data, "Valor_Caucao", Number(c.deposit_due ?? 0));
 
-
+  // 1b. Campos em inglês (apenas relevantes no modelo bilingue)
+  const templatePath = getTemplateForContract(resident);
+  if (templatePath === TEMPLATE_BILINGUE) {
+    const wordsEN = (v: number | null) => (v != null && v > 0 ? amountToWords(v, "en") : v == null ? "Not applicable" : "");
+    data.Nacionalidade_EN = nationalityToEN(resident.nationality);
+    data.Mes_Assinatura_EN = MESES_EN[today.getMonth()];
+    data.Duracao_Contrato_EN = duracaoContrato(c.start_date, c.end_date, "en");
+    data.Compensacao_Denuncia_EN = compensacaoDenuncia(c.start_date, c.end_date, "en");
+    data.Perfil_Profissional_EN = employerOrSchool
+      ? (isStudent ? `Student at ${employerOrSchool}` : `working at ${employerOrSchool}`)
+      : "";
+    data.Valor_Remuneracao_Mensal_Extenso_EN = wordsEN(regularRent != null ? regularRent : currentRent);
+    data.Valor_Caucao_Extenso_EN = wordsEN(Number(c.deposit_due ?? 0));
+    if (regularRent != null) {
+      data.Valor_Remuneracao_Transitorio_Extenso_EN = wordsEN(currentRent);
+      data.Valor_Reducao_Extenso_EN = wordsEN(Math.max(0, regularRent - currentRent));
+    } else {
+      data.Valor_Remuneracao_Transitorio_Extenso_EN = "";
+      data.Valor_Reducao_Extenso_EN = "";
+    }
+  }
 
   // 2. Template do Storage
-  const { data: file, error: dlErr } = await supabase.storage.from(TEMPLATE_BUCKET).download(TEMPLATE_PATH);
+  const { data: file, error: dlErr } = await supabase.storage.from(TEMPLATE_BUCKET).download(templatePath);
   if (dlErr || !file) {
-    throw new Error("Modelo PT_Template.docx não encontrado em contract-templates");
+    throw new Error(`Modelo ${templatePath} não encontrado em contract-templates`);
   }
   const buffer = await file.arrayBuffer();
+
 
   // 3. Preencher marcadores «Nome_Campo»
   const zip = new PizZip(buffer);
