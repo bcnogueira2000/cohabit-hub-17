@@ -134,6 +134,15 @@ export const EndTransitionalRentDialog = ({ open, onOpenChange, contracts, roomL
                 }}
                 className="mt-1 w-[200px] rounded-full"
               />
+              {effectiveFrom && (
+                <p className="mt-2 text-xs text-muted-foreground">
+                  A renda regular será aplicada a partir de{" "}
+                  <strong className="text-foreground">
+                    1 de {monthLabel(effectiveFrom, { month: "long", year: "numeric" })}
+                  </strong>{" "}
+                  ({monthLabel(date, { month: "long" })} fica integralmente à renda transitória).
+                </p>
+              )}
             </div>
 
             {step === "confirm" && (
@@ -142,7 +151,7 @@ export const EndTransitionalRentDialog = ({ open, onOpenChange, contracts, roomL
                 <p>
                   Isto vai atualizar <strong>{rows.length}</strong> contrato
                   {rows.length === 1 ? "" : "s"} para a renda regular a partir de{" "}
-                  <strong>{new Date(date).toLocaleDateString("pt-PT")}</strong>. Confirmas?
+                  <strong>{monthLabel(effectiveFrom, { day: "numeric", month: "long", year: "numeric" })}</strong>. Confirmas?
                 </p>
               </div>
             )}
