@@ -426,6 +426,8 @@ export type Database = {
           preferred_room_type: string | null
           profile: string | null
           profile_other: string | null
+          reservation_deadline: string | null
+          reservation_fee_amount: number | null
           source: Database["public"]["Enums"]["lead_source"]
           source_detail: string | null
           status: Database["public"]["Enums"]["lead_status"]
@@ -458,6 +460,8 @@ export type Database = {
           preferred_room_type?: string | null
           profile?: string | null
           profile_other?: string | null
+          reservation_deadline?: string | null
+          reservation_fee_amount?: number | null
           source?: Database["public"]["Enums"]["lead_source"]
           source_detail?: string | null
           status?: Database["public"]["Enums"]["lead_status"]
@@ -490,6 +494,8 @@ export type Database = {
           preferred_room_type?: string | null
           profile?: string | null
           profile_other?: string | null
+          reservation_deadline?: string | null
+          reservation_fee_amount?: number | null
           source?: Database["public"]["Enums"]["lead_source"]
           source_detail?: string | null
           status?: Database["public"]["Enums"]["lead_status"]
