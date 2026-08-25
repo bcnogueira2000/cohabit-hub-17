@@ -23,6 +23,10 @@ describe("duracaoContrato", () => {
   it.each(cases)("%i meses → %s", (months, expected) => {
     expect(duracaoContrato(START, endDate(START, months))).toBe(expected);
   });
+
+  it("último dia do mês conta o mês completo", () => {
+    expect(duracaoContrato("2026-09-01", "2027-08-31")).toBe("12 (doze) meses");
+  });
 });
 
 describe("compensacaoDenuncia", () => {
