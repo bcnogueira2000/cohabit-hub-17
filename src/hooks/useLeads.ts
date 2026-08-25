@@ -107,6 +107,8 @@ export interface LeadInput {
   language?: string | null;
   stayId?: string | null;
   contractId?: string | null;
+  reservationDeadline?: string | null;
+  reservationFeeAmount?: number | null;
 }
 
 
@@ -138,6 +140,8 @@ const toDbPatch = (i: Partial<LeadInput>) => {
   if (i.language !== undefined) p.language = i.language;
   if (i.stayId !== undefined) p.stay_id = i.stayId;
   if (i.contractId !== undefined) p.contract_id = i.contractId;
+  if (i.reservationDeadline !== undefined) p.reservation_deadline = i.reservationDeadline;
+  if (i.reservationFeeAmount !== undefined) p.reservation_fee_amount = i.reservationFeeAmount;
 
   return p;
 };
