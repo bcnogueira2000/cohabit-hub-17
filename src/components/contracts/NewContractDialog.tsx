@@ -80,7 +80,7 @@ export const NewContractDialog = ({ open, onOpenChange, defaults, leadId, onCrea
     const fd = new FormData(e.currentTarget);
     const checkInDate = String(fd.get("checkIn"));
     const checkOutDate = String(fd.get("checkOut"));
-    const paymentDay = Number(fd.get("paymentDay") || 1);
+    const paymentDay = Number(fd.get("paymentDay") || 5);
     const depositDue = Number(fd.get("depositDue") || 0);
     // Com renda transitória: cobra-se a transitória desde já; a regular fica guardada.
     const transitionalAmount = Number(fd.get("transitionalAmount") || 0);
@@ -299,7 +299,7 @@ export const NewContractDialog = ({ open, onOpenChange, defaults, leadId, onCrea
             )}
             <div>
               <Label>Dia de vencimento</Label>
-              <Input name="paymentDay" type="number" min="1" max="28" defaultValue={1} required className="mt-1.5" />
+              <Input name="paymentDay" type="number" min="1" max="28" defaultValue={5} required className="mt-1.5" />
             </div>
             <div>
               <Label>Caução devida (€)</Label>
