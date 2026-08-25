@@ -2,7 +2,9 @@ import { integerToWords } from "@/lib/amountToWords";
 
 function completeMonths(startDate: string, endDate: string): number {
   const s = new Date(startDate);
+  // A data de fim é o último dia incluído, não um limite exclusivo.
   const e = new Date(endDate);
+  e.setDate(e.getDate() + 1);
   let months = (e.getFullYear() - s.getFullYear()) * 12 + (e.getMonth() - s.getMonth());
   if (e.getDate() < s.getDate()) months -= 1;
   return months;
