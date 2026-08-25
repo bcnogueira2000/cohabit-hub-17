@@ -41,6 +41,10 @@ export interface Lead {
   language: string | null;
   reservationDeadline: string | null;
   reservationFeeAmount: number | null;
+  address: string | null;
+  documentNumber: string | null;
+  documentValidity: string | null;
+  taxNumber: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -76,6 +80,10 @@ export const mapLead = (r: any): Lead => ({
   language: r.language ?? null,
   reservationDeadline: r.reservation_deadline ?? null,
   reservationFeeAmount: r.reservation_fee_amount == null ? null : Number(r.reservation_fee_amount),
+  address: r.address ?? null,
+  documentNumber: r.document_number ?? null,
+  documentValidity: r.document_validity ?? null,
+  taxNumber: r.tax_number ?? null,
   createdAt: r.created_at,
   updatedAt: r.updated_at,
 });
@@ -109,6 +117,10 @@ export interface LeadInput {
   contractId?: string | null;
   reservationDeadline?: string | null;
   reservationFeeAmount?: number | null;
+  address?: string | null;
+  documentNumber?: string | null;
+  documentValidity?: string | null;
+  taxNumber?: string | null;
 }
 
 
@@ -142,6 +154,10 @@ const toDbPatch = (i: Partial<LeadInput>) => {
   if (i.contractId !== undefined) p.contract_id = i.contractId;
   if (i.reservationDeadline !== undefined) p.reservation_deadline = i.reservationDeadline;
   if (i.reservationFeeAmount !== undefined) p.reservation_fee_amount = i.reservationFeeAmount;
+  if (i.address !== undefined) p.address = i.address;
+  if (i.documentNumber !== undefined) p.document_number = i.documentNumber;
+  if (i.documentValidity !== undefined) p.document_validity = i.documentValidity;
+  if (i.taxNumber !== undefined) p.tax_number = i.taxNumber;
 
   return p;
 };
