@@ -164,14 +164,35 @@ export async function generateContractDocx(contractId: string): Promise<Generate
   }
   setMoney(data, "Valor_Caucao", Number(c.deposit_due ?? 0));
 
-
+  // 1b. Campos em inglês (apenas relevantes no modelo bilingue)
+  const templatePath = getTemplateForContract(resident);
+  if (templatePath === TEMPLATE_BILINGUE) {
+    const wordsEN = (v: number | null) => (v != null && v > 0 ? amountToWords(v, "en") : v == null ? "Not applicable" : "");
+    data.Nacionalidade_EN = nationalityToEN(resident.nationality);
+    data.Mes_Assinatura_EN = MESES_EN[today.getMonth()];
+    data.Duracao_Contrato_EN = duracaoContrato(c.start_date, c.end_date, "en");
+    data.Compensacao_Denuncia_EN = compensacaoDenuncia(c.start_date, c.end_date, "en");
+    data.Perfil_Profissional_EN = employerOrSchool
+      ? (isStudent ? `Student at ${employerOrSchool}` : `working at ${employerOrSchool}`)
+      : "";
+    data.Valor_Remuneracao_Mensal_Extenso_EN = wordsEN(regularRent != null ? regularRent : currentRent);
+    data.Valor_Caucao_Extenso_EN = wordsEN(Number(c.deposit_due ?? 0));
+    if (regularRent != null) {
+      data.Valor_Remuneracao_Transitorio_Extenso_EN = wordsEN(currentRent);
+      data.Valor_Reducao_Extenso_EN = wordsEN(Math.max(0, regularRent - currentRent));
+    } else {
+      data.Valor_Remuneracao_Transitorio_Extenso_EN = "";
+      data.Valor_Reducao_Extenso_EN = "";
+    }
+  }
 
   // 2. Template do Storage
-  const { data: file, error: dlErr } = await supabase.storage.from(TEMPLATE_BUCKET).download(TEMPLATE_PATH);
+  const { data: file, error: dlErr } = await supabase.storage.from(TEMPLATE_BUCKET).download(templatePath);
   if (dlErr || !file) {
-    throw new Error("Modelo PT_Template.docx não encontrado em contract-templates");
+    throw new Error(`Modelo ${templatePath} não encontrado em contract-templates`);
   }
   const buffer = await file.arrayBuffer();
+
 
   // 3. Preencher marcadores «Nome_Campo»
   const zip = new PizZip(buffer);
