@@ -74,6 +74,8 @@ export const mapLead = (r: any): Lead => ({
   externalRef: r.external_ref ?? null,
   gdprConsent: !!r.gdpr_consent,
   language: r.language ?? null,
+  reservationDeadline: r.reservation_deadline ?? null,
+  reservationFeeAmount: r.reservation_fee_amount == null ? null : Number(r.reservation_fee_amount),
   createdAt: r.created_at,
   updatedAt: r.updated_at,
 });
