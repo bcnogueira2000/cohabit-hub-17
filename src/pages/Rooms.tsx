@@ -1,11 +1,54 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { DoorClosed, User } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 import { Card } from "@/components/ui/card";
-import { useRooms, useResidents, useStays } from "@/hooks/useData";
+import { useRooms, useResidents } from "@/hooks/useData";
 import { roomStatusLabels } from "@/lib/labels";
-import { Room, RoomStatus } from "@/lib/types";
+import { Room, RoomStatus, StayStatus } from "@/lib/types";
 import { cn, parseRoomNumber, type RoomSide } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
+import { ContractStatus } from "@/hooks/useContracts";
+
+type StayWithContract = {
+  id: string;
+  roomId: string | null;
+  residentId: string | null;
+  fullName: string;
+  status: StayStatus;
+  contractId: string | null;
+  contract: {
+    id: string;
+    status: ContractStatus;
+    startDate: string;
+    endDate: string;
+    actualEndDate: string | null;
+  } | null;
+};
+
+const useRoomStays = () =>
+  useQuery({
+    queryKey: ["room-stays-with-contracts"],
+    queryFn: async (): Promise<StayWithContract[]> => {
+      const { data, error } = await supabase
+        .from("stays" as any)
+        .select(
+          "id, room_id, resident_id, full_name, status, contract_id, contract:contracts(id, status, start_date, end_date, actual_end_date)"
+        )
+        .not("room_id", "is", null)
+        .order("check_in", { ascending: true });
+      if (error) throw error;
+      return (data ?? []).map((s: any) => ({
+        id: s.id,
+        roomId: s.room_id,
+        residentId: s.resident_id,
+        fullName: s.full_name,
+        status: s.status,
+        contractId: s.contract_id,
+        contract: s.contract,
+      }));
+    },
+  });
 
 // Badge tone per status
 const statusTone: Record<RoomStatus, string> = {
@@ -46,17 +89,33 @@ const sideLabels: Record<RoomSide, string> = {
 const Rooms = () => {
   const { data: rooms = [] } = useRooms();
   const { data: residents = [] } = useResidents();
-  const { data: stays = [] } = useStays();
+  const { data: stays = [] } = useRoomStays();
   const [filter, setFilter] = useState<RoomStatus | "all">("all");
+  const today = new Date().toISOString().slice(0, 10);
 
   // Estado efetivo derivado das estadias/contratos:
-  // sem estadia ativa -> disponível; estadia futura/confirmada -> reservado; check-in feito -> ocupado.
+  // - estadia com contrato: ocupação/receita vem das DATAS do contrato
+  // - estadia sem contrato: mantém regra antiga por status (confirmed/reserved, checked_in/occupied)
   const derived = useMemo(() => {
     const map = new Map<string, { status: RoomStatus; residentId: string | null; name: string | null }>();
     for (const s of stays) {
       if (!s.roomId) continue;
       if (s.status === "checked_out" || s.status === "cancelled") continue;
-      const status: RoomStatus = s.status === "checked_in" ? "occupied" : "reserved";
+
+      let status: RoomStatus | null = null;
+      if (s.contractId && s.contract) {
+        if (s.contract.status === "cancelled") continue;
+        const start = s.contract.startDate;
+        const end = s.contract.actualEndDate ?? s.contract.endDate;
+        if (end < today) continue; // contrato já terminado
+        status = start > today ? "reserved" : "occupied";
+      } else {
+        // estadia sem contrato (obras/uso interno): comportamento antigo
+        if (s.status === "confirmed") status = "reserved";
+        else if (s.status === "checked_in") status = "occupied";
+      }
+      if (!status) continue;
+
       const current = map.get(s.roomId);
       // ocupado tem prioridade sobre reservado
       if (!current || (current.status === "reserved" && status === "occupied")) {
@@ -64,7 +123,7 @@ const Rooms = () => {
       }
     }
     return map;
-  }, [stays]);
+  }, [stays, today]);
 
   const effective = (r: Room): RoomStatus => {
     const d = derived.get(r.id);
