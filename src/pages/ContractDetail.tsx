@@ -60,9 +60,16 @@ const ContractDetail = () => {
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [generatedDoc, setGeneratedDoc] = useState<{ fileName: string; signedUrl: string } | null>(null);
+  const [reservationDoc, setReservationDoc] = useState<{ fileName: string; signedUrl: string } | null>(null);
   const [legalOpen, setLegalOpen] = useState(false);
   const [legalResident, setLegalResident] = useState<ResidentLegalData>({});
   const [legalMissing, setLegalMissing] = useState<LegalField[]>([]);
+  const [pendingDoc, setPendingDoc] = useState<"contract" | "reservation">("contract");
+  const [reservationOpen, setReservationOpen] = useState(false);
+  const [reservationValues, setReservationValues] = useState<{ deadline: string | null; fee: number | null }>({
+    deadline: null,
+    fee: null,
+  });
   const canDelete = paymentsCount === 0;
 
   const doGenerate = async () => {
@@ -79,31 +86,67 @@ const ContractDetail = () => {
     }
   };
 
+  /** Devolve true se os dados legais estiverem completos; senão abre o formulário. */
+  const ensureLegalData = async (target: "contract" | "reservation") => {
+    if (!contract) return false;
+    const { data: resident, error } = await supabase
+      .from("residents" as any)
+      .select("nationality, date_of_birth, address, document_number, document_validity, profile, employer_or_school")
+      .eq("id", contract.residentId)
+      .maybeSingle();
+    if (error) throw error;
+    const missing = missingLegalFields(resident as any);
+    if (missing.length > 0) {
+      setLegalResident((resident ?? {}) as any);
+      setLegalMissing(missing);
+      setPendingDoc(target);
+      setLegalOpen(true);
+      return false;
+    }
+    return true;
+  };
+
+  const doGenerateReservation = async () => {
+    if (!contract) return;
+    const { data, error } = await supabase
+      .from("contracts" as any)
+      .select("reservation_deadline, reservation_fee_amount")
+      .eq("id", contract.id)
+      .maybeSingle();
+    if (error) throw error;
+    const deadline = (data as any)?.reservation_deadline ?? null;
+    const fee = (data as any)?.reservation_fee_amount == null ? null : Number((data as any).reservation_fee_amount);
+    setReservationValues({ deadline, fee });
+    setReservationOpen(true);
+  };
+
   const handleGenerate = async () => {
     if (!contract) return;
     setGenerating(true);
     try {
-      const { data: resident, error } = await supabase
-        .from("residents" as any)
-        .select("nationality, date_of_birth, address, document_number, document_validity, profile, employer_or_school")
-        .eq("id", contract.residentId)
-        .maybeSingle();
-      if (error) throw error;
-      const missing = missingLegalFields(resident as any);
-      if (missing.length > 0) {
-        setLegalResident((resident ?? {}) as any);
-        setLegalMissing(missing);
-        setLegalOpen(true);
-        setGenerating(false);
-        return;
-      }
+      const ok = await ensureLegalData("contract");
+      if (!ok) return;
     } catch (err: any) {
       toast.error(err?.message ?? "Não foi possível verificar os dados do residente");
-      setGenerating(false);
       return;
+    } finally {
+      setGenerating(false);
     }
-    setGenerating(false);
     await doGenerate();
+  };
+
+  const handleGenerateReservation = async () => {
+    if (!contract) return;
+    setGenerating(true);
+    try {
+      const ok = await ensureLegalData("reservation");
+      if (!ok) return;
+      await doGenerateReservation();
+    } catch (err: any) {
+      toast.error(err?.message ?? "Não foi possível preparar o acordo de reserva");
+    } finally {
+      setGenerating(false);
+    }
   };
 
   const handleDelete = async () => {
