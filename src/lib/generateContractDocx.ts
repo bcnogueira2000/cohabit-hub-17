@@ -137,19 +137,15 @@ export async function generateContractDocx(contractId: string): Promise<Generate
 
   if (regularRent != null) {
     setMoney(data, "Valor_Remuneracao_Mensal", regularRent);
-    setMoney(data, "Valor_Remuneracao_Periodo_Transitorio", currentRent);
-    setMoney(data, "Valor_Reducao_Periodo_Transitorio", Math.max(0, regularRent - currentRent));
+    setMoney(data, "Valor_Remuneracao_Transitorio", currentRent);
+    setMoney(data, "Valor_Reducao", Math.max(0, regularRent - currentRent));
   } else {
     setMoney(data, "Valor_Remuneracao_Mensal", currentRent);
-    setMoney(data, "Valor_Remuneracao_Periodo_Transitorio", null);
-    setMoney(data, "Valor_Reducao_Periodo_Transitorio", null);
+    setMoney(data, "Valor_Remuneracao_Transitorio", null);
+    setMoney(data, "Valor_Reducao", null);
   }
   setMoney(data, "Valor_Caucao", Number(c.deposit_due ?? 0));
-  // Aliases "_Extenso_PT" usados pelo modelo
-  data.Valor_Remuneracao_Mensal_Extenso_PT = data.Valor_Remuneracao_Mensal_Extenso;
-  data.Valor_Remuneracao_Transitorio_Extenso_PT = data.Valor_Remuneracao_Periodo_Transitorio_Extenso;
-  data.Valor_Reducao_Extenso_PT = data.Valor_Reducao_Periodo_Transitorio_Extenso;
-  data.Valor_Caucao_Extenso_PT = data.Valor_Caucao_Extenso;
+
 
 
   // 2. Template do Storage
