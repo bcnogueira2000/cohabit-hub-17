@@ -175,8 +175,7 @@ export async function generateReservationDocx(leadId: string): Promise<Generated
   // 5. Guardar
   const displayName = (fullName || "Residente").trim();
   const fileName = `Acordo_Reserva_${displayName}.docx`;
-  const folder = resident?.id || leadId;
-  const path = `${folder}/reserva-${slugifyForPath(displayName)}.docx`;
+  const path = `leads/${leadId}/reserva-${slugifyForPath(displayName)}.docx`;
   const { error: upErr } = await supabase.storage.from(OUTPUT_BUCKET).upload(path, out, {
     upsert: true,
     contentType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
