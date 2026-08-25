@@ -66,8 +66,8 @@ const useRoomStays = () =>
 // Badge tone per status
 const statusTone: Record<RoomStatus, string> = {
   available: "bg-muted text-muted-foreground border-border",
-  occupied: "bg-primary/15 text-primary border-primary/30",
-  reserved: "bg-info/15 text-info border-info/30",
+  occupied: "bg-success/15 text-success border-success/30",
+  reserved: "bg-warning/15 text-warning border-warning/30",
   maintenance: "bg-warning/20 text-warning border-warning/40",
   cleaning_required: "bg-accent text-accent-foreground border-accent",
   out_of_service: "bg-destructive/10 text-destructive border-destructive/30",
@@ -76,8 +76,8 @@ const statusTone: Record<RoomStatus, string> = {
 // Card surface per status — disponíveis ficam brancos (card default)
 const cardTone: Record<RoomStatus, string> = {
   available: "bg-card border-border/60",
-  occupied: "bg-primary/10 border-primary/30",
-  reserved: "bg-info/10 border-info/30",
+  occupied: "bg-success/10 border-success/30",
+  reserved: "bg-warning/10 border-warning/30",
   maintenance: "bg-warning/10 border-warning/30",
   cleaning_required: "bg-accent/60 border-accent",
   out_of_service: "bg-destructive/10 border-destructive/30",
