@@ -299,7 +299,7 @@ export const NewContractDialog = ({ open, onOpenChange, defaults, leadId, onCrea
             )}
             <div>
               <Label>Dia de vencimento</Label>
-              <Input name="paymentDay" type="number" min="1" max="28" defaultValue={1} required className="mt-1.5" />
+              <Input name="paymentDay" type="number" min="1" max="28" defaultValue={5} required className="mt-1.5" />
             </div>
             <div>
               <Label>Caução devida (€)</Label>
