@@ -122,19 +122,29 @@ export const NewContractDialog = ({ open, onOpenChange, defaults, leadId, onCrea
 
       // 1b. Copiar dados da lead de origem para o residente (só campos vazios)
       if (leadId) {
+        const COPY_FIELDS = [
+          "nationality",
+          "profile",
+          "age",
+          "gender",
+          "address",
+          "document_number",
+          "document_validity",
+          "tax_number",
+        ] as const;
         const { data: lead } = await supabase
           .from("leads" as any)
-          .select("nationality, profile, age, gender")
+          .select(COPY_FIELDS.join(", "))
           .eq("id", leadId)
           .maybeSingle();
         const { data: res } = await supabase
           .from("residents" as any)
-          .select("nationality, profile, age, gender")
+          .select(COPY_FIELDS.join(", "))
           .eq("id", residentId)
           .maybeSingle();
         if (lead) {
           const patch: Record<string, any> = {};
-          (["nationality", "profile", "age", "gender"] as const).forEach((k) => {
+          COPY_FIELDS.forEach((k) => {
             const leadVal = (lead as any)[k];
             const resVal = (res as any)?.[k];
             if (leadVal && !resVal) patch[k] = leadVal;
