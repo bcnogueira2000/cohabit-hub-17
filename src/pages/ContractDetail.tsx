@@ -169,20 +169,10 @@ const ContractDetail = () => {
             <FileText className="h-4 w-4 mr-1.5" strokeWidth={1.5} />
             {generating ? "A gerar…" : "Gerar contrato"}
           </Button>
-          <Button variant="outline" size="sm" onClick={handleGenerateReservation} disabled={generating}>
-            <FileSignature className="h-4 w-4 mr-1.5" strokeWidth={1.5} /> Gerar acordo de reserva
-          </Button>
           {generatedDoc?.signedUrl && (
             <Button asChild variant="ghost" size="sm">
               <a href={generatedDoc.signedUrl} target="_blank" rel="noreferrer" download={generatedDoc.fileName}>
                 <Download className="h-4 w-4 mr-1.5" strokeWidth={1.5} /> {generatedDoc.fileName}
-              </a>
-            </Button>
-          )}
-          {reservationDoc?.signedUrl && (
-            <Button asChild variant="ghost" size="sm">
-              <a href={reservationDoc.signedUrl} target="_blank" rel="noreferrer" download={reservationDoc.fileName}>
-                <Download className="h-4 w-4 mr-1.5" strokeWidth={1.5} /> {reservationDoc.fileName}
               </a>
             </Button>
           )}
@@ -239,18 +229,7 @@ const ContractDetail = () => {
           residentId={contract.residentId}
           resident={legalResident}
           missing={legalMissing}
-          onSaved={pendingDoc === "reservation" ? doGenerateReservation : doGenerate}
-        />
-      )}
-
-      {contract && (
-        <ContractReservationDialog
-          contractId={contract.id}
-          deadline={reservationValues.deadline}
-          feeAmount={reservationValues.fee}
-          open={reservationOpen}
-          onOpenChange={setReservationOpen}
-          onGenerated={setReservationDoc}
+          onSaved={doGenerate}
         />
       )}
 
