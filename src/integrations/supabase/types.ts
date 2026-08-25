@@ -409,12 +409,15 @@ export type Database = {
       }
       leads: {
         Row: {
+          address: string | null
           age: string | null
           assigned_to: string | null
           assigned_to_user_id: string | null
           budget_range: string | null
           contract_id: string | null
           created_at: string
+          document_number: string | null
+          document_validity: string | null
           email: string
           external_ref: string | null
           full_name: string
@@ -439,16 +442,20 @@ export type Database = {
           status: Database["public"]["Enums"]["lead_status"]
           stay_duration: string | null
           stay_id: string | null
+          tax_number: string | null
           updated_at: string
           what_brings_them: string | null
         }
         Insert: {
+          address?: string | null
           age?: string | null
           assigned_to?: string | null
           assigned_to_user_id?: string | null
           budget_range?: string | null
           contract_id?: string | null
           created_at?: string
+          document_number?: string | null
+          document_validity?: string | null
           email: string
           external_ref?: string | null
           full_name: string
@@ -473,16 +480,20 @@ export type Database = {
           status?: Database["public"]["Enums"]["lead_status"]
           stay_duration?: string | null
           stay_id?: string | null
+          tax_number?: string | null
           updated_at?: string
           what_brings_them?: string | null
         }
         Update: {
+          address?: string | null
           age?: string | null
           assigned_to?: string | null
           assigned_to_user_id?: string | null
           budget_range?: string | null
           contract_id?: string | null
           created_at?: string
+          document_number?: string | null
+          document_validity?: string | null
           email?: string
           external_ref?: string | null
           full_name?: string
@@ -507,6 +518,7 @@ export type Database = {
           status?: Database["public"]["Enums"]["lead_status"]
           stay_duration?: string | null
           stay_id?: string | null
+          tax_number?: string | null
           updated_at?: string
           what_brings_them?: string | null
         }
