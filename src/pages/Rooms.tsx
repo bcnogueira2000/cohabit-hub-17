@@ -26,6 +26,19 @@ type StayWithContract = {
   } | null;
 };
 
+const mapContract = (contract: any): StayWithContract["contract"] => {
+  const value = Array.isArray(contract) ? contract[0] : contract;
+  if (!value) return null;
+
+  return {
+    id: value.id,
+    status: value.status,
+    startDate: value.start_date,
+    endDate: value.end_date,
+    actualEndDate: value.actual_end_date,
+  };
+};
+
 const useRoomStays = () =>
   useQuery({
     queryKey: ["room-stays-with-contracts"],
@@ -45,7 +58,7 @@ const useRoomStays = () =>
         fullName: s.full_name,
         status: s.status,
         contractId: s.contract_id,
-        contract: s.contract,
+        contract: mapContract(s.contract),
       }));
     },
   });
