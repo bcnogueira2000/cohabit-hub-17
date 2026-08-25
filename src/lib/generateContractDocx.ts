@@ -189,7 +189,9 @@ export async function generateContractDocx(contractId: string): Promise<Generate
     .update({ signed_at: new Date().toISOString() } as any)
     .eq("id", contractId);
 
-  const { data: signed } = await supabase.storage.from(OUTPUT_BUCKET).createSignedUrl(path, 60 * 60);
+  const { data: signed } = await supabase.storage
+    .from(OUTPUT_BUCKET)
+    .createSignedUrl(path, 60 * 60, { download: fileName });
 
   return { path, fileName, signedUrl: signed?.signedUrl ?? "" };
 }
