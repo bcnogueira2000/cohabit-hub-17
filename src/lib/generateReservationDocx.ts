@@ -141,6 +141,7 @@ export async function generateReservationDocx(leadId: string): Promise<Generated
   data.Validade_Documento = data.Validade_Doc_Identificacao;
   data.Numero_Quarto = data["Nº_Quarto"];
   data.Mes_Assinatura = data.Mes_Assinatura_PT;
+  data.Valor_Taxa_Reserva_Extenso_PT = data.Valor_Taxa_Reserva_Extenso;
 
   const templatePath = getTemplateForReservation({ nationality });
   if (templatePath === TEMPLATE_BILINGUE) {
