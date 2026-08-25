@@ -40,6 +40,19 @@ export const EndTransitionalRentDialog = ({ open, onOpenChange, contracts, roomL
     [contracts]
   );
 
+  // A renda regular só se aplica a meses completos: dia 1 do mês seguinte ao fim das obras.
+  const effectiveFrom = useMemo(() => {
+    if (!date) return "";
+    const [y, m] = date.split("-").map(Number);
+    if (!y || !m) return "";
+    const ny = m === 12 ? y + 1 : y;
+    const nm = m === 12 ? 1 : m + 1;
+    return `${ny}-${String(nm).padStart(2, "0")}-01`;
+  }, [date]);
+
+  const monthLabel = (iso: string, opts: Intl.DateTimeFormatOptions) =>
+    iso ? new Date(`${iso}T00:00:00`).toLocaleDateString("pt-PT", opts) : "";
+
   const reset = () => {
     setDate("");
     setStep("form");
@@ -53,7 +66,7 @@ export const EndTransitionalRentDialog = ({ open, onOpenChange, contracts, roomL
 
   const apply = async () => {
     const res = await bulk.mutateAsync({
-      validFrom: date,
+      validFrom: effectiveFrom,
       contracts: rows.map((c) => ({
         id: c.id,
         residentName: c.residentName,
@@ -121,6 +134,15 @@ export const EndTransitionalRentDialog = ({ open, onOpenChange, contracts, roomL
                 }}
                 className="mt-1 w-[200px] rounded-full"
               />
+              {effectiveFrom && (
+                <p className="mt-2 text-xs text-muted-foreground">
+                  A renda regular será aplicada a partir de{" "}
+                  <strong className="text-foreground">
+                    1 de {monthLabel(effectiveFrom, { month: "long", year: "numeric" })}
+                  </strong>{" "}
+                  ({monthLabel(date, { month: "long" })} fica integralmente à renda transitória).
+                </p>
+              )}
             </div>
 
             {step === "confirm" && (
@@ -129,7 +151,7 @@ export const EndTransitionalRentDialog = ({ open, onOpenChange, contracts, roomL
                 <p>
                   Isto vai atualizar <strong>{rows.length}</strong> contrato
                   {rows.length === 1 ? "" : "s"} para a renda regular a partir de{" "}
-                  <strong>{new Date(date).toLocaleDateString("pt-PT")}</strong>. Confirmas?
+                  <strong>{monthLabel(effectiveFrom, { day: "numeric", month: "long", year: "numeric" })}</strong>. Confirmas?
                 </p>
               </div>
             )}
