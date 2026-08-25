@@ -11,6 +11,7 @@ import { useContracts, useStaysByContract } from "@/hooks/useContracts";
 import { useTypologyPricing } from "@/hooks/usePricing";
 import { ContractStatusBadge, contractStatusLabels } from "@/components/contracts/ContractStatusBadge";
 import { NewContractDialog } from "@/components/contracts/NewContractDialog";
+import { EndTransitionalRentDialog } from "@/components/contracts/EndTransitionalRentDialog";
 import { useRooms } from "@/hooks/useData";
 
 
@@ -32,10 +33,19 @@ const Contracts = () => {
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [transitionalOpen, setTransitionalOpen] = useState(false);
 
   const typologies = useMemo(
     () => Array.from(new Set(rooms.map((r) => String(r.typology)).filter(Boolean))).sort() as string[],
     [rooms]
+  );
+
+  const transitionalContracts = useMemo(
+    () =>
+      contracts.filter(
+        (c) => c.regularRentAmount != null && c.status !== "cancelled" && c.status !== "terminated"
+      ),
+    [contracts]
   );
 
   const roomOf = (contractId: string) => {
@@ -118,9 +128,21 @@ const Contracts = () => {
             {contracts.length} contrato{contracts.length === 1 ? "" : "s"} registado{contracts.length === 1 ? "" : "s"}
           </p>
         </div>
-        <Button className="rounded-full" onClick={() => setDialogOpen(true)}>
-          <Plus className="h-4 w-4 mr-1.5" strokeWidth={1.5} /> Novo contrato
-        </Button>
+        <div className="flex items-center gap-2">
+          {transitionalContracts.length > 0 && (
+            <Button
+              variant="outline"
+              className="rounded-full"
+              onClick={() => setTransitionalOpen(true)}
+            >
+              <CalendarClock className="h-4 w-4 mr-1.5" strokeWidth={1.5} /> Terminar Período
+              Transitório
+            </Button>
+          )}
+          <Button className="rounded-full" onClick={() => setDialogOpen(true)}>
+            <Plus className="h-4 w-4 mr-1.5" strokeWidth={1.5} /> Novo contrato
+          </Button>
+        </div>
       </div>
 
       {/* KPIs */}
@@ -256,6 +278,13 @@ const Contracts = () => {
           </table>
         </Card>
       )}
+
+      <EndTransitionalRentDialog
+        open={transitionalOpen}
+        onOpenChange={setTransitionalOpen}
+        contracts={transitionalContracts}
+        roomLabel={(id) => roomOf(id)?.number ?? "—"}
+      />
 
       <NewContractDialog
         open={dialogOpen}
