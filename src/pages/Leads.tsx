@@ -756,7 +756,10 @@ const Leads = () => {
                       <UserCheck className="h-4 w-4 mr-1.5" strokeWidth={1.5} /> Criar contrato
                     </Button>
                   )}
-                  {selected.fullName && selected.email && selected.preferredRoomType && (
+                  {selected.fullName &&
+                    selected.email &&
+                    selected.preferredRoomType &&
+                    ["proposal_sent", "negotiating", "won"].includes(selected.status) && (
                     <Button
                       variant="outline"
                       className="w-full rounded-full mt-2"
