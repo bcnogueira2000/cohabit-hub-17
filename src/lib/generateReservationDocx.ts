@@ -44,8 +44,8 @@ const fmtDateLong = (d: string | null | undefined, lang: "pt" | "en" = "pt"): st
     : `${MESES_EN[dt.getMonth()]} ${dt.getDate()}, ${dt.getFullYear()}`;
 };
 
-const eur = (v: number): string =>
-  new Intl.NumberFormat("pt-PT", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(v) + " €";
+const num2 = (v: number): string =>
+  new Intl.NumberFormat("pt-PT", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(v);
 
 const slugifyForPath = (s: string): string =>
   s
@@ -124,7 +124,8 @@ export async function generateReservationDocx(leadId: string): Promise<Generated
     "Nº_Quarto": String(roomNumber ?? ""),
     Piso: parsedRoom?.floor != null ? String(parsedRoom.floor) : "",
     Lado: parsedRoom?.side ?? "",
-    Valor_Taxa_Reserva: eur(fee),
+    // O modelo já escreve "EUR" antes do marcador
+    Valor_Taxa_Reserva: num2(fee),
     Valor_Taxa_Reserva_Extenso: fee > 0 ? amountToWords(fee, "pt") : "",
     Data_Limite_Reserva: fmtDateLong(l.reservation_deadline, "pt"),
     Data_Limite_Reserva_Curta: fmtDate(l.reservation_deadline),
@@ -141,6 +142,7 @@ export async function generateReservationDocx(leadId: string): Promise<Generated
   data.Validade_Documento = data.Validade_Doc_Identificacao;
   data.Numero_Quarto = data["Nº_Quarto"];
   data.Mes_Assinatura = data.Mes_Assinatura_PT;
+  data.Valor_Taxa_Reserva_Extenso_PT = data.Valor_Taxa_Reserva_Extenso;
 
   const templatePath = getTemplateForReservation({ nationality });
   if (templatePath === TEMPLATE_BILINGUE) {
