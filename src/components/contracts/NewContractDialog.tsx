@@ -348,25 +348,25 @@ export const NewContractDialog = ({ open, onOpenChange, defaults, leadId, onCrea
               </div>
               <div>
                 <Label>Data de nascimento</Label>
-                <Input name="dateOfBirth" type="date" className="mt-1.5" />
+                <Input name="dateOfBirth" type="date" value={dateOfBirth} onChange={(e) => setDateOfBirth(e.target.value)} className="mt-1.5" />
               </div>
             </div>
             <div>
               <Label>Morada de residência</Label>
-              <Input name="address" className="mt-1.5" />
+              <Input name="address" value={address} onChange={(e) => setAddress(e.target.value)} className="mt-1.5" />
             </div>
             <div className="grid grid-cols-3 gap-3">
               <div>
                 <Label>Nº do documento</Label>
-                <Input name="documentNumber" className="mt-1.5" />
+                <Input name="documentNumber" value={documentNumber} onChange={(e) => setDocumentNumber(e.target.value)} className="mt-1.5" />
               </div>
               <div>
                 <Label>Validade</Label>
-                <Input name="documentValidity" type="date" className="mt-1.5" />
+                <Input name="documentValidity" type="date" value={documentValidity} onChange={(e) => setDocumentValidity(e.target.value)} className="mt-1.5" />
               </div>
               <div>
                 <Label>NIF</Label>
-                <Input name="taxNumber" className="mt-1.5" />
+                <Input name="taxNumber" value={taxNumber} onChange={(e) => setTaxNumber(e.target.value)} className="mt-1.5" />
               </div>
             </div>
             <div className="grid grid-cols-2 gap-3">
