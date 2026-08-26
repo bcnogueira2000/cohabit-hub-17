@@ -209,7 +209,7 @@ export async function generateContractDocx(contractId: string): Promise<Generate
   });
 
   // 4. Guardar
-  const residentName = String(resident.full_name ?? "").trim() || "Residente";
+  const residentName = shortName(resident.full_name) || "Residente";
   const roomPart = roomNumber ? `${roomNumber}_` : "";
   const fileName = `Contrato_${roomPart}${residentName}.docx`;
   const safeFileName = `${slugifyForPath(`Contrato_${roomPart}${residentName}`)}.docx`;

@@ -173,7 +173,7 @@ export async function generateReservationDocx(leadId: string): Promise<Generated
   });
 
   // 5. Guardar
-  const displayName = (fullName || "Residente").trim();
+  const displayName = shortName(fullName) || "Residente";
   const fileName = `Acordo_Reserva_${displayName}.docx`;
   const path = `leads/${leadId}/reserva-${slugifyForPath(displayName)}.docx`;
   const { error: upErr } = await supabase.storage.from(OUTPUT_BUCKET).upload(path, out, {
