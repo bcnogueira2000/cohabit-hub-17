@@ -43,7 +43,6 @@ export type Database = {
           location_id: string | null
           notes: string | null
           resident_id: string | null
-          space_id_deprecated: string | null
           start_at: string
           title: string
         }
@@ -54,7 +53,6 @@ export type Database = {
           location_id?: string | null
           notes?: string | null
           resident_id?: string | null
-          space_id_deprecated?: string | null
           start_at: string
           title: string
         }
@@ -65,7 +63,6 @@ export type Database = {
           location_id?: string | null
           notes?: string | null
           resident_id?: string | null
-          space_id_deprecated?: string | null
           start_at?: string
           title?: string
         }
@@ -82,13 +79,6 @@ export type Database = {
             columns: ["resident_id"]
             isOneToOne: false
             referencedRelation: "residents"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "bookings_space_id_fkey"
-            columns: ["space_id_deprecated"]
-            isOneToOne: false
-            referencedRelation: "spaces_deprecated"
             referencedColumns: ["id"]
           },
         ]
@@ -1272,33 +1262,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
-      }
-      spaces_deprecated: {
-        Row: {
-          active: boolean
-          capacity: number
-          created_at: string
-          description: string | null
-          id: string
-          name: string
-        }
-        Insert: {
-          active?: boolean
-          capacity?: number
-          created_at?: string
-          description?: string | null
-          id?: string
-          name: string
-        }
-        Update: {
-          active?: boolean
-          capacity?: number
-          created_at?: string
-          description?: string | null
-          id?: string
-          name?: string
-        }
-        Relationships: []
       }
       stays: {
         Row: {
