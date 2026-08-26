@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { amountToWords } from "@/lib/amountToWords";
 import { compensacaoDenuncia, duracaoContrato } from "@/lib/contractDuration";
 import { isPortuguese, nationalityToEN } from "@/lib/nationalityEN";
-import { parseRoomNumber } from "@/lib/utils";
+import { parseRoomNumber, shortName } from "@/lib/utils";
 
 const TEMPLATE_BUCKET = "contract-templates";
 const TEMPLATE_PT = "PT_Template.docx";
