@@ -85,3 +85,15 @@ export function compensationMonths(startDate: string | Date, endDate: string | D
   if (months <= 6) return 2;
   return 3;
 }
+
+/** First + last name only, to keep generated file names short. */
+export function shortName(fullName?: string | null): string {
+  const parts = String(fullName ?? "")
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean);
+  if (parts.length === 0) return "";
+  if (parts.length === 1) return parts[0];
+  return `${parts[0]} ${parts[parts.length - 1]}`;
+}
+

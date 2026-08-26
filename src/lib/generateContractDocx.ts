@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { amountToWords } from "@/lib/amountToWords";
 import { compensacaoDenuncia, duracaoContrato } from "@/lib/contractDuration";
 import { isPortuguese, nationalityToEN } from "@/lib/nationalityEN";
-import { parseRoomNumber } from "@/lib/utils";
+import { parseRoomNumber, shortName } from "@/lib/utils";
 
 const TEMPLATE_BUCKET = "contract-templates";
 const TEMPLATE_PT = "PT_Template.docx";
@@ -209,7 +209,7 @@ export async function generateContractDocx(contractId: string): Promise<Generate
   });
 
   // 4. Guardar
-  const residentName = String(resident.full_name ?? "").trim() || "Residente";
+  const residentName = shortName(resident.full_name) || "Residente";
   const roomPart = roomNumber ? `${roomNumber}_` : "";
   const fileName = `Contrato_${roomPart}${residentName}.docx`;
   const safeFileName = `${slugifyForPath(`Contrato_${roomPart}${residentName}`)}.docx`;

@@ -3,7 +3,7 @@ import Docxtemplater from "docxtemplater";
 import { supabase } from "@/integrations/supabase/client";
 import { amountToWords } from "@/lib/amountToWords";
 import { isPortuguese, nationalityToEN } from "@/lib/nationalityEN";
-import { parseRoomNumber } from "@/lib/utils";
+import { parseRoomNumber, shortName } from "@/lib/utils";
 
 const TEMPLATE_BUCKET = "contract-templates";
 const TEMPLATE_PT = "Reservation_PT.docx";
@@ -173,7 +173,7 @@ export async function generateReservationDocx(leadId: string): Promise<Generated
   });
 
   // 5. Guardar
-  const displayName = (fullName || "Residente").trim();
+  const displayName = shortName(fullName) || "Residente";
   const fileName = `Acordo_Reserva_${displayName}.docx`;
   const path = `leads/${leadId}/reserva-${slugifyForPath(displayName)}.docx`;
   const { error: upErr } = await supabase.storage.from(OUTPUT_BUCKET).upload(path, out, {
