@@ -57,7 +57,7 @@ Deno.serve(async (req) => {
     const payload: Record<string, unknown> = {
       company_id: settings.companyId,
       vat: resident.tax_number,
-      name: resident.full_name,
+      name: resident.full_name?.toUpperCase() ?? "",
       address: resident.address,
       country_id: COUNTRY_PT,
       language_id: 1,
