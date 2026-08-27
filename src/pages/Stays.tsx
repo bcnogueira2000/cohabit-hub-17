@@ -91,8 +91,16 @@ const Stays = () => {
       notes: String(fd.get("notes") || ""),
     }, {
       onSuccess: async (created: any) => {
-        if (taxNumber && created?.residentId) {
-          await supabase.from("residents").update({ tax_number: taxNumber }).eq("id", created.residentId);
+        if (taxNumber && created?.id) {
+          const { data: fresh } = await supabase
+            .from("stays")
+            .select("resident_id")
+            .eq("id", created.id)
+            .maybeSingle();
+          const residentId = (fresh as any)?.resident_id ?? created?.resident_id;
+          if (residentId) {
+            await supabase.from("residents").update({ tax_number: taxNumber }).eq("id", residentId);
+          }
         }
         setOpen(false);
         setRoomId("");
