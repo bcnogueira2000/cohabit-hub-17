@@ -27,7 +27,7 @@ import { StatusBadge, PriorityBadge } from "@/components/ui/StatusBadge";
 import ResidentFileUpload from "@/components/ResidentFileUpload";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { useSyncMoloniCustomer } from "@/hooks/useMoloni";
+import { useSyncMoloniCustomer, MoloniDuplicateError } from "@/hooks/useMoloni";
 import type { ChecklistItem, ResidentLegalFields } from "@/lib/types";
 
 const DOC_TYPES = ["Cartão de Cidadão", "Passaporte", "Título de Residência", "Outro"];
@@ -423,6 +423,18 @@ const ResidentDetail = () => {
                       onChange={(e) => setLegal((s) => ({ ...s, specialNeeds: e.target.value }))}
                     />
                   </div>
+                  {syncMoloni.error instanceof MoloniDuplicateError && (
+                    <div className="sm:col-span-2 rounded-lg border border-warning/40 bg-warning/10 p-3 flex gap-2.5">
+                      <AlertTriangle className="h-4 w-4 text-warning mt-0.5 shrink-0" strokeWidth={1.5} />
+                      <div className="text-sm">
+                        <p className="font-medium">Cliente já existente no Moloni</p>
+                        <p className="text-muted-foreground mt-0.5">{syncMoloni.error.message}</p>
+                        <p className="text-muted-foreground mt-1 text-xs">
+                          Nada foi alterado no Moloni. Verifica o cliente existente antes de voltar a sincronizar.
+                        </p>
+                      </div>
+                    </div>
+                  )}
                   <div className="sm:col-span-2 flex flex-wrap justify-end gap-2">
                     <Button
                       type="button"
@@ -437,6 +449,7 @@ const ResidentDetail = () => {
                       {updateLegal.isPending ? "A guardar…" : "Guardar dados pessoais"}
                     </Button>
                   </div>
+
                 </form>
               </div>
             )}
