@@ -87,6 +87,7 @@ export const supplierCategoryLabels: Record<string, string> = {
 export const locationKindLabels: Record<string, string> = {
   room: "Quarto",
   shared_bathroom: "Casa de banho partilhada",
+  private_bathroom: "Casa de banho privativa (Suite)",
   apartment_kitchen: "Cozinha de apartamento",
   common_kitchen: "Cozinha comum",
   corridor: "Corredor",
