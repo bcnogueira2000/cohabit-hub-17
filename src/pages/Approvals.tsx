@@ -10,6 +10,7 @@ import { useResidents, useRooms } from "@/hooks/useData";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import { RoomCombobox } from "@/components/rooms/RoomCombobox";
+import { assertTaxNumberAvailable } from "@/lib/residentTaxNumber";
 
 const formatDate = (d: string | null) =>
   d ? new Date(d).toLocaleDateString("pt-PT") : "—";
@@ -114,6 +115,7 @@ const Approvals = () => {
               }}
               onCreateAndLink={async (data) => {
                 try {
+                  await assertTaxNumberAvailable(data.taxNumber);
                   const { data: created, error } = await supabase
                     .from("residents")
                     .insert({
@@ -123,6 +125,7 @@ const Approvals = () => {
                       room_id: data.roomId,
                       move_in: data.moveIn || new Date().toISOString(),
                       status: "upcoming",
+                      tax_number: data.taxNumber || null,
                       avatar_color: "#" + Math.floor(Math.random() * 16777215).toString(16).padStart(6, "0"),
                       user_id: p.user_id,
                     } as any)
@@ -148,7 +151,7 @@ interface PendingCardProps {
   rooms: any[];
   onApprove: (residentId: string) => Promise<void>;
   onReject: () => Promise<void>;
-  onCreateAndLink: (data: { fullName: string; roomId: string | null; moveIn: string | null }) => Promise<void>;
+  onCreateAndLink: (data: { fullName: string; roomId: string | null; moveIn: string | null; taxNumber: string | null }) => Promise<void>;
 }
 
 const PendingCard = ({ profile, residents, rooms, onApprove, onReject, onCreateAndLink }: PendingCardProps) => {
@@ -157,6 +160,7 @@ const PendingCard = ({ profile, residents, rooms, onApprove, onReject, onCreateA
   const [createNew, setCreateNew] = useState(false);
   const [roomId, setRoomId] = useState<string>("");
   const [moveIn, setMoveIn] = useState<string>("");
+  const [taxNumber, setTaxNumber] = useState<string>("");
 
   // Find any resident matching by email (suggest auto-link)
   const candidates = residents.filter((r) => r.email?.toLowerCase() === profile.email.toLowerCase());
@@ -221,6 +225,10 @@ const PendingCard = ({ profile, residents, rooms, onApprove, onReject, onCreateA
                       <label className="text-xs font-medium">Data de entrada</label>
                       <input type="date" value={moveIn} onChange={(e) => setMoveIn(e.target.value)} className="mt-1 w-full h-9 rounded-md border border-input bg-background px-3 text-sm" />
                     </div>
+                    <div>
+                      <label className="text-xs font-medium">NIF <span className="text-muted-foreground font-normal">(opcional)</span></label>
+                      <input value={taxNumber} onChange={(e) => setTaxNumber(e.target.value)} className="mt-1 w-full h-9 rounded-md border border-input bg-background px-3 text-sm" />
+                    </div>
                     <button className="text-xs text-muted-foreground underline" onClick={() => setCreateNew(false)}>← escolher existente</button>
                   </>
                 )}
@@ -235,6 +243,7 @@ const PendingCard = ({ profile, residents, rooms, onApprove, onReject, onCreateA
                           fullName: profile.full_name,
                           roomId: roomId || null,
                           moveIn: moveIn ? new Date(moveIn).toISOString() : null,
+                          taxNumber: taxNumber.trim() || null,
                         });
                       } else {
                         if (!residentId) { toast.error("Escolhe um residente"); return; }

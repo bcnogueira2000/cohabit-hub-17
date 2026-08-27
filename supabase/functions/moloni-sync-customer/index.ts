@@ -39,7 +39,7 @@ Deno.serve(async (req) => {
 
     const { data: resident, error } = await sb
       .from("residents")
-      .select("id, full_name, email, phone, tax_number, address, moloni_customer_id")
+      .select("id, code, full_name, email, phone, tax_number, address, moloni_customer_id")
       .eq("id", residentId)
       .maybeSingle();
     if (error) throw new Error(error.message);
@@ -49,6 +49,7 @@ Deno.serve(async (req) => {
     if (!resident.full_name) missing.push("nome");
     if (!resident.tax_number) missing.push("NIF");
     if (!resident.address) missing.push("morada");
+    if (!resident.code) missing.push("código do residente");
     if (missing.length) {
       return json({ error: `Faltam dados do residente: ${missing.join(", ")}` }, 400);
     }
@@ -77,16 +78,13 @@ Deno.serve(async (req) => {
       }
     }
 
+    // O número do cliente no Moloni é sempre o código interno do residente (LC0001, …)
+    payload.number = resident.code;
+
     if (customerId) {
       await moloniCall(sb, "customers/update", { ...payload, customer_id: customerId });
     } else {
-      const nextNumber = await moloniCall<any>(sb, "customers/getNextNumber", {
-        company_id: settings.companyId,
-      }).catch(() => null);
-      const created = await moloniCall<any>(sb, "customers/insert", {
-        ...payload,
-        number: nextNumber?.number ?? `LC-${residentId.slice(0, 8)}`,
-      });
+      const created = await moloniCall<any>(sb, "customers/insert", payload);
       customerId = Number(created?.customer_id);
       if (!customerId) throw new Error("O Moloni não devolveu o id do cliente.");
     }

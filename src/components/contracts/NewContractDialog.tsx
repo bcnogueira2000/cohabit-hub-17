@@ -8,6 +8,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useCreateStay, useRooms } from "@/hooks/useData";
 import { supabase } from "@/integrations/supabase/client";
+import { assertTaxNumberAvailable } from "@/lib/residentTaxNumber";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { RoomCombobox } from "@/components/rooms/RoomCombobox";
@@ -113,6 +114,9 @@ export const NewContractDialog = ({ open, onOpenChange, defaults, leadId, onCrea
 
     setSubmitting(true);
     try {
+      // 0. NIF não pode pertencer a outro residente
+      await assertTaxNumberAvailable(String(fd.get("taxNumber") ?? ""));
+
       // 1. Estadia — caminho existente (triggers de check-in/limpeza/kit intactos)
       const stay: any = await createStay.mutateAsync({
         fullName: String(fd.get("fullName")),

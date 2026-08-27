@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useStays, useRooms, useCreateStay, useUpdateStay, useDeleteStay } from "@/hooks/useData";
 import { NewContractDialog } from "@/components/contracts/NewContractDialog";
+import { assertTaxNumberAvailable } from "@/lib/residentTaxNumber";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -67,9 +68,18 @@ const Stays = () => {
     });
   }, [stays, filter]);
 
-  const handleCreate = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleCreate = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const fd = new FormData(e.currentTarget);
+    const taxNumber = String(fd.get("taxNumber") || "").trim();
+
+    try {
+      await assertTaxNumberAvailable(taxNumber);
+    } catch (err: any) {
+      toast.error(err.message);
+      return;
+    }
+
     createStay.mutate({
       fullName: String(fd.get("fullName")),
       email: String(fd.get("email")),
@@ -80,7 +90,22 @@ const Stays = () => {
       status: fd.get("status") as any,
       notes: String(fd.get("notes") || ""),
     }, {
-      onSuccess: () => { setOpen(false); setRoomId(""); toast.success("Estadia criada — automatismos disparados"); },
+      onSuccess: async (created: any) => {
+        if (taxNumber && created?.id) {
+          const { data: fresh } = await supabase
+            .from("stays")
+            .select("resident_id")
+            .eq("id", created.id)
+            .maybeSingle();
+          const residentId = (fresh as any)?.resident_id ?? created?.resident_id;
+          if (residentId) {
+            await supabase.from("residents").update({ tax_number: taxNumber }).eq("id", residentId);
+          }
+        }
+        setOpen(false);
+        setRoomId("");
+        toast.success("Estadia criada — automatismos disparados");
+      },
       onError: (e: any) => toast.error(e.message),
     });
   };
@@ -251,6 +276,10 @@ const Stays = () => {
               <div className="grid grid-cols-2 gap-3">
                 <div><Label>Check-in</Label><Input name="checkIn" type="date" required className="mt-1.5" /></div>
                 <div><Label>Check-out</Label><Input name="checkOut" type="date" required className="mt-1.5" /></div>
+              </div>
+              <div>
+                <Label>NIF <span className="text-muted-foreground font-normal">(opcional)</span></Label>
+                <Input name="taxNumber" className="mt-1.5" />
               </div>
               <div>
                 <Label>Estado inicial</Label>
