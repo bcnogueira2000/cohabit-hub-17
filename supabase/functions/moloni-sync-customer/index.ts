@@ -1,5 +1,5 @@
 // Living Colours — cria/atualiza um residente como cliente no Moloni.
-// Body: { resident_id: uuid }
+// Body: { resident_id: uuid, confirm?: boolean }
 
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { adminClient, logSync, moloniCall, requireManager } from "../_shared/moloni.ts";
