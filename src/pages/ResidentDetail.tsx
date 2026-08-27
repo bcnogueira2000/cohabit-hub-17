@@ -64,6 +64,7 @@ const ResidentDetail = () => {
   const updateLegal = useUpdateResidentLegal();
   const { data: roles = [] } = useMyRoles();
   const syncMoloni = useSyncMoloniCustomer();
+  const [showMoloniConfirm, setShowMoloniConfirm] = useState(false);
   const isStaff = roles.some((r) => r === "staff" || r === "manager" || r === "admin");
 
   const [legal, setLegal] = useState<ResidentLegalFields>({
