@@ -45,7 +45,7 @@ Deno.serve(async (req) => {
     const { data: charge, error } = await sb
       .from("rent_charges")
       .select(
-        "id, contract_id, year, month, amount, due_date, moloni_document_id, moloni_document_number, contracts(id, code, resident_id, residents(id, full_name, moloni_customer_id, room_id, rooms(number)))",
+        "id, contract_id, year, month, amount, due_date, moloni_document_id, moloni_document_number, contracts(id, code, resident_id, residents(id, full_name, moloni_customer_id, room_id, rooms!residents_room_id_fkey(number)))",
       )
       .eq("id", chargeId)
       .maybeSingle();
