@@ -595,6 +595,81 @@ export type Database = {
           },
         ]
       }
+      moloni_credentials: {
+        Row: {
+          access_token: string | null
+          account_email: string | null
+          company_id: number | null
+          company_name: string | null
+          created_at: string
+          expires_at: string | null
+          id: string
+          last_connected_at: string | null
+          refresh_token: string | null
+          singleton: boolean
+          updated_at: string
+        }
+        Insert: {
+          access_token?: string | null
+          account_email?: string | null
+          company_id?: number | null
+          company_name?: string | null
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          last_connected_at?: string | null
+          refresh_token?: string | null
+          singleton?: boolean
+          updated_at?: string
+        }
+        Update: {
+          access_token?: string | null
+          account_email?: string | null
+          company_id?: number | null
+          company_name?: string | null
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          last_connected_at?: string | null
+          refresh_token?: string | null
+          singleton?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      moloni_sync_log: {
+        Row: {
+          action: string
+          created_at: string
+          entity: string
+          entity_id: string | null
+          id: string
+          message: string | null
+          payload: Json
+          success: boolean
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          entity: string
+          entity_id?: string | null
+          id?: string
+          message?: string | null
+          payload?: Json
+          success?: boolean
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          entity?: string
+          entity_id?: string | null
+          id?: string
+          message?: string | null
+          payload?: Json
+          success?: boolean
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           body: string | null
