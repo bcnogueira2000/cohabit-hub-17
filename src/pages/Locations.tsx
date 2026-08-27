@@ -96,11 +96,12 @@ const Locations = () => {
                       )}
                       <div className="text-xs text-muted-foreground mt-1.5">
                         {l.apartment && <>Apto {l.apartment}</>}
-                        {l.apartment && l.status !== "active" && <> · </>}
-                        {l.status !== "active" && (
-                          <span className="text-warning">{locationStatusLabels[l.status]}</span>
-                        )}
                       </div>
+                      {l.status !== "active" && (
+                        <div className="mt-2 text-[10px] uppercase tracking-wider text-warning bg-warning/10 px-2 py-0.5 rounded-full inline-block">
+                          {locationStatusLabels[l.status]}
+                        </div>
+                      )}
                     </Card>
                   </Link>
                 ))}
