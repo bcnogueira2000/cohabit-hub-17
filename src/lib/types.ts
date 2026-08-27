@@ -30,8 +30,10 @@ export interface Resident {
   dateOfBirth: string | null;
   emergencyContactName: string | null;
   emergencyContactPhone: string | null;
+  emergencyContactEmail: string | null;
   specialNeeds: string | null;
   address: string | null;
+  postalCode: string | null;
   documentValidity: string | null;
   profile: string | null;
   gender: string | null;
@@ -48,7 +50,10 @@ export interface ResidentLegalFields {
   dateOfBirth: string | null;
   emergencyContactName: string | null;
   emergencyContactPhone: string | null;
+  emergencyContactEmail: string | null;
   specialNeeds: string | null;
+  address: string | null;
+  postalCode: string | null;
 }
 
 export interface ChecklistItem {

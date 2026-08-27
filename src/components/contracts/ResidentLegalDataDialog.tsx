@@ -14,6 +14,7 @@ export const LEGAL_REQUIRED_FIELDS = [
   "nationality",
   "date_of_birth",
   "address",
+  "postal_code",
   "document_number",
   "document_validity",
   "profile",
@@ -109,6 +110,17 @@ export const ResidentLegalDataDialog = ({
               </div>
             )}
           </div>
+          {show("postal_code") && (
+            <div>
+              <Label>Código postal</Label>
+              <Input
+                value={values.postal_code ?? ""}
+                onChange={(e) => set("postal_code")(e.target.value)}
+                placeholder="1000-001 Lisboa"
+                className="mt-1.5"
+              />
+            </div>
+          )}
           {show("address") && (
             <div>
               <Label>Morada de residência</Label>

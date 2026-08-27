@@ -76,7 +76,10 @@ const ResidentDetail = () => {
     dateOfBirth: null,
     emergencyContactName: null,
     emergencyContactPhone: null,
+    emergencyContactEmail: null,
     specialNeeds: null,
+    address: null,
+    postalCode: null,
   });
 
   useEffect(() => {
@@ -90,9 +93,12 @@ const ResidentDetail = () => {
       dateOfBirth: resident.dateOfBirth,
       emergencyContactName: resident.emergencyContactName,
       emergencyContactPhone: resident.emergencyContactPhone,
+      emergencyContactEmail: resident.emergencyContactEmail,
       specialNeeds: resident.specialNeeds,
+      address: resident.address,
+      postalCode: resident.postalCode,
     });
-  }, [resident?.id, resident?.nationality, resident?.documentType, resident?.documentNumber, resident?.taxNumber, resident?.employerOrSchool, resident?.dateOfBirth, resident?.emergencyContactName, resident?.emergencyContactPhone, resident?.specialNeeds]);
+  }, [resident?.id, resident?.nationality, resident?.documentType, resident?.documentNumber, resident?.taxNumber, resident?.employerOrSchool, resident?.dateOfBirth, resident?.emergencyContactName, resident?.emergencyContactPhone, resident?.emergencyContactEmail, resident?.specialNeeds, resident?.address, resident?.postalCode]);
 
   useEffect(() => {
     if (syncMoloni.error instanceof MoloniDuplicateError && syncMoloni.error.kind === "already_linked") {
@@ -118,7 +124,10 @@ const ResidentDetail = () => {
           dateOfBirth: clean(legal.dateOfBirth),
           emergencyContactName: clean(legal.emergencyContactName),
           emergencyContactPhone: clean(legal.emergencyContactPhone),
+          emergencyContactEmail: clean(legal.emergencyContactEmail),
           specialNeeds: clean(legal.specialNeeds),
+          address: clean(legal.address),
+          postalCode: clean(legal.postalCode),
         },
       },
       {
@@ -135,7 +144,7 @@ const ResidentDetail = () => {
       : null;
   const residentEmergency =
     resident?.emergencyContactName || resident?.emergencyContactPhone
-      ? [resident?.emergencyContactName, resident?.emergencyContactPhone].filter(Boolean).join(" · ")
+      ? [resident?.emergencyContactName, resident?.emergencyContactPhone, resident?.emergencyContactEmail].filter(Boolean).join(" · ")
       : null;
 
   const nationalityFromProfile = !!profile?.nationality;
@@ -323,6 +332,14 @@ const ResidentDetail = () => {
                 <div className="font-medium">{resident.taxNumber || <span className="text-muted-foreground">—</span>}</div>
               </div>
               <div>
+                <div className="text-xs text-muted-foreground mb-0.5">Morada de residência</div>
+                <div className="font-medium">{resident.address || <span className="text-muted-foreground">—</span>}</div>
+              </div>
+              <div>
+                <div className="text-xs text-muted-foreground mb-0.5">Código postal</div>
+                <div className="font-medium">{resident.postalCode || <span className="text-muted-foreground">—</span>}</div>
+              </div>
+              <div>
                 <div className="text-xs text-muted-foreground mb-0.5">Empresa / escola</div>
                 <div className="font-medium">{resident.employerOrSchool || <span className="text-muted-foreground">—</span>}</div>
               </div>
@@ -380,6 +397,35 @@ const ResidentDetail = () => {
                       className="mt-1.5"
                       value={legal.emergencyContactPhone ?? ""}
                       onChange={(e) => setLegal((s) => ({ ...s, emergencyContactPhone: e.target.value }))}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="legal-emg-email">Contacto de emergência (email)</Label>
+                    <Input
+                      id="legal-emg-email"
+                      type="email"
+                      className="mt-1.5"
+                      value={legal.emergencyContactEmail ?? ""}
+                      onChange={(e) => setLegal((s) => ({ ...s, emergencyContactEmail: e.target.value }))}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="legal-address">Morada de residência</Label>
+                    <Input
+                      id="legal-address"
+                      className="mt-1.5"
+                      value={legal.address ?? ""}
+                      onChange={(e) => setLegal((s) => ({ ...s, address: e.target.value }))}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="legal-postal">Código postal</Label>
+                    <Input
+                      id="legal-postal"
+                      className="mt-1.5"
+                      placeholder="1000-001 Lisboa"
+                      value={legal.postalCode ?? ""}
+                      onChange={(e) => setLegal((s) => ({ ...s, postalCode: e.target.value }))}
                     />
                   </div>
                   <div>

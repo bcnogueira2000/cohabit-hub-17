@@ -1190,6 +1190,7 @@ export type Database = {
           document_type: string | null
           document_validity: string | null
           email: string
+          emergency_contact_email: string | null
           emergency_contact_name: string | null
           emergency_contact_phone: string | null
           employer_or_school: string | null
@@ -1202,6 +1203,7 @@ export type Database = {
           move_out: string | null
           nationality: string | null
           phone: string | null
+          postal_code: string | null
           profile: string | null
           room_id: string | null
           special_needs: string | null
@@ -1222,6 +1224,7 @@ export type Database = {
           document_type?: string | null
           document_validity?: string | null
           email: string
+          emergency_contact_email?: string | null
           emergency_contact_name?: string | null
           emergency_contact_phone?: string | null
           employer_or_school?: string | null
@@ -1234,6 +1237,7 @@ export type Database = {
           move_out?: string | null
           nationality?: string | null
           phone?: string | null
+          postal_code?: string | null
           profile?: string | null
           room_id?: string | null
           special_needs?: string | null
@@ -1254,6 +1258,7 @@ export type Database = {
           document_type?: string | null
           document_validity?: string | null
           email?: string
+          emergency_contact_email?: string | null
           emergency_contact_name?: string | null
           emergency_contact_phone?: string | null
           employer_or_school?: string | null
@@ -1266,6 +1271,7 @@ export type Database = {
           move_out?: string | null
           nationality?: string | null
           phone?: string | null
+          postal_code?: string | null
           profile?: string | null
           room_id?: string | null
           special_needs?: string | null

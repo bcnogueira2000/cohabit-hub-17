@@ -43,6 +43,7 @@ export const NewContractDialog = ({ open, onOpenChange, defaults, leadId, onCrea
   const [profile, setProfile] = useState<string>("");
   const [nationality, setNationality] = useState<string>("");
   const [address, setAddress] = useState<string>("");
+  const [postalCode, setPostalCode] = useState<string>("");
   const [documentNumber, setDocumentNumber] = useState<string>("");
   const [documentValidity, setDocumentValidity] = useState<string>("");
   const [taxNumber, setTaxNumber] = useState<string>("");
@@ -185,6 +186,7 @@ export const NewContractDialog = ({ open, onOpenChange, defaults, leadId, onCrea
         if (profile) legal.profile = profile;
         put("date_of_birth", fd.get("dateOfBirth"));
         put("address", fd.get("address"));
+        put("postal_code", fd.get("postalCode"));
         put("document_number", fd.get("documentNumber"));
         put("document_validity", fd.get("documentValidity"));
         put("tax_number", fd.get("taxNumber"));
@@ -353,9 +355,15 @@ export const NewContractDialog = ({ open, onOpenChange, defaults, leadId, onCrea
                 <Input name="dateOfBirth" type="date" value={dateOfBirth} onChange={(e) => setDateOfBirth(e.target.value)} className="mt-1.5" />
               </div>
             </div>
-            <div>
-              <Label>Morada de residência</Label>
-              <Input name="address" value={address} onChange={(e) => setAddress(e.target.value)} className="mt-1.5" />
+            <div className="grid grid-cols-3 gap-3">
+              <div className="col-span-2">
+                <Label>Morada de residência</Label>
+                <Input name="address" value={address} onChange={(e) => setAddress(e.target.value)} className="mt-1.5" />
+              </div>
+              <div>
+                <Label>Código postal</Label>
+                <Input name="postalCode" value={postalCode} onChange={(e) => setPostalCode(e.target.value)} placeholder="1000-001 Lisboa" className="mt-1.5" />
+              </div>
             </div>
             <div className="grid grid-cols-3 gap-3">
               <div>
