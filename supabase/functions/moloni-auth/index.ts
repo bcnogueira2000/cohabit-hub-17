@@ -90,13 +90,13 @@ Deno.serve(async (req) => {
       }
 
       case "companies": {
-        const companies = await moloniCall<Company[]>(sb, "company/getAll");
+        const companies = await moloniCall<Company[]>(sb, "companies/getAll");
         return json({ companies });
       }
 
       case "select_company": {
         if (!payload.company_id) return json({ error: "company_id obrigatório" }, 400);
-        const companies = await moloniCall<Company[]>(sb, "company/getAll");
+        const companies = await moloniCall<Company[]>(sb, "companies/getAll");
         const match = companies.find((c) => Number(c.company_id) === Number(payload.company_id));
         if (!match) return json({ error: "Empresa não encontrada na conta Moloni" }, 400);
         const { error } = await sb
@@ -116,7 +116,7 @@ Deno.serve(async (req) => {
       case "test": {
         const creds = await loadCredentials(sb);
         if (!creds?.company_id) {
-          const companies = await moloniCall<Company[]>(sb, "company/getAll");
+          const companies = await moloniCall<Company[]>(sb, "companies/getAll");
           await logSync(sb, {
             entity: "auth",
             action: "test",
@@ -125,7 +125,7 @@ Deno.serve(async (req) => {
           });
           return json({ ok: true, company_selected: false, companies_found: companies.length });
         }
-        const company = await moloniCall<any>(sb, "company/getOne", {
+        const company = await moloniCall<any>(sb, "companies/getOne", {
           company_id: creds.company_id,
         });
         await logSync(sb, {
