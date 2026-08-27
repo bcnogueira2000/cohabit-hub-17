@@ -85,6 +85,15 @@ Deno.serve(async (req) => {
       await moloniCall(sb, "customers/update", { ...payload, customer_id: customerId });
     } else {
       const created = await moloniCall<any>(sb, "customers/insert", payload);
+      // DIAGNÓSTICO TEMPORÁRIO: registar a resposta em bruto do Moloni.
+      await logSync(sb, {
+        entity: "resident",
+        entity_id: residentId,
+        action: "debug_insert_raw",
+        success: true,
+        message: JSON.stringify(created).slice(0, 2000),
+        payload: { raw: created },
+      });
       customerId = Number(created?.customer_id);
       if (!customerId) throw new Error("O Moloni não devolveu o id do cliente.");
     }
