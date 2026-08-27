@@ -421,7 +421,16 @@ const ResidentDetail = () => {
                       onChange={(e) => setLegal((s) => ({ ...s, specialNeeds: e.target.value }))}
                     />
                   </div>
-                  <div className="sm:col-span-2 flex justify-end">
+                  <div className="sm:col-span-2 flex flex-wrap justify-end gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="rounded-full"
+                      disabled={syncMoloni.isPending}
+                      onClick={() => syncMoloni.mutate(resident.id)}
+                    >
+                      {syncMoloni.isPending ? "A sincronizar…" : "Sincronizar com Moloni"}
+                    </Button>
                     <Button type="submit" disabled={updateLegal.isPending} className="rounded-full">
                       {updateLegal.isPending ? "A guardar…" : "Guardar dados pessoais"}
                     </Button>
