@@ -114,23 +114,34 @@ export const useMoloniSyncLog = () =>
 
 /* ---------- Clientes ---------- */
 
+export type MoloniConflictKind = "vat_match" | "already_linked";
+
 export class MoloniDuplicateError extends Error {
   existingCustomerId: number | null;
   existingCustomerNumber: string | null;
-  constructor(message: string, id: number | null, number: string | null) {
+  kind: MoloniConflictKind;
+  constructor(
+    message: string,
+    id: number | null,
+    number: string | null,
+    kind: MoloniConflictKind = "vat_match",
+  ) {
     super(message);
     this.name = "MoloniDuplicateError";
     this.existingCustomerId = id;
     this.existingCustomerNumber = number;
+    this.kind = kind;
   }
 }
 
 export const useSyncMoloniCustomer = () => {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (residentId: string) => {
+    mutationFn: async (input: string | { residentId: string; confirm?: boolean }) => {
+      const residentId = typeof input === "string" ? input : input.residentId;
+      const confirm = typeof input === "string" ? false : !!input.confirm;
       const { data, error } = await supabase.functions.invoke("moloni-sync-customer", {
-        body: { resident_id: residentId },
+        body: { resident_id: residentId, confirm },
       });
       const d = data as any;
       if (d?.needs_confirmation) {
@@ -138,13 +149,15 @@ export const useSyncMoloniCustomer = () => {
           d.error ?? "Já existe um cliente no Moloni com este NIF.",
           d.existing_customer_id ?? null,
           d.existing_customer_number ?? null,
+          (d.conflict_kind as MoloniConflictKind) ?? "vat_match",
         );
       }
       if (error) throw new Error(d?.error ?? error.message);
       if (d?.error) throw new Error(d.error);
       return data as { customer_id: number };
     },
-    onSuccess: (data, residentId) => {
+    onSuccess: (data, input) => {
+      const residentId = typeof input === "string" ? input : input.residentId;
       toast.success(`Cliente sincronizado no Moloni (#${data.customer_id})`);
       qc.invalidateQueries({ queryKey: ["resident", residentId] });
       qc.invalidateQueries({ queryKey: ["residents"] });
