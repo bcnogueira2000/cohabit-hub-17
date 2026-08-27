@@ -225,6 +225,10 @@ const PendingCard = ({ profile, residents, rooms, onApprove, onReject, onCreateA
                       <label className="text-xs font-medium">Data de entrada</label>
                       <input type="date" value={moveIn} onChange={(e) => setMoveIn(e.target.value)} className="mt-1 w-full h-9 rounded-md border border-input bg-background px-3 text-sm" />
                     </div>
+                    <div>
+                      <label className="text-xs font-medium">NIF <span className="text-muted-foreground font-normal">(opcional)</span></label>
+                      <input value={taxNumber} onChange={(e) => setTaxNumber(e.target.value)} className="mt-1 w-full h-9 rounded-md border border-input bg-background px-3 text-sm" />
+                    </div>
                     <button className="text-xs text-muted-foreground underline" onClick={() => setCreateNew(false)}>← escolher existente</button>
                   </>
                 )}
@@ -239,6 +243,7 @@ const PendingCard = ({ profile, residents, rooms, onApprove, onReject, onCreateA
                           fullName: profile.full_name,
                           roomId: roomId || null,
                           moveIn: moveIn ? new Date(moveIn).toISOString() : null,
+                          taxNumber: taxNumber.trim() || null,
                         });
                       } else {
                         if (!residentId) { toast.error("Escolhe um residente"); return; }
