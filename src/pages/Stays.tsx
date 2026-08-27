@@ -278,6 +278,10 @@ const Stays = () => {
                 <div><Label>Check-out</Label><Input name="checkOut" type="date" required className="mt-1.5" /></div>
               </div>
               <div>
+                <Label>NIF <span className="text-muted-foreground font-normal">(opcional)</span></Label>
+                <Input name="taxNumber" className="mt-1.5" />
+              </div>
+              <div>
                 <Label>Estado inicial</Label>
                 <Select name="status" defaultValue="confirmed">
                   <SelectTrigger className="mt-1.5"><SelectValue /></SelectTrigger>
