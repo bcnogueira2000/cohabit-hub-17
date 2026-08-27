@@ -1183,6 +1183,7 @@ export type Database = {
           age: string | null
           avatar_color: string | null
           checkin_checklist: Json
+          city: string | null
           code: string | null
           created_at: string
           date_of_birth: string | null
@@ -1217,6 +1218,7 @@ export type Database = {
           age?: string | null
           avatar_color?: string | null
           checkin_checklist?: Json
+          city?: string | null
           code?: string | null
           created_at?: string
           date_of_birth?: string | null
@@ -1251,6 +1253,7 @@ export type Database = {
           age?: string | null
           avatar_color?: string | null
           checkin_checklist?: Json
+          city?: string | null
           code?: string | null
           created_at?: string
           date_of_birth?: string | null
