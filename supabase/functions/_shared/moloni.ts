@@ -192,7 +192,13 @@ export async function moloniCall<T = any>(
     const detail = json?.error_description || json?.human_errors || json?.error || text;
     throw new Error(`Moloni ${endpoint}: ${typeof detail === "string" ? detail : JSON.stringify(detail)}`);
   }
+  // O Moloni responde 200 com um array de strings a descrever campos obrigatórios
+  // em falta (ex: "2 payment_day 1 null null 0 28") — isso é um erro de validação.
+  if (Array.isArray(json) && json.length > 0 && json.every((v) => typeof v === "string")) {
+    throw new Error(`Moloni ${endpoint}: campos inválidos/obrigatórios — ${json.join("; ").slice(0, 400)}`);
+  }
   return json as T;
+
 }
 
 export async function logSync(
