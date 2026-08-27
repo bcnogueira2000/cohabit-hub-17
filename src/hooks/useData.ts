@@ -71,6 +71,7 @@ export const useUpdateResidentLegal = () => {
           special_needs: values.specialNeeds,
           address: values.address,
           postal_code: values.postalCode,
+          city: values.city,
         } as any)
         .eq("id", id);
       if (error) throw error;

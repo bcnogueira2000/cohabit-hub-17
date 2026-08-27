@@ -34,6 +34,7 @@ export interface Resident {
   specialNeeds: string | null;
   address: string | null;
   postalCode: string | null;
+  city: string | null;
   documentValidity: string | null;
   profile: string | null;
   gender: string | null;
@@ -54,6 +55,7 @@ export interface ResidentLegalFields {
   specialNeeds: string | null;
   address: string | null;
   postalCode: string | null;
+  city: string | null;
 }
 
 export interface ChecklistItem {

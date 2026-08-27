@@ -117,8 +117,11 @@ export async function generateContractDocx(contractId: string): Promise<Generate
     Nome_Completo: resident.full_name ?? "",
     Nacionalidade_PT: resident.nationality ?? "",
     Data_Nascimento: fmtDate(resident.date_of_birth),
-    Morada_Residencia: [resident.address, (resident as any).postal_code].filter(Boolean).join(", "),
+    Morada_Residencia: [resident.address, [(resident as any).postal_code, (resident as any).city].filter(Boolean).join(" ")]
+      .filter(Boolean)
+      .join(", "),
     Codigo_Postal: (resident as any).postal_code ?? "",
+    Localidade: (resident as any).city ?? "",
     "Nº_Doc_Identificacao": resident.document_number ?? "",
     Validade_Doc_Identificacao: fmtDate(resident.document_validity),
     NIF: resident.tax_number || "___ ___ ___",
