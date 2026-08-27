@@ -427,11 +427,32 @@ const ResidentDetail = () => {
                     <div className="sm:col-span-2 rounded-lg border border-warning/40 bg-warning/10 p-3 flex gap-2.5">
                       <AlertTriangle className="h-4 w-4 text-warning mt-0.5 shrink-0" strokeWidth={1.5} />
                       <div className="text-sm">
-                        <p className="font-medium">Cliente já existente no Moloni</p>
-                        <p className="text-muted-foreground mt-0.5">{syncMoloni.error.message}</p>
-                        <p className="text-muted-foreground mt-1 text-xs">
-                          Nada foi alterado no Moloni. Verifica o cliente existente antes de voltar a sincronizar.
+                        <p className="font-medium">
+                          {syncMoloni.error.kind === "already_linked"
+                            ? "Ficha já existente no Moloni"
+                            : "Cliente já existente no Moloni"}
                         </p>
+                        <p className="text-muted-foreground mt-0.5">{syncMoloni.error.message}</p>
+                        {syncMoloni.error.kind === "already_linked" ? (
+                          <>
+                            <p className="text-muted-foreground mt-1 text-xs">
+                              Nada foi alterado ainda. Ao confirmar, os dados atuais da app substituem os da ficha no Moloni.
+                            </p>
+                            <Button
+                              type="button"
+                              size="sm"
+                              className="rounded-full mt-2"
+                              disabled={syncMoloni.isPending}
+                              onClick={() => syncMoloni.mutate({ residentId: resident.id, confirm: true })}
+                            >
+                              {syncMoloni.isPending ? "A atualizar…" : "Atualizar ficha existente"}
+                            </Button>
+                          </>
+                        ) : (
+                          <p className="text-muted-foreground mt-1 text-xs">
+                            Nada foi alterado no Moloni. Verifica o cliente existente antes de voltar a sincronizar.
+                          </p>
+                        )}
                       </div>
                     </div>
                   )}
@@ -441,10 +462,11 @@ const ResidentDetail = () => {
                       variant="outline"
                       className="rounded-full"
                       disabled={syncMoloni.isPending}
-                      onClick={() => syncMoloni.mutate(resident.id)}
+                      onClick={() => syncMoloni.mutate({ residentId: resident.id })}
                     >
                       {syncMoloni.isPending ? "A sincronizar…" : "Sincronizar com Moloni"}
                     </Button>
+
                     <Button type="submit" disabled={updateLegal.isPending} className="rounded-full">
                       {updateLegal.isPending ? "A guardar…" : "Guardar dados pessoais"}
                     </Button>
