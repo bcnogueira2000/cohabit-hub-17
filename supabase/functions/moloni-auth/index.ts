@@ -90,13 +90,13 @@ Deno.serve(async (req) => {
       }
 
       case "companies": {
-        const companies = await moloniCall<Company[]>(sb, "companies/getAll");
+        const companies = await moloniCall<Company[]>(sb, "company/getAll");
         return json({ companies });
       }
 
       case "select_company": {
         if (!payload.company_id) return json({ error: "company_id obrigatório" }, 400);
-        const companies = await moloniCall<Company[]>(sb, "companies/getAll");
+        const companies = await moloniCall<Company[]>(sb, "company/getAll");
         const match = companies.find((c) => Number(c.company_id) === Number(payload.company_id));
         if (!match) return json({ error: "Empresa não encontrada na conta Moloni" }, 400);
         const { error } = await sb
@@ -115,19 +115,29 @@ Deno.serve(async (req) => {
 
       case "test": {
         const creds = await loadCredentials(sb);
-        // companies/getOne pode não estar autorizado na app Moloni — usar getAll.
-        const companies = await moloniCall<any[]>(sb, "companies/getAll");
         if (!creds?.company_id) {
+          const companies = await moloniCall<Company[]>(sb, "company/getAll");
+          await logSync(sb, {
+            entity: "auth",
+            action: "test",
+            success: true,
+            message: `Ligação OK — ${companies.length} empresa(s), sem empresa selecionada`,
+          });
           return json({ ok: true, company_selected: false, companies_found: companies.length });
         }
-        const company = companies.find((c) => Number(c.company_id) === Number(creds.company_id));
-        if (!company) {
-          return json({ ok: true, company_selected: false, companies_found: companies.length });
-        }
+        const company = await moloniCall<any>(sb, "company/getOne", {
+          company_id: creds.company_id,
+        });
+        await logSync(sb, {
+          entity: "auth",
+          action: "test",
+          success: true,
+          message: `Ligação OK — ${company?.name ?? "empresa"} (NIF ${company?.vat ?? "—"})`,
+        });
         return json({
           ok: true,
           company_selected: true,
-          company: { name: company.name, vat: company.vat, email: company.email },
+          company: { name: company?.name, vat: company?.vat, email: company?.email },
         });
       }
 
