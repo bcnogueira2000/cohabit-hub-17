@@ -64,6 +64,7 @@ const ResidentDetail = () => {
   const updateLegal = useUpdateResidentLegal();
   const { data: roles = [] } = useMyRoles();
   const syncMoloni = useSyncMoloniCustomer();
+  const [showMoloniConfirm, setShowMoloniConfirm] = useState(false);
   const isStaff = roles.some((r) => r === "staff" || r === "manager" || r === "admin");
 
   const [legal, setLegal] = useState<ResidentLegalFields>({
@@ -92,6 +93,14 @@ const ResidentDetail = () => {
       specialNeeds: resident.specialNeeds,
     });
   }, [resident?.id, resident?.nationality, resident?.documentType, resident?.documentNumber, resident?.taxNumber, resident?.employerOrSchool, resident?.dateOfBirth, resident?.emergencyContactName, resident?.emergencyContactPhone, resident?.specialNeeds]);
+
+  useEffect(() => {
+    if (syncMoloni.error instanceof MoloniDuplicateError && syncMoloni.error.kind === "already_linked") {
+      setShowMoloniConfirm(true);
+    } else if (showMoloniConfirm && !syncMoloni.error) {
+      setShowMoloniConfirm(false);
+    }
+  }, [syncMoloni.error, showMoloniConfirm]);
 
   const saveLegal = (e: React.FormEvent) => {
     e.preventDefault();
@@ -423,36 +432,15 @@ const ResidentDetail = () => {
                       onChange={(e) => setLegal((s) => ({ ...s, specialNeeds: e.target.value }))}
                     />
                   </div>
-                  {syncMoloni.error instanceof MoloniDuplicateError && (
+                  {syncMoloni.error instanceof MoloniDuplicateError && syncMoloni.error.kind !== "already_linked" && (
                     <div className="sm:col-span-2 rounded-lg border border-warning/40 bg-warning/10 p-3 flex gap-2.5">
                       <AlertTriangle className="h-4 w-4 text-warning mt-0.5 shrink-0" strokeWidth={1.5} />
                       <div className="text-sm">
-                        <p className="font-medium">
-                          {syncMoloni.error.kind === "already_linked"
-                            ? "Ficha já existente no Moloni"
-                            : "Cliente já existente no Moloni"}
-                        </p>
+                        <p className="font-medium">Cliente já existente no Moloni</p>
                         <p className="text-muted-foreground mt-0.5">{syncMoloni.error.message}</p>
-                        {syncMoloni.error.kind === "already_linked" ? (
-                          <>
-                            <p className="text-muted-foreground mt-1 text-xs">
-                              Nada foi alterado ainda. Ao confirmar, os dados atuais da app substituem os da ficha no Moloni.
-                            </p>
-                            <Button
-                              type="button"
-                              size="sm"
-                              className="rounded-full mt-2"
-                              disabled={syncMoloni.isPending}
-                              onClick={() => syncMoloni.mutate({ residentId: resident.id, confirm: true })}
-                            >
-                              {syncMoloni.isPending ? "A atualizar…" : "Atualizar ficha existente"}
-                            </Button>
-                          </>
-                        ) : (
-                          <p className="text-muted-foreground mt-1 text-xs">
-                            Nada foi alterado no Moloni. Verifica o cliente existente antes de voltar a sincronizar.
-                          </p>
-                        )}
+                        <p className="text-muted-foreground mt-1 text-xs">
+                          Nada foi alterado no Moloni. Verifica o cliente existente antes de voltar a sincronizar.
+                        </p>
                       </div>
                     </div>
                   )}
@@ -473,6 +461,25 @@ const ResidentDetail = () => {
                   </div>
 
                 </form>
+
+                <AlertDialog open={showMoloniConfirm} onOpenChange={(open) => { setShowMoloniConfirm(open); if (!open && !syncMoloni.isPending) syncMoloni.reset(); }}>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Ficha já existente no Moloni</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        {syncMoloni.error instanceof MoloniDuplicateError ? syncMoloni.error.message : ""}
+                        {" "}
+                        Nada foi alterado ainda. Ao confirmar, os dados atuais da app substituem os da ficha no Moloni.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel onClick={() => syncMoloni.reset()}>Cancelar</AlertDialogCancel>
+                      <AlertDialogAction onClick={() => syncMoloni.mutate({ residentId: resident.id, confirm: true })}>
+                        Atualizar ficha existente
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
               </div>
             )}
           </Card>
