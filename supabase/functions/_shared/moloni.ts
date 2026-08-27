@@ -152,11 +152,20 @@ export async function moloniCall<T = any>(
   body: Record<string, unknown> = {},
 ): Promise<T> {
   const token = await getAccessToken(sb);
-  const res = await fetch(`${MOLONI_BASE}/${endpoint}/?access_token=${encodeURIComponent(token)}`, {
+  // O Moloni lê os parâmetros escalares da query string (o corpo JSON só é
+  // usado para estruturas complexas, ex: products). Enviar ambos.
+  const qs = new URLSearchParams({ access_token: token });
+  for (const [key, value] of Object.entries(body)) {
+    if (value === null || value === undefined) continue;
+    if (typeof value === "object") continue;
+    qs.set(key, String(value));
+  }
+  const res = await fetch(`${MOLONI_BASE}/${endpoint}/?${qs.toString()}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
   });
+
   const text = await res.text();
   let json: any;
   try {
