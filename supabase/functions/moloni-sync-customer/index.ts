@@ -78,15 +78,34 @@ Deno.serve(async (req) => {
     let customerId = resident.moloni_customer_id as number | null;
 
     if (!customerId) {
-      // Evita duplicados: procura por NIF
+      // Nunca ligado por esta app: se já existir um cliente com este NIF no Moloni,
+      // não mexe em nada — pára e avisa para confirmação manual.
       const existing = await moloniCall<any[]>(sb, "customers/getByVat", {
         company_id: settings.companyId,
         vat: resident.tax_number,
       }).catch(() => []);
       if (Array.isArray(existing) && existing.length) {
-        customerId = Number(existing[0].customer_id);
+        const found = existing[0];
+        const ref = found?.number || found?.customer_id;
+        const message =
+          `Já existe um cliente no Moloni com este NIF (nº ${ref}). Confirma antes de continuar.`;
+        await logSync(sb, {
+          entity: "resident",
+          entity_id: residentId,
+          action: "sync_customer",
+          success: false,
+          message,
+          payload: { existing_customer_id: found?.customer_id, existing_number: found?.number },
+        });
+        return json({
+          error: message,
+          needs_confirmation: true,
+          existing_customer_id: found?.customer_id ?? null,
+          existing_customer_number: found?.number ?? null,
+        }, 409);
       }
     }
+
 
     // O número do cliente no Moloni é sempre o código interno do residente (LC0001, …)
     payload.number = resident.code;
