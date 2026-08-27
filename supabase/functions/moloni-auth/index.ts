@@ -115,8 +115,12 @@ Deno.serve(async (req) => {
 
       case "test": {
         const creds = await loadCredentials(sb);
-        if (!creds?.company_id) {
-          const companies = await moloniCall<Company[]>(sb, "companies/getAll");
+        // companies/getOne não está autorizado nesta app Moloni — usar getAll.
+        const companies = await moloniCall<any[]>(sb, "companies/getAll");
+        const company = creds?.company_id
+          ? companies.find((c) => Number(c.company_id) === Number(creds.company_id))
+          : null;
+        if (!company) {
           await logSync(sb, {
             entity: "auth",
             action: "test",
@@ -125,19 +129,16 @@ Deno.serve(async (req) => {
           });
           return json({ ok: true, company_selected: false, companies_found: companies.length });
         }
-        const company = await moloniCall<any>(sb, "companies/getOne", {
-          company_id: creds.company_id,
-        });
         await logSync(sb, {
           entity: "auth",
           action: "test",
           success: true,
-          message: `Ligação OK — ${company?.name ?? "empresa"} (NIF ${company?.vat ?? "—"})`,
+          message: `Ligação OK — ${company.name} (NIF ${company.vat ?? "—"})`,
         });
         return json({
           ok: true,
           company_selected: true,
-          company: { name: company?.name, vat: company?.vat, email: company?.email },
+          company: { name: company.name, vat: company.vat, email: company.email },
         });
       }
 
