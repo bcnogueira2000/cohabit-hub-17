@@ -49,6 +49,7 @@ Deno.serve(async (req) => {
     if (!resident.full_name) missing.push("nome");
     if (!resident.tax_number) missing.push("NIF");
     if (!resident.address) missing.push("morada");
+    if (!resident.code) missing.push("código do residente");
     if (missing.length) {
       return json({ error: `Faltam dados do residente: ${missing.join(", ")}` }, 400);
     }
