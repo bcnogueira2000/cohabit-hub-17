@@ -151,7 +151,7 @@ interface PendingCardProps {
   rooms: any[];
   onApprove: (residentId: string) => Promise<void>;
   onReject: () => Promise<void>;
-  onCreateAndLink: (data: { fullName: string; roomId: string | null; moveIn: string | null }) => Promise<void>;
+  onCreateAndLink: (data: { fullName: string; roomId: string | null; moveIn: string | null; taxNumber: string | null }) => Promise<void>;
 }
 
 const PendingCard = ({ profile, residents, rooms, onApprove, onReject, onCreateAndLink }: PendingCardProps) => {
