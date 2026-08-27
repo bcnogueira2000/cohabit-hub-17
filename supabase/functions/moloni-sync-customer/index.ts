@@ -102,11 +102,24 @@ Deno.serve(async (req) => {
         return json({
           error: message,
           needs_confirmation: true,
+          conflict_kind: "vat_match",
           existing_customer_id: found?.customer_id ?? null,
           existing_customer_number: found?.number ?? null,
         }, 409);
       }
+    } else if (!confirmed) {
+      // Já ligado: pedir confirmação explícita antes de sobrepor os dados no Moloni.
+      return json({
+        error:
+          `Este residente já tem ficha no Moloni (nº ${resident.code}). Queres atualizar os dados da ficha existente?`,
+        needs_confirmation: true,
+        conflict_kind: "already_linked",
+        existing_customer_id: customerId,
+        existing_customer_number: resident.code ?? null,
+      }, 409);
     }
+
+
 
 
     // O número do cliente no Moloni é sempre o código interno do residente (LC0001, …)
