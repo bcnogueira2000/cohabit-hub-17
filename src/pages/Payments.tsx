@@ -138,14 +138,24 @@ const Payments = () => {
           <h1 className="font-display text-3xl lg:text-4xl font-semibold">Rendas</h1>
           <p className="text-muted-foreground mt-1">Mapa mensal de rendas, pagamentos e cauções.</p>
         </div>
-        <Button
-          variant="outline"
-          className="rounded-full"
-          onClick={() => downloadCsv(filtered, year, month)}
-          disabled={filtered.length === 0}
-        >
-          <Download className="h-4 w-4 mr-1.5" strokeWidth={1.5} /> Exportar CSV
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <Button
+            variant="outline"
+            className="rounded-full"
+            onClick={() => syncMoloniPayments.mutate(undefined)}
+            disabled={syncMoloniPayments.isPending}
+          >
+            {syncMoloniPayments.isPending ? "A importar…" : "Importar pagamentos (Moloni)"}
+          </Button>
+          <Button
+            variant="outline"
+            className="rounded-full"
+            onClick={() => downloadCsv(filtered, year, month)}
+            disabled={filtered.length === 0}
+          >
+            <Download className="h-4 w-4 mr-1.5" strokeWidth={1.5} /> Exportar CSV
+          </Button>
+        </div>
       </div>
 
       <Tabs defaultValue="rent" className="space-y-6">
