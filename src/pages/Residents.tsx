@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Search, Mail, Phone, DoorClosed } from "lucide-react";
+import { Search, Mail, Phone, DoorClosed, MapPin } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useResidents, useRooms, useRequests } from "@/hooks/useData";
@@ -52,6 +52,15 @@ const Residents = () => {
                   <div className="flex items-center gap-2"><DoorClosed className="h-3 w-3" /> {room ? `Quarto ${room.number}` : "Sem quarto"}</div>
                   <div className="flex items-center gap-2 truncate"><Mail className="h-3 w-3 shrink-0" /> {r.email}</div>
                   <div className="flex items-center gap-2"><Phone className="h-3 w-3" /> {r.phone}</div>
+                  {(r.address || r.postalCode) && (
+                    <div className="flex items-start gap-2">
+                      <MapPin className="h-3 w-3 shrink-0 mt-0.5" strokeWidth={1.5} />
+                      <span className="min-w-0">
+                        {r.address && <span className="block truncate">{r.address}</span>}
+                        {r.postalCode && <span className="block truncate">{r.postalCode}</span>}
+                      </span>
+                    </div>
+                  )}
                 </div>
                 <div className="flex items-center justify-between text-xs mt-3 pt-3 border-t border-border">
                   <span className="text-muted-foreground">
