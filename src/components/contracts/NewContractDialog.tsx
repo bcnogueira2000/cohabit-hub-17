@@ -113,6 +113,9 @@ export const NewContractDialog = ({ open, onOpenChange, defaults, leadId, onCrea
 
     setSubmitting(true);
     try {
+      // 0. NIF não pode pertencer a outro residente
+      await assertTaxNumberAvailable(String(fd.get("taxNumber") ?? ""));
+
       // 1. Estadia — caminho existente (triggers de check-in/limpeza/kit intactos)
       const stay: any = await createStay.mutateAsync({
         fullName: String(fd.get("fullName")),
