@@ -491,6 +491,53 @@ const PaymentSheet = ({ charge, onClose }: { charge: RentChargeRow | null; onClo
             </div>
 
             <div className="mt-6">
+              <h3 className="font-display text-lg font-semibold mb-2">Faturação Moloni</h3>
+              {charge.moloniDocumentId ? (
+                <div className="space-y-2">
+                  <div className="text-sm">
+                    Documento{" "}
+                    <span className="font-mono">{charge.moloniDocumentNumber ?? `#${charge.moloniDocumentId}`}</span>
+                    {charge.moloniStatus === "paid" && (
+                      <span className="ml-2 text-xs text-success">pago no Moloni</span>
+                    )}
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="rounded-full"
+                      onClick={() => pdf.mutate(charge.id)}
+                      disabled={pdf.isPending}
+                    >
+                      Abrir PDF
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="rounded-full"
+                      onClick={() => syncPayments.mutate(charge.id)}
+                      disabled={syncPayments.isPending}
+                    >
+                      Verificar pagamento
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <p className="text-sm text-muted-foreground">Ainda sem documento emitido para esta renda.</p>
+                  <Button
+                    size="sm"
+                    className="rounded-full"
+                    onClick={() => issue.mutate(charge.id)}
+                    disabled={issue.isPending}
+                  >
+                    {issue.isPending ? "A emitir…" : "Emitir no Moloni"}
+                  </Button>
+                </div>
+              )}
+            </div>
+
+            <div className="mt-6">
               <Link
                 to={`/finance/contracts/${charge.contractId}`}
                 className="inline-flex items-center gap-1 text-sm hover:underline"
