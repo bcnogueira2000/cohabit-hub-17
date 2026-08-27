@@ -159,8 +159,9 @@ Deno.serve(async (req) => {
       payload: {
         customer_id: customerId,
         sent_contact: { name: payload.contact_name, phone: payload.contact_phone },
-        moloni_verify_keys: verify ? Object.keys(verify) : null,
-        moloni_contacts: (verify?.contacts ?? verify?.contact ?? null),
+        moloni_contact: verify
+          ? { name: verify.contact_name, phone: verify.contact_phone, email: verify.contact_email }
+          : null,
       },
     });
 
