@@ -114,6 +114,17 @@ export const useMoloniSyncLog = () =>
 
 /* ---------- Clientes ---------- */
 
+export class MoloniDuplicateError extends Error {
+  existingCustomerId: number | null;
+  existingCustomerNumber: string | null;
+  constructor(message: string, id: number | null, number: string | null) {
+    super(message);
+    this.name = "MoloniDuplicateError";
+    this.existingCustomerId = id;
+    this.existingCustomerNumber = number;
+  }
+}
+
 export const useSyncMoloniCustomer = () => {
   const qc = useQueryClient();
   return useMutation({
@@ -121,8 +132,16 @@ export const useSyncMoloniCustomer = () => {
       const { data, error } = await supabase.functions.invoke("moloni-sync-customer", {
         body: { resident_id: residentId },
       });
-      if (error) throw new Error((data as any)?.error ?? error.message);
-      if ((data as any)?.error) throw new Error((data as any).error);
+      const d = data as any;
+      if (d?.needs_confirmation) {
+        throw new MoloniDuplicateError(
+          d.error ?? "Já existe um cliente no Moloni com este NIF.",
+          d.existing_customer_id ?? null,
+          d.existing_customer_number ?? null,
+        );
+      }
+      if (error) throw new Error(d?.error ?? error.message);
+      if (d?.error) throw new Error(d.error);
       return data as { customer_id: number };
     },
     onSuccess: (data, residentId) => {
@@ -131,9 +150,13 @@ export const useSyncMoloniCustomer = () => {
       qc.invalidateQueries({ queryKey: ["residents"] });
       qc.invalidateQueries({ queryKey: ["moloni", "log"] });
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error) => {
+      if (e instanceof MoloniDuplicateError) return; // mostrado em destaque na página
+      toast.error(e.message);
+    },
   });
 };
+
 
 /* ---------- Documentos ---------- */
 
