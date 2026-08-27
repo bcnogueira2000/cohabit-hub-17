@@ -94,6 +94,14 @@ const ResidentDetail = () => {
     });
   }, [resident?.id, resident?.nationality, resident?.documentType, resident?.documentNumber, resident?.taxNumber, resident?.employerOrSchool, resident?.dateOfBirth, resident?.emergencyContactName, resident?.emergencyContactPhone, resident?.specialNeeds]);
 
+  useEffect(() => {
+    if (syncMoloni.error instanceof MoloniDuplicateError && syncMoloni.error.kind === "already_linked") {
+      setShowMoloniConfirm(true);
+    } else if (showMoloniConfirm && !syncMoloni.error) {
+      setShowMoloniConfirm(false);
+    }
+  }, [syncMoloni.error, showMoloniConfirm]);
+
   const saveLegal = (e: React.FormEvent) => {
     e.preventDefault();
     if (!resident) return;
