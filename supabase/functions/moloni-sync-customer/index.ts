@@ -95,8 +95,10 @@ Deno.serve(async (req) => {
       const created = await moloniCall<any>(sb, "customers/insert", payload);
       customerId = Number(created?.customer_id);
       if (!customerId) throw new Error("O Moloni não devolveu o id do cliente.");
-
+      // O Moloni atribui um número automático no insert — forçar o código interno.
+      await moloniCall(sb, "customers/update", { ...payload, customer_id: customerId });
     }
+
 
     await sb
       .from("residents")
