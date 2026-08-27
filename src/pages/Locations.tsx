@@ -27,8 +27,17 @@ const Locations = () => {
 
   const grouped = useMemo(() => {
     const g: Record<string, typeof filtered> = {};
-    for (const l of filtered) (g[l.kind] ||= []).push(l);
-    return g;
+    for (const l of filtered) {
+      const key = l.floor != null ? String(l.floor) : "none";
+      (g[key] ||= []).push(l);
+    }
+    return Object.fromEntries(
+      Object.entries(g).sort(([a], [b]) => {
+        if (a === "none") return 1;
+        if (b === "none") return -1;
+        return Number(a) - Number(b);
+      })
+    );
   }, [filtered]);
 
   return (
