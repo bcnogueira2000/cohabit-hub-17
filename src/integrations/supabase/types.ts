@@ -958,6 +958,11 @@ export type Database = {
           created_at: string
           due_date: string
           id: string
+          moloni_document_id: number | null
+          moloni_document_number: string | null
+          moloni_issued_at: string | null
+          moloni_paid_synced_at: string | null
+          moloni_status: string | null
           month: number
           notes: string | null
           prorated: boolean
@@ -969,6 +974,11 @@ export type Database = {
           created_at?: string
           due_date: string
           id?: string
+          moloni_document_id?: number | null
+          moloni_document_number?: string | null
+          moloni_issued_at?: string | null
+          moloni_paid_synced_at?: string | null
+          moloni_status?: string | null
           month: number
           notes?: string | null
           prorated?: boolean
@@ -980,6 +990,11 @@ export type Database = {
           created_at?: string
           due_date?: string
           id?: string
+          moloni_document_id?: number | null
+          moloni_document_number?: string | null
+          moloni_issued_at?: string | null
+          moloni_paid_synced_at?: string | null
+          moloni_status?: string | null
           month?: number
           notes?: string | null
           prorated?: boolean
@@ -1180,6 +1195,8 @@ export type Database = {
           full_name: string
           gender: string | null
           id: string
+          moloni_customer_id: number | null
+          moloni_synced_at: string | null
           move_in: string | null
           move_out: string | null
           nationality: string | null
@@ -1209,6 +1226,8 @@ export type Database = {
           full_name: string
           gender?: string | null
           id?: string
+          moloni_customer_id?: number | null
+          moloni_synced_at?: string | null
           move_in?: string | null
           move_out?: string | null
           nationality?: string | null
@@ -1238,6 +1257,8 @@ export type Database = {
           full_name?: string
           gender?: string | null
           id?: string
+          moloni_customer_id?: number | null
+          moloni_synced_at?: string | null
           move_in?: string | null
           move_out?: string | null
           nationality?: string | null
