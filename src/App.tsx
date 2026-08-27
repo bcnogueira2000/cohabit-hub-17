@@ -40,6 +40,7 @@ import Contracts from "./pages/Contracts";
 import ContractDetail from "./pages/ContractDetail";
 import Payments from "./pages/Payments";
 import Pricing from "./pages/Pricing";
+import MoloniSettings from "./pages/MoloniSettings";
 
 import Suppliers from "./pages/Suppliers";
 import SupplierDetail from "./pages/SupplierDetail";
