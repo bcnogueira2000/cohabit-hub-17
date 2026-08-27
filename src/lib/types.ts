@@ -212,6 +212,7 @@ export interface Supplier {
 export type LocationKind =
   | "room"
   | "shared_bathroom"
+  | "private_bathroom"
   | "apartment_kitchen"
   | "common_kitchen"
   | "corridor"

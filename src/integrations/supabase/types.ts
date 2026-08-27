@@ -540,6 +540,7 @@ export type Database = {
         Row: {
           apartment: string | null
           capacity: number | null
+          code: string | null
           created_at: string
           floor: number | null
           id: string
@@ -555,6 +556,7 @@ export type Database = {
         Insert: {
           apartment?: string | null
           capacity?: number | null
+          code?: string | null
           created_at?: string
           floor?: number | null
           id?: string
@@ -570,6 +572,7 @@ export type Database = {
         Update: {
           apartment?: string | null
           capacity?: number | null
+          code?: string | null
           created_at?: string
           floor?: number | null
           id?: string
@@ -1569,6 +1572,7 @@ export type Database = {
         | "other"
         | "apartment"
         | "floor"
+        | "private_bathroom"
       location_status: "active" | "out_of_service" | "under_maintenance"
       payment_kind:
         | "rent"
@@ -1826,6 +1830,7 @@ export const Constants = {
         "other",
         "apartment",
         "floor",
+        "private_bathroom",
       ],
       location_status: ["active", "out_of_service", "under_maintenance"],
       payment_kind: [
