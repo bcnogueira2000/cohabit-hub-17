@@ -52,12 +52,14 @@ const Residents = () => {
                   <div className="flex items-center gap-2"><DoorClosed className="h-3 w-3" /> {room ? `Quarto ${room.number}` : "Sem quarto"}</div>
                   <div className="flex items-center gap-2 truncate"><Mail className="h-3 w-3 shrink-0" /> {r.email}</div>
                   <div className="flex items-center gap-2"><Phone className="h-3 w-3" /> {r.phone}</div>
-                  {(r.address || r.postalCode) && (
+                  {(r.address || r.postalCode || r.city) && (
                     <div className="flex items-start gap-2">
                       <MapPin className="h-3 w-3 shrink-0 mt-0.5" strokeWidth={1.5} />
                       <span className="min-w-0">
                         {r.address && <span className="block truncate">{r.address}</span>}
-                        {r.postalCode && <span className="block truncate">{r.postalCode}</span>}
+                        {(r.postalCode || r.city) && (
+                          <span className="block truncate">{[r.postalCode, r.city].filter(Boolean).join(" ")}</span>
+                        )}
                       </span>
                     </div>
                   )}

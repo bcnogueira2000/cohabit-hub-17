@@ -35,6 +35,7 @@ export const mapResident = (r: any): Resident => ({
   specialNeeds: r.special_needs ?? null,
   address: r.address ?? null,
   postalCode: r.postal_code ?? null,
+  city: r.city ?? null,
   documentValidity: r.document_validity ?? null,
   profile: r.profile ?? null,
   gender: r.gender ?? null,

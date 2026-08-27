@@ -80,6 +80,7 @@ const ResidentDetail = () => {
     specialNeeds: null,
     address: null,
     postalCode: null,
+    city: null,
   });
 
   useEffect(() => {
@@ -97,8 +98,9 @@ const ResidentDetail = () => {
       specialNeeds: resident.specialNeeds,
       address: resident.address,
       postalCode: resident.postalCode,
+      city: resident.city,
     });
-  }, [resident?.id, resident?.nationality, resident?.documentType, resident?.documentNumber, resident?.taxNumber, resident?.employerOrSchool, resident?.dateOfBirth, resident?.emergencyContactName, resident?.emergencyContactPhone, resident?.emergencyContactEmail, resident?.specialNeeds, resident?.address, resident?.postalCode]);
+  }, [resident?.id, resident?.nationality, resident?.documentType, resident?.documentNumber, resident?.taxNumber, resident?.employerOrSchool, resident?.dateOfBirth, resident?.emergencyContactName, resident?.emergencyContactPhone, resident?.emergencyContactEmail, resident?.specialNeeds, resident?.address, resident?.postalCode, resident?.city]);
 
   useEffect(() => {
     if (syncMoloni.error instanceof MoloniDuplicateError && syncMoloni.error.kind === "already_linked") {
@@ -128,6 +130,7 @@ const ResidentDetail = () => {
           specialNeeds: clean(legal.specialNeeds),
           address: clean(legal.address),
           postalCode: clean(legal.postalCode),
+          city: clean(legal.city),
         },
       },
       {
@@ -340,6 +343,10 @@ const ResidentDetail = () => {
                 <div className="font-medium">{resident.postalCode || <span className="text-muted-foreground">—</span>}</div>
               </div>
               <div>
+                <div className="text-xs text-muted-foreground mb-0.5">Localidade</div>
+                <div className="font-medium">{resident.city || <span className="text-muted-foreground">—</span>}</div>
+              </div>
+              <div>
                 <div className="text-xs text-muted-foreground mb-0.5">Empresa / escola</div>
                 <div className="font-medium">{resident.employerOrSchool || <span className="text-muted-foreground">—</span>}</div>
               </div>
@@ -423,9 +430,19 @@ const ResidentDetail = () => {
                     <Input
                       id="legal-postal"
                       className="mt-1.5"
-                      placeholder="1000-001 Lisboa"
+                      placeholder="1000-001"
                       value={legal.postalCode ?? ""}
                       onChange={(e) => setLegal((s) => ({ ...s, postalCode: e.target.value }))}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="legal-city">Localidade</Label>
+                    <Input
+                      id="legal-city"
+                      className="mt-1.5"
+                      placeholder="Lisboa"
+                      value={legal.city ?? ""}
+                      onChange={(e) => setLegal((s) => ({ ...s, city: e.target.value }))}
                     />
                   </div>
                   <div>
