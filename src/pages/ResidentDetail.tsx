@@ -461,6 +461,25 @@ const ResidentDetail = () => {
                   </div>
 
                 </form>
+
+                <AlertDialog open={showMoloniConfirm} onOpenChange={(open) => { setShowMoloniConfirm(open); if (!open) syncMoloni.reset(); }}>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Ficha já existente no Moloni</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        {syncMoloni.error instanceof MoloniDuplicateError ? syncMoloni.error.message : ""}
+                        {" "}
+                        Nada foi alterado ainda. Ao confirmar, os dados atuais da app substituem os da ficha no Moloni.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel onClick={() => syncMoloni.reset()}>Cancelar</AlertDialogCancel>
+                      <AlertDialogAction onClick={() => syncMoloni.mutate({ residentId: resident.id, confirm: true })}>
+                        Atualizar ficha existente
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
               </div>
             )}
           </Card>
