@@ -1,5 +1,5 @@
 import { NavLink, Outlet, useLocation, useNavigate, Link } from "react-router-dom";
-import { FileText, Wallet, Tag, LogOut, ArrowLeft, Undo2 } from "lucide-react";
+import { FileText, Wallet, Tag, LogOut, ArrowLeft, Undo2, Receipt } from "lucide-react";
 import { useMyRoles, useProfile } from "@/hooks/useProfile";
 import { cn, getInitials } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
@@ -13,6 +13,7 @@ const financeItems: NavItem[] = [
   { to: "/finance/contracts", label: "Contratos", icon: FileText },
   { to: "/finance/payments", label: "Pagamentos", icon: Wallet },
   { to: "/finance/pricing", label: "Tipologias e preços", icon: Tag },
+  { to: "/finance/moloni", label: "Moloni", icon: Receipt },
 ];
 
 const Brand = ({ compact = false }: { compact?: boolean }) => (
@@ -115,7 +116,7 @@ export const FinanceShell = () => {
 
       {/* Mobile bottom nav */}
       <nav className="lg:hidden fixed bottom-0 inset-x-0 z-30 bg-background/95 backdrop-blur border-t border-border">
-        <div className="grid grid-cols-4 h-16">
+        <div className="grid grid-cols-5 h-16">
           {financeItems.map(({ to, label, icon: Icon, end }) => (
             <NavLink
               key={to}
