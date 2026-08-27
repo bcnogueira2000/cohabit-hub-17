@@ -111,3 +111,89 @@ export const useMoloniSyncLog = () =>
       return data;
     },
   });
+
+/* ---------- Clientes ---------- */
+
+export const useSyncMoloniCustomer = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (residentId: string) => {
+      const { data, error } = await supabase.functions.invoke("moloni-sync-customer", {
+        body: { resident_id: residentId },
+      });
+      if (error) throw new Error((data as any)?.error ?? error.message);
+      if ((data as any)?.error) throw new Error((data as any).error);
+      return data as { customer_id: number };
+    },
+    onSuccess: (data, residentId) => {
+      toast.success(`Cliente sincronizado no Moloni (#${data.customer_id})`);
+      qc.invalidateQueries({ queryKey: ["resident", residentId] });
+      qc.invalidateQueries({ queryKey: ["residents"] });
+      qc.invalidateQueries({ queryKey: ["moloni", "log"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+};
+
+/* ---------- Documentos ---------- */
+
+export const useIssueMoloniDocument = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (rentChargeId: string) => {
+      const { data, error } = await supabase.functions.invoke("moloni-issue-document", {
+        body: { rent_charge_id: rentChargeId },
+      });
+      if (error) throw new Error((data as any)?.error ?? error.message);
+      if ((data as any)?.error) throw new Error((data as any).error);
+      return data as { document_id: number; document_number: string | null };
+    },
+    onSuccess: (data) => {
+      toast.success(`Documento emitido${data.document_number ? ` — ${data.document_number}` : ""}`);
+      qc.invalidateQueries({ queryKey: ["rent-month"] });
+      qc.invalidateQueries({ queryKey: ["moloni", "log"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+};
+
+export const useMoloniDocumentPdf = () =>
+  useMutation({
+    mutationFn: async (rentChargeId: string) => {
+      const { data, error } = await supabase.functions.invoke("moloni-issue-document", {
+        body: { rent_charge_id: rentChargeId, action: "pdf" },
+      });
+      if (error) throw new Error((data as any)?.error ?? error.message);
+      if ((data as any)?.error) throw new Error((data as any).error);
+      return data as { url: string | null };
+    },
+    onSuccess: (data) => {
+      if (data.url) window.open(data.url, "_blank", "noopener");
+      else toast.error("O Moloni não devolveu o link do PDF.");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+/* ---------- Estado de pagamento ---------- */
+
+export const useSyncMoloniPayments = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (rentChargeId?: string) => {
+      const { data, error } = await supabase.functions.invoke("moloni-sync-payments", {
+        body: rentChargeId ? { rent_charge_id: rentChargeId } : {},
+      });
+      if (error) throw new Error((data as any)?.error ?? error.message);
+      if ((data as any)?.error) throw new Error((data as any).error);
+      return data as { checked: number; paid: number; errors: string[] };
+    },
+    onSuccess: (data) => {
+      toast.success(`${data.paid} pagamento(s) importado(s) de ${data.checked} documento(s) verificado(s)`);
+      if (data.errors?.length) toast.error(data.errors[0]);
+      qc.invalidateQueries({ queryKey: ["rent-month"] });
+      qc.invalidateQueries({ queryKey: ["charge-payments"] });
+      qc.invalidateQueries({ queryKey: ["moloni", "log"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+};

@@ -36,6 +36,8 @@ import {
   type PaymentState,
   type RentChargeRow,
 } from "@/hooks/usePayments";
+import { useIssueMoloniDocument, useMoloniDocumentPdf, useSyncMoloniPayments } from "@/hooks/useMoloni";
+
 
 
 const eur = (v: number | null | undefined) =>
@@ -101,6 +103,7 @@ const Payments = () => {
 
   const { data: charges = [], isLoading } = useRentMonth(year, month);
   const { data: typologies = [] } = useTypologies();
+  const syncMoloniPayments = useSyncMoloniPayments();
 
   const shiftMonth = (delta: number) => {
     const d = new Date(year, month - 1 + delta, 1);
@@ -136,14 +139,24 @@ const Payments = () => {
           <h1 className="font-display text-3xl lg:text-4xl font-semibold">Rendas</h1>
           <p className="text-muted-foreground mt-1">Mapa mensal de rendas, pagamentos e cauções.</p>
         </div>
-        <Button
-          variant="outline"
-          className="rounded-full"
-          onClick={() => downloadCsv(filtered, year, month)}
-          disabled={filtered.length === 0}
-        >
-          <Download className="h-4 w-4 mr-1.5" strokeWidth={1.5} /> Exportar CSV
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <Button
+            variant="outline"
+            className="rounded-full"
+            onClick={() => syncMoloniPayments.mutate(undefined)}
+            disabled={syncMoloniPayments.isPending}
+          >
+            {syncMoloniPayments.isPending ? "A importar…" : "Importar pagamentos (Moloni)"}
+          </Button>
+          <Button
+            variant="outline"
+            className="rounded-full"
+            onClick={() => downloadCsv(filtered, year, month)}
+            disabled={filtered.length === 0}
+          >
+            <Download className="h-4 w-4 mr-1.5" strokeWidth={1.5} /> Exportar CSV
+          </Button>
+        </div>
       </div>
 
       <Tabs defaultValue="rent" className="space-y-6">
@@ -336,6 +349,9 @@ const Payments = () => {
 const PaymentSheet = ({ charge, onClose }: { charge: RentChargeRow | null; onClose: () => void }) => {
   const create = useCreatePayment();
   const { data: payments = [] } = useChargePayments(charge?.id);
+  const issue = useIssueMoloniDocument();
+  const pdf = useMoloniDocumentPdf();
+  const syncPayments = useSyncMoloniPayments();
   const [amount, setAmount] = useState("");
   const [paidAt, setPaidAt] = useState(todayISO());
   const [method, setMethod] = useState<PaymentMethod>("transfer");
@@ -486,6 +502,53 @@ const PaymentSheet = ({ charge, onClose }: { charge: RentChargeRow | null; onClo
                       </div>
                     </div>
                   ))}
+                </div>
+              )}
+            </div>
+
+            <div className="mt-6">
+              <h3 className="font-display text-lg font-semibold mb-2">Faturação Moloni</h3>
+              {charge.moloniDocumentId ? (
+                <div className="space-y-2">
+                  <div className="text-sm">
+                    Documento{" "}
+                    <span className="font-mono">{charge.moloniDocumentNumber ?? `#${charge.moloniDocumentId}`}</span>
+                    {charge.moloniStatus === "paid" && (
+                      <span className="ml-2 text-xs text-success">pago no Moloni</span>
+                    )}
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="rounded-full"
+                      onClick={() => pdf.mutate(charge.id)}
+                      disabled={pdf.isPending}
+                    >
+                      Abrir PDF
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="rounded-full"
+                      onClick={() => syncPayments.mutate(charge.id)}
+                      disabled={syncPayments.isPending}
+                    >
+                      Verificar pagamento
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <p className="text-sm text-muted-foreground">Ainda sem documento emitido para esta renda.</p>
+                  <Button
+                    size="sm"
+                    className="rounded-full"
+                    onClick={() => issue.mutate(charge.id)}
+                    disabled={issue.isPending}
+                  >
+                    {issue.isPending ? "A emitir…" : "Emitir no Moloni"}
+                  </Button>
                 </div>
               )}
             </div>

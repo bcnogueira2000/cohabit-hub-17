@@ -27,6 +27,7 @@ import { StatusBadge, PriorityBadge } from "@/components/ui/StatusBadge";
 import ResidentFileUpload from "@/components/ResidentFileUpload";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useSyncMoloniCustomer } from "@/hooks/useMoloni";
 import type { ChecklistItem, ResidentLegalFields } from "@/lib/types";
 
 const DOC_TYPES = ["Cartão de Cidadão", "Passaporte", "Título de Residência", "Outro"];
@@ -62,6 +63,7 @@ const ResidentDetail = () => {
   const updateProfile = useUpdateProfileByUserId();
   const updateLegal = useUpdateResidentLegal();
   const { data: roles = [] } = useMyRoles();
+  const syncMoloni = useSyncMoloniCustomer();
   const isStaff = roles.some((r) => r === "staff" || r === "manager" || r === "admin");
 
   const [legal, setLegal] = useState<ResidentLegalFields>({
@@ -421,7 +423,16 @@ const ResidentDetail = () => {
                       onChange={(e) => setLegal((s) => ({ ...s, specialNeeds: e.target.value }))}
                     />
                   </div>
-                  <div className="sm:col-span-2 flex justify-end">
+                  <div className="sm:col-span-2 flex flex-wrap justify-end gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="rounded-full"
+                      disabled={syncMoloni.isPending}
+                      onClick={() => syncMoloni.mutate(resident.id)}
+                    >
+                      {syncMoloni.isPending ? "A sincronizar…" : "Sincronizar com Moloni"}
+                    </Button>
                     <Button type="submit" disabled={updateLegal.isPending} className="rounded-full">
                       {updateLegal.isPending ? "A guardar…" : "Guardar dados pessoais"}
                     </Button>
