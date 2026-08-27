@@ -79,25 +79,28 @@ const Locations = () => {
         </Card>
       ) : (
         <div className="space-y-6">
-          {Object.entries(grouped).map(([k, items]) => (
-            <div key={k}>
+          {Object.entries(grouped).map(([floor, items]) => (
+            <div key={floor}>
               <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground/80 mb-2 px-1">
-                {locationKindLabels[k] || k}
+                {floor === "none" ? "Sem piso atribuído" : `Piso ${floor}`}
               </div>
               <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
                 {items.map((l) => (
                   <Link key={l.id} to={`/locations/${l.id}`}>
                     <Card className="p-4 hover:shadow-elegant transition-smooth border-border/60 cursor-pointer h-full">
                       <div className="font-medium truncate">{l.name}</div>
-                      <div className="text-xs text-muted-foreground mt-1">
-                        {l.floor != null && <>Piso {l.floor}</>}
-                        {l.apartment && <> · Apto {l.apartment}</>}
-                      </div>
-                      {l.status !== "active" && (
-                        <div className="mt-2 text-[10px] uppercase tracking-wider text-warning bg-warning/10 px-2 py-0.5 rounded-full inline-block">
-                          {locationStatusLabels[l.status]}
+                      {l.code && (
+                        <div className="font-mono text-[11px] text-muted-foreground/80 bg-muted px-1.5 py-0.5 rounded inline-block mt-1.5">
+                          {l.code}
                         </div>
                       )}
+                      <div className="text-xs text-muted-foreground mt-1.5">
+                        {l.apartment && <>Apto {l.apartment}</>}
+                        {l.apartment && l.status !== "active" && <> · </>}
+                        {l.status !== "active" && (
+                          <span className="text-warning">{locationStatusLabels[l.status]}</span>
+                        )}
+                      </div>
                     </Card>
                   </Link>
                 ))}
