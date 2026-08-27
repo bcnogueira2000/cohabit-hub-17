@@ -69,10 +69,10 @@ Deno.serve(async (req) => {
       credit_limit: 0,
       payment_method_id: settings.paymentMethodId,
     };
-    // salesman_id e delivery_method_id: o Moloni rejeita null — omitir por completo
-    // deixa-o aplicar o comportamento por omissão.
-    delete payload.salesman_id;
-    delete payload.delivery_method_id;
+    // O Moloni rejeita null e também a omissão destes dois campos —
+    // usa 0 como sentinela "sem vendedor / sem método de entrega".
+    payload.salesman_id = 0;
+    payload.delivery_method_id = 0;
 
 
     let customerId = resident.moloni_customer_id as number | null;
