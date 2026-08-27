@@ -63,7 +63,15 @@ Deno.serve(async (req) => {
       language_id: 1,
       email: resident.email ?? "",
       phone: resident.phone ?? "",
+      salesman_id: null,
+      maturity_date_id: settings.maturityDateId,
+      payment_day: 5,
+      discount: 0,
+      credit_limit: 0,
+      payment_method_id: settings.paymentMethodId,
+      delivery_method_id: null,
     };
+
 
     let customerId = resident.moloni_customer_id as number | null;
 
@@ -85,18 +93,12 @@ Deno.serve(async (req) => {
       await moloniCall(sb, "customers/update", { ...payload, customer_id: customerId });
     } else {
       const created = await moloniCall<any>(sb, "customers/insert", payload);
-      // DIAGNÓSTICO TEMPORÁRIO: registar a resposta em bruto do Moloni.
-      await logSync(sb, {
-        entity: "resident",
-        entity_id: residentId,
-        action: "debug_insert_raw",
-        success: true,
-        message: JSON.stringify(created).slice(0, 2000),
-        payload: { raw: created },
-      });
       customerId = Number(created?.customer_id);
       if (!customerId) throw new Error("O Moloni não devolveu o id do cliente.");
+      // O Moloni atribui um número automático no insert — forçar o código interno.
+      await moloniCall(sb, "customers/update", { ...payload, customer_id: customerId });
     }
+
 
     await sb
       .from("residents")

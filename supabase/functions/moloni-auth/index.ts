@@ -44,7 +44,7 @@ Deno.serve(async (req) => {
   }
 
   const sb = adminClient();
-  let payload: { action?: string; code?: string; company_id?: number } = {};
+  let payload: { action?: string; code?: string; company_id?: number; vat?: string } = {};
   try {
     payload = await req.json();
   } catch {

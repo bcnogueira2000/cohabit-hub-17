@@ -11,6 +11,8 @@ export interface MoloniSettings {
   productId: number | null;
   productName: string;
   unitId: number | null;
+  maturityDateId: number | null;
+  paymentMethodId: number | null;
 }
 
 const KEYS = [
@@ -21,7 +23,10 @@ const KEYS = [
   "moloni_product_id",
   "moloni_product_name",
   "moloni_unit_id",
+  "moloni_maturity_date_id",
+  "moloni_payment_method_id",
 ] as const;
+
 
 export async function loadSettings(sb: SupabaseClient): Promise<MoloniSettings> {
   const creds = await loadCredentials(sb);
@@ -58,5 +63,8 @@ export async function loadSettings(sb: SupabaseClient): Promise<MoloniSettings> 
     productId: num("moloni_product_id"),
     productName: map.get("moloni_product_name") ?? "Renda mensal",
     unitId: num("moloni_unit_id"),
+    maturityDateId: num("moloni_maturity_date_id"),
+    paymentMethodId: num("moloni_payment_method_id"),
   };
 }
+
