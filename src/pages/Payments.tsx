@@ -336,6 +336,9 @@ const Payments = () => {
 const PaymentSheet = ({ charge, onClose }: { charge: RentChargeRow | null; onClose: () => void }) => {
   const create = useCreatePayment();
   const { data: payments = [] } = useChargePayments(charge?.id);
+  const issue = useIssueMoloniDocument();
+  const pdf = useMoloniDocumentPdf();
+  const syncPayments = useSyncMoloniPayments();
   const [amount, setAmount] = useState("");
   const [paidAt, setPaidAt] = useState(todayISO());
   const [method, setMethod] = useState<PaymentMethod>("transfer");
