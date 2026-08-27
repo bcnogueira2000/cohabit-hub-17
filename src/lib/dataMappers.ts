@@ -159,6 +159,7 @@ export const mapLocation = (l: any): Location => ({
   id: l.id,
   name: l.name,
   kind: l.kind,
+  code: l.code ?? null,
   floor: l.floor ?? null,
   apartment: l.apartment ?? null,
   parentLocationId: l.parent_location_id ?? null,

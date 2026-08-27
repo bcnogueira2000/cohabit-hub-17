@@ -232,6 +232,7 @@ export interface Location {
   id: string;
   name: string;
   kind: LocationKind;
+  code: string | null;
   floor: number | null;
   apartment: string | null;
   parentLocationId: string | null;
