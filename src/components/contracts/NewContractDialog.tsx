@@ -8,6 +8,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useCreateStay, useRooms } from "@/hooks/useData";
 import { supabase } from "@/integrations/supabase/client";
+import { assertTaxNumberAvailable } from "@/lib/residentTaxNumber";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { RoomCombobox } from "@/components/rooms/RoomCombobox";
