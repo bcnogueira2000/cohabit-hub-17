@@ -141,6 +141,16 @@ Deno.serve(async (req) => {
           company: { name: company.name, vat: company.vat, email: company.email },
         });
       }
+      case "config_options": {
+        const creds = await loadCredentials(sb);
+        if (!creds?.company_id) return json({ error: "Sem empresa selecionada" }, 400);
+        const [maturityDates, paymentMethods] = await Promise.all([
+          moloniCall<any[]>(sb, "maturityDates/getAll", { company_id: creds.company_id }).catch((e) => ({ error: (e as Error).message })),
+          moloniCall<any[]>(sb, "paymentMethods/getAll", { company_id: creds.company_id }).catch((e) => ({ error: (e as Error).message })),
+        ]);
+        return json({ maturityDates, paymentMethods });
+      }
+
 
       case "disconnect": {
         await sb
