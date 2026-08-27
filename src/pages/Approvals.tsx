@@ -160,6 +160,7 @@ const PendingCard = ({ profile, residents, rooms, onApprove, onReject, onCreateA
   const [createNew, setCreateNew] = useState(false);
   const [roomId, setRoomId] = useState<string>("");
   const [moveIn, setMoveIn] = useState<string>("");
+  const [taxNumber, setTaxNumber] = useState<string>("");
 
   // Find any resident matching by email (suggest auto-link)
   const candidates = residents.filter((r) => r.email?.toLowerCase() === profile.email.toLowerCase());
