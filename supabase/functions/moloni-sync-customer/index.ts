@@ -78,16 +78,13 @@ Deno.serve(async (req) => {
       }
     }
 
+    // O número do cliente no Moloni é sempre o código interno do residente (LC0001, …)
+    payload.number = resident.code;
+
     if (customerId) {
       await moloniCall(sb, "customers/update", { ...payload, customer_id: customerId });
     } else {
-      const nextNumber = await moloniCall<any>(sb, "customers/getNextNumber", {
-        company_id: settings.companyId,
-      }).catch(() => null);
-      const created = await moloniCall<any>(sb, "customers/insert", {
-        ...payload,
-        number: nextNumber?.number ?? `LC-${residentId.slice(0, 8)}`,
-      });
+      const created = await moloniCall<any>(sb, "customers/insert", payload);
       customerId = Number(created?.customer_id);
       if (!customerId) throw new Error("O Moloni não devolveu o id do cliente.");
     }
