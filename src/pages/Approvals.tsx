@@ -114,6 +114,7 @@ const Approvals = () => {
               }}
               onCreateAndLink={async (data) => {
                 try {
+                  await assertTaxNumberAvailable(data.taxNumber);
                   const { data: created, error } = await supabase
                     .from("residents")
                     .insert({
@@ -123,6 +124,7 @@ const Approvals = () => {
                       room_id: data.roomId,
                       move_in: data.moveIn || new Date().toISOString(),
                       status: "upcoming",
+                      tax_number: data.taxNumber || null,
                       avatar_color: "#" + Math.floor(Math.random() * 16777215).toString(16).padStart(6, "0"),
                       user_id: p.user_id,
                     } as any)
