@@ -105,7 +105,8 @@ Deno.serve(async (req) => {
           conflict_kind: "vat_match",
           existing_customer_id: found?.customer_id ?? null,
           existing_customer_number: found?.number ?? null,
-        }, 409);
+        }); // 200: é um pedido de confirmação, não uma falha do pedido
+
       }
     } else if (!confirmed) {
       // Já ligado: pedir confirmação explícita antes de sobrepor os dados no Moloni.
