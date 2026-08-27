@@ -21,6 +21,9 @@ export interface RentChargeRow {
   roomNumber: string | null;
   typologyId: string | null;
   typologyName: string | null;
+  moloniDocumentId: number | null;
+  moloniDocumentNumber: string | null;
+  moloniStatus: string | null;
 }
 
 export const paymentStateLabels: Record<PaymentState, string> = {
@@ -55,7 +58,7 @@ export const useRentMonth = (year: number, month: number) =>
 
       const contractIds = Array.from(new Set(rows.map((r) => r.contract_id)));
 
-      const [contractsRes, staysRes, roomsRes, typRes] = await Promise.all([
+      const [contractsRes, staysRes, roomsRes, typRes, moloniRes] = await Promise.all([
         supabase
           .from("contracts" as any)
           .select("id, resident_id, residents:resident_id(id, full_name)")
@@ -67,7 +70,14 @@ export const useRentMonth = (year: number, month: number) =>
           .order("check_in", { ascending: false }),
         supabase.from("rooms" as any).select("id, number, typology, typology_id"),
         supabase.from("room_typologies" as any).select("id, name"),
+        supabase
+          .from("rent_charges" as any)
+          .select("id, moloni_document_id, moloni_document_number, moloni_status")
+          .in("id", rows.map((r) => r.id)),
       ]);
+
+      const moloniMap: Record<string, any> = {};
+      for (const m of ((moloniRes.data ?? []) as any[])) moloniMap[m.id] = m;
 
       const contractMap: Record<string, { residentId: string | null; residentName: string }> = {};
       for (const c of ((contractsRes.data ?? []) as any[])) {
@@ -109,6 +119,9 @@ export const useRentMonth = (year: number, month: number) =>
             roomId: room?.id ?? null,
             roomNumber: room?.number ?? null,
             typologyId: room?.typology_id ?? null,
+            moloniDocumentId: moloniMap[r.id]?.moloni_document_id ?? null,
+            moloniDocumentNumber: moloniMap[r.id]?.moloni_document_number ?? null,
+            moloniStatus: moloniMap[r.id]?.moloni_status ?? null,
             typologyName: room?.typology_id
               ? typMap[room.typology_id] ?? room?.typology ?? null
               : room?.typology ?? null,
