@@ -68,9 +68,18 @@ const Stays = () => {
     });
   }, [stays, filter]);
 
-  const handleCreate = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleCreate = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const fd = new FormData(e.currentTarget);
+    const taxNumber = String(fd.get("taxNumber") || "").trim();
+
+    try {
+      await assertTaxNumberAvailable(taxNumber);
+    } catch (err: any) {
+      toast.error(err.message);
+      return;
+    }
+
     createStay.mutate({
       fullName: String(fd.get("fullName")),
       email: String(fd.get("email")),
@@ -81,7 +90,14 @@ const Stays = () => {
       status: fd.get("status") as any,
       notes: String(fd.get("notes") || ""),
     }, {
-      onSuccess: () => { setOpen(false); setRoomId(""); toast.success("Estadia criada — automatismos disparados"); },
+      onSuccess: async (created: any) => {
+        if (taxNumber && created?.residentId) {
+          await supabase.from("residents").update({ tax_number: taxNumber }).eq("id", created.residentId);
+        }
+        setOpen(false);
+        setRoomId("");
+        toast.success("Estadia criada — automatismos disparados");
+      },
       onError: (e: any) => toast.error(e.message),
     });
   };
