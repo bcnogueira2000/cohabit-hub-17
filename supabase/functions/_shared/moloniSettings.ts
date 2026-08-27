@@ -63,5 +63,8 @@ export async function loadSettings(sb: SupabaseClient): Promise<MoloniSettings> 
     productId: num("moloni_product_id"),
     productName: map.get("moloni_product_name") ?? "Renda mensal",
     unitId: num("moloni_unit_id"),
+    maturityDateId: num("moloni_maturity_date_id"),
+    paymentMethodId: num("moloni_payment_method_id"),
   };
 }
+
