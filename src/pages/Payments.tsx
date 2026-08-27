@@ -103,6 +103,7 @@ const Payments = () => {
 
   const { data: charges = [], isLoading } = useRentMonth(year, month);
   const { data: typologies = [] } = useTypologies();
+  const syncMoloniPayments = useSyncMoloniPayments();
 
   const shiftMonth = (delta: number) => {
     const d = new Date(year, month - 1 + delta, 1);
