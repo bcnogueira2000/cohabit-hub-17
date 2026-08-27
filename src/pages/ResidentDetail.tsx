@@ -462,7 +462,7 @@ const ResidentDetail = () => {
 
                 </form>
 
-                <AlertDialog open={showMoloniConfirm} onOpenChange={(open) => { setShowMoloniConfirm(open); if (!open) syncMoloni.reset(); }}>
+                <AlertDialog open={showMoloniConfirm} onOpenChange={(open) => { setShowMoloniConfirm(open); if (!open && !syncMoloni.isPending) syncMoloni.reset(); }}>
                   <AlertDialogContent>
                     <AlertDialogHeader>
                       <AlertDialogTitle>Ficha já existente no Moloni</AlertDialogTitle>
