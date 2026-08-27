@@ -180,10 +180,19 @@ export async function generateContractDocx(contractId: string): Promise<Generate
     if (regularRent != null) {
       data.Valor_Remuneracao_Transitorio_Extenso_EN = wordsEN(currentRent);
       data.Valor_Reducao_Extenso_EN = wordsEN(Math.max(0, regularRent - currentRent));
+      data.Valor_Remuneracao_Transitorio_Extenso_PT = data.Valor_Remuneracao_Transitorio_Extenso;
+      data.Valor_Reducao_Extenso_PT = data.Valor_Reducao_Extenso;
     } else {
       data.Valor_Remuneracao_Transitorio_Extenso_EN = "";
       data.Valor_Reducao_Extenso_EN = "";
+      data.Valor_Remuneracao_Transitorio_Extenso_PT = "";
+      data.Valor_Reducao_Extenso_PT = "";
     }
+    data.Perfil_Profissional_PT = data.Perfil_Profissional;
+    data.Duracao_Contrato_PT = data.Duracao_Contrato;
+    data.Compensacao_Denuncia_PT = data.Compensacao_Denuncia;
+    data.Valor_Remuneracao_Mensal_Extenso_PT = data.Valor_Remuneracao_Mensal_Extenso;
+    data.Valor_Caucao_Extenso_PT = data.Valor_Caucao_Extenso;
   }
 
   // 2. Template do Storage
