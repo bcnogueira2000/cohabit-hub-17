@@ -117,7 +117,7 @@ Deno.serve(async (req) => {
         conflict_kind: "already_linked",
         existing_customer_id: customerId,
         existing_customer_number: resident.code ?? null,
-      }, 409);
+      }); // 200: é um pedido de confirmação, não uma falha do pedido
     }
 
 
