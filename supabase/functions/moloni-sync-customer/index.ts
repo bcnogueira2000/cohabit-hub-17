@@ -26,9 +26,11 @@ Deno.serve(async (req) => {
 
   const sb = adminClient();
   let residentId = "";
+  let confirmed = false;
   try {
     const body = await req.json();
     residentId = String(body?.resident_id ?? "");
+    confirmed = body?.confirm === true;
     if (!/^[0-9a-f-]{36}$/i.test(residentId)) return json({ error: "resident_id inválido" }, 400);
   } catch {
     return json({ error: "JSON inválido" }, 400);
