@@ -41,7 +41,7 @@ Deno.serve(async (req) => {
 
     const { data: resident, error } = await sb
       .from("residents")
-      .select("id, code, full_name, email, phone, tax_number, address, moloni_customer_id")
+      .select("id, code, full_name, email, phone, tax_number, address, moloni_customer_id, emergency_contact_name, emergency_contact_phone")
       .eq("id", residentId)
       .maybeSingle();
     if (error) throw new Error(error.message);
@@ -65,6 +65,8 @@ Deno.serve(async (req) => {
       language_id: 1,
       email: resident.email ?? "",
       phone: resident.phone ?? "",
+      contact_name: resident.emergency_contact_name ?? "",
+      contact_phone: resident.emergency_contact_phone ?? "",
       maturity_date_id: settings.maturityDateId,
       payment_day: 5,
       discount: 0,
