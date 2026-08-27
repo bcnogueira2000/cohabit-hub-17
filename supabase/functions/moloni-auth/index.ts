@@ -148,8 +148,12 @@ Deno.serve(async (req) => {
           moloniCall<any[]>(sb, "maturityDates/getAll", { company_id: creds.company_id }).catch((e) => ({ error: (e as Error).message })),
           moloniCall<any[]>(sb, "paymentMethods/getAll", { company_id: creds.company_id }).catch((e) => ({ error: (e as Error).message })),
         ]);
-        return json({ maturityDates, paymentMethods });
+        const customer = payload.vat
+          ? await moloniCall<any[]>(sb, "customers/getByVat", { company_id: creds.company_id, vat: payload.vat }).catch((e) => ({ error: (e as Error).message }))
+          : null;
+        return json({ maturityDates, paymentMethods, customer });
       }
+
 
 
       case "disconnect": {
