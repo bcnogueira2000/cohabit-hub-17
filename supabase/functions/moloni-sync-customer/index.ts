@@ -145,12 +145,22 @@ Deno.serve(async (req) => {
       .update({ moloni_customer_id: customerId, moloni_synced_at: new Date().toISOString() })
       .eq("id", residentId);
 
+    // Confirmação: lê de volta a ficha para registar os contactos efetivamente gravados.
+    const verify = await moloniCall<any>(sb, "customers/getOne", {
+      company_id: settings.companyId,
+      customer_id: customerId,
+    }).catch(() => null);
+
     await logSync(sb, {
       entity: "resident",
       entity_id: residentId,
       action: "sync_customer",
       success: true,
-      payload: { customer_id: customerId },
+      payload: {
+        customer_id: customerId,
+        sent_contact: { name: payload.contact_name, phone: payload.contact_phone },
+        moloni_contacts: verify?.contacts ?? null,
+      },
     });
 
     return json({ ok: true, customer_id: customerId });
