@@ -51,7 +51,7 @@ export async function loadSettings(sb: SupabaseClient): Promise<MoloniSettings> 
   const type = map.get("moloni_document_type");
   return {
     companyId: creds.company_id,
-    documentType: type === "invoices" ? "invoices" : "invoiceReceipts",
+    documentType: type === "invoiceReceipts" ? "invoiceReceipts" : "invoices",
     documentSetId,
     taxId: num("moloni_tax_id"),
     exemptionReason: map.get("moloni_exemption_reason") ?? "M07",
