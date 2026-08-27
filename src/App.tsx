@@ -123,6 +123,7 @@ const App = () => (
               <Route path="/finance/contracts/:id" element={<ContractDetail />} />
               <Route path="/finance/payments" element={<Payments />} />
               <Route path="/finance/pricing" element={<Pricing />} />
+              <Route path="/finance/moloni" element={<MoloniSettings />} />
             </Route>
 
             <Route path="*" element={<NotFound />} />
