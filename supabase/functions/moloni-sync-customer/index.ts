@@ -63,7 +63,15 @@ Deno.serve(async (req) => {
       language_id: 1,
       email: resident.email ?? "",
       phone: resident.phone ?? "",
+      salesman_id: null,
+      maturity_date_id: settings.maturityDateId,
+      payment_day: 5,
+      discount: 0,
+      credit_limit: 0,
+      payment_method_id: settings.paymentMethodId,
+      delivery_method_id: null,
     };
+
 
     let customerId = resident.moloni_customer_id as number | null;
 
