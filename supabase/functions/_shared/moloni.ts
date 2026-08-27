@@ -145,6 +145,22 @@ export async function getAccessToken(sb: SupabaseClient): Promise<string> {
   return saved.access_token!;
 }
 
+/** Serializa em form-urlencoded, com notação de parênteses para estruturas. */
+function appendForm(form: URLSearchParams, key: string, value: unknown) {
+  if (value === null || value === undefined) return;
+  if (Array.isArray(value)) {
+    value.forEach((v, i) => appendForm(form, `${key}[${i}]`, v));
+    return;
+  }
+  if (typeof value === "object") {
+    for (const [k, v] of Object.entries(value as Record<string, unknown>)) {
+      appendForm(form, `${key}[${k}]`, v);
+    }
+    return;
+  }
+  form.append(key, String(value));
+}
+
 /** Chamada autenticada a um endpoint do Moloni (ex: "companies/getAll"). */
 export async function moloniCall<T = any>(
   sb: SupabaseClient,
@@ -152,19 +168,18 @@ export async function moloniCall<T = any>(
   body: Record<string, unknown> = {},
 ): Promise<T> {
   const token = await getAccessToken(sb);
-  // O Moloni lê os parâmetros escalares da query string (o corpo JSON só é
-  // usado para estruturas complexas, ex: products). Enviar ambos.
-  const qs = new URLSearchParams({ access_token: token });
-  for (const [key, value] of Object.entries(body)) {
-    if (value === null || value === undefined) continue;
-    if (typeof value === "object") continue;
-    qs.set(key, String(value));
-  }
-  const res = await fetch(`${MOLONI_BASE}/${endpoint}/?${qs.toString()}`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  });
+  // A API do Moloni espera application/x-www-form-urlencoded.
+  const formBody = new URLSearchParams();
+  for (const [key, value] of Object.entries(body)) appendForm(formBody, key, value);
+
+  const res = await fetch(
+    `${MOLONI_BASE}/${endpoint}/?access_token=${encodeURIComponent(token)}`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: formBody.toString(),
+    },
+  );
 
   const text = await res.text();
   let json: any;

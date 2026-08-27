@@ -115,17 +115,19 @@ Deno.serve(async (req) => {
 
       case "test": {
         const creds = await loadCredentials(sb);
+        // companies/getOne pode não estar autorizado na app Moloni — usar getAll.
+        const companies = await moloniCall<any[]>(sb, "companies/getAll");
         if (!creds?.company_id) {
-          const companies = await moloniCall<Company[]>(sb, "companies/getAll");
           return json({ ok: true, company_selected: false, companies_found: companies.length });
         }
-        const company = await moloniCall<any>(sb, "companies/getOne", {
-          company_id: creds.company_id,
-        });
+        const company = companies.find((c) => Number(c.company_id) === Number(creds.company_id));
+        if (!company) {
+          return json({ ok: true, company_selected: false, companies_found: companies.length });
+        }
         return json({
           ok: true,
           company_selected: true,
-          company: { name: company?.name, vat: company?.vat, email: company?.email },
+          company: { name: company.name, vat: company.vat, email: company.email },
         });
       }
 
