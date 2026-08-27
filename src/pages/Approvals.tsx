@@ -10,6 +10,7 @@ import { useResidents, useRooms } from "@/hooks/useData";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import { RoomCombobox } from "@/components/rooms/RoomCombobox";
+import { assertTaxNumberAvailable } from "@/lib/residentTaxNumber";
 
 const formatDate = (d: string | null) =>
   d ? new Date(d).toLocaleDateString("pt-PT") : "—";
