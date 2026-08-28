@@ -295,3 +295,188 @@ export const useCreateDepositReturn = () => {
   });
 };
 
+/** Contratos com caução ainda por receber (recebido < devido). */
+export const useDepositsToReceive = () =>
+  useQuery({
+    queryKey: ["deposits-to-receive"],
+    queryFn: async (): Promise<DepositRow[]> => {
+      const { data, error } = await supabase
+        .from("contracts" as any)
+        .select(
+          "id, status, start_date, end_date, resident_id, deposit_due, deposit_received, deposit_returned, residents:resident_id(id, full_name)"
+        )
+        .order("start_date", { ascending: true });
+      if (error) throw error;
+      return ((data ?? []) as any[])
+        .map((c): DepositRow => ({
+          contractId: c.id,
+          residentId: c.resident_id ?? null,
+          residentName: c.residents?.full_name ?? "—",
+          status: c.status,
+          startDate: c.start_date,
+          endDate: c.end_date,
+          depositDue: Number(c.deposit_due ?? 0),
+          depositReceived: Number(c.deposit_received ?? 0),
+          depositReturned: Number(c.deposit_returned ?? 0),
+          depositHeld: Number(c.deposit_received ?? 0) - Number(c.deposit_returned ?? 0),
+        }))
+        .filter(
+          (r) =>
+            r.status !== "cancelled" &&
+            r.depositDue > 0.005 &&
+            r.depositDue - r.depositReceived > 0.005
+        );
+    },
+  });
+
+/** Registar recebimento de caução (kind=deposit) e somar a contracts.deposit_received. */
+export const useCreateDepositReceipt = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: {
+      contractId: string;
+      amount: number;
+      paidAt: string;
+      method: PaymentMethod;
+      reference?: string | null;
+      currentReceived: number;
+    }) => {
+      const { error } = await supabase.from("payments" as any).insert({
+        contract_id: input.contractId,
+        kind: "deposit",
+        amount: input.amount,
+        paid_at: input.paidAt,
+        method: input.method,
+        reference: input.reference?.trim() || null,
+      } as any);
+      if (error) throw error;
+
+      const { error: updErr } = await supabase
+        .from("contracts" as any)
+        .update({ deposit_received: input.currentReceived + input.amount } as any)
+        .eq("id", input.contractId);
+      if (updErr) throw updErr;
+    },
+    onSuccess: (_d, input) => {
+      qc.invalidateQueries({ queryKey: ["deposits"] });
+      qc.invalidateQueries({ queryKey: ["deposits-to-receive"] });
+      qc.invalidateQueries({ queryKey: ["deposit-payments", input.contractId] });
+      qc.invalidateQueries({ queryKey: ["contract", input.contractId] });
+      qc.invalidateQueries({ queryKey: ["contracts"] });
+    },
+  });
+};
+
+// ============ Taxa de reserva ============
+
+export interface ReservationFeeRow {
+  contractId: string;
+  residentId: string | null;
+  residentName: string;
+  status: string;
+  startDate: string;
+  endDate: string;
+  deadline: string | null;
+  feeAmount: number;
+  received: number;
+  outstanding: number;
+}
+
+/** Contratos com taxa de reserva definida, com o total já recebido (payments kind=booking_fee). */
+export const useReservationFees = () =>
+  useQuery({
+    queryKey: ["reservation-fees"],
+    queryFn: async (): Promise<ReservationFeeRow[]> => {
+      const { data, error } = await supabase
+        .from("contracts" as any)
+        .select(
+          "id, status, start_date, end_date, resident_id, reservation_fee_amount, reservation_deadline, residents:resident_id(id, full_name)"
+        )
+        .not("reservation_fee_amount", "is", null)
+        .order("start_date", { ascending: true });
+      if (error) throw error;
+      const contracts = ((data ?? []) as any[]).filter(
+        (c) => Number(c.reservation_fee_amount ?? 0) > 0.005
+      );
+      if (contracts.length === 0) return [];
+
+      const { data: pays, error: payErr } = await supabase
+        .from("payments" as any)
+        .select("contract_id, amount")
+        .eq("kind", "booking_fee")
+        .in("contract_id", contracts.map((c) => c.id));
+      if (payErr) throw payErr;
+
+      const paidMap: Record<string, number> = {};
+      for (const p of ((pays ?? []) as any[])) {
+        paidMap[p.contract_id] = (paidMap[p.contract_id] ?? 0) + Number(p.amount ?? 0);
+      }
+
+      return contracts.map((c): ReservationFeeRow => {
+        const feeAmount = Number(c.reservation_fee_amount ?? 0);
+        const received = paidMap[c.id] ?? 0;
+        return {
+          contractId: c.id,
+          residentId: c.resident_id ?? null,
+          residentName: c.residents?.full_name ?? "—",
+          status: c.status,
+          startDate: c.start_date,
+          endDate: c.end_date,
+          deadline: c.reservation_deadline ?? null,
+          feeAmount,
+          received,
+          outstanding: feeAmount - received,
+        };
+      });
+    },
+  });
+
+/** Pagamentos de taxa de reserva de um contrato */
+export const useBookingFeePayments = (contractId: string | undefined) =>
+  useQuery({
+    enabled: !!contractId,
+    queryKey: ["booking-fee-payments", contractId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("payments" as any)
+        .select("*")
+        .eq("contract_id", contractId!)
+        .eq("kind", "booking_fee")
+        .order("paid_at", { ascending: false });
+      if (error) throw error;
+      return (data ?? []) as any[];
+    },
+  });
+
+/** Registar recebimento de taxa de reserva (kind=booking_fee) */
+export const useCreateBookingFeePayment = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: {
+      contractId: string;
+      amount: number;
+      paidAt: string;
+      method: PaymentMethod;
+      reference?: string | null;
+      notes?: string | null;
+    }) => {
+      const { error } = await supabase.from("payments" as any).insert({
+        contract_id: input.contractId,
+        kind: "booking_fee",
+        amount: input.amount,
+        paid_at: input.paidAt,
+        method: input.method,
+        reference: input.reference?.trim() || null,
+        notes: input.notes?.trim() || null,
+      } as any);
+      if (error) throw error;
+    },
+    onSuccess: (_d, input) => {
+      qc.invalidateQueries({ queryKey: ["reservation-fees"] });
+      qc.invalidateQueries({ queryKey: ["booking-fee-payments", input.contractId] });
+      qc.invalidateQueries({ queryKey: ["contract", input.contractId] });
+      qc.invalidateQueries({ queryKey: ["contracts"] });
+    },
+  });
+};
+
