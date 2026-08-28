@@ -877,5 +877,557 @@ const DepositReturnSheet = ({ deposit, onClose }: { deposit: DepositRow | null; 
   );
 };
 
+// ============ Cauções por receber ============
+
+const DepositsToReceiveSection = () => {
+  const { data: pending = [], isLoading } = useDepositsToReceive();
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const selected = pending.find((d) => d.contractId === selectedId) ?? null;
+
+  const totalPending = useMemo(
+    () => pending.reduce((a, d) => a + (d.depositDue - d.depositReceived), 0),
+    [pending]
+  );
+
+  return (
+    <div className="mb-10">
+      <div className="flex items-center justify-between gap-3 mb-3">
+        <h2 className="font-display text-xl font-semibold">Por receber</h2>
+        {pending.length > 0 && (
+          <span className="text-sm text-muted-foreground">
+            {pending.length} {pending.length === 1 ? "contrato" : "contratos"} ·{" "}
+            <span className="text-destructive font-medium">{eur(totalPending)}</span> em falta
+          </span>
+        )}
+      </div>
+
+      {isLoading ? (
+        <p className="text-muted-foreground text-sm">A carregar…</p>
+      ) : pending.length === 0 ? (
+        <Card className="p-8 text-center border-dashed border-border/60">
+          <PiggyBank className="h-8 w-8 text-muted-foreground mx-auto mb-3" strokeWidth={1.5} />
+          <p className="font-medium">Sem cauções por receber</p>
+          <p className="text-sm text-muted-foreground mt-1">
+            Todos os contratos com caução definida já a receberam por completo.
+          </p>
+        </Card>
+      ) : (
+        <Card className="border-border/60 shadow-card overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-border text-left text-xs uppercase tracking-wider text-muted-foreground">
+                <th className="px-4 py-3 font-medium">Residente</th>
+                <th className="px-4 py-3 font-medium">Contrato</th>
+                <th className="px-4 py-3 font-medium text-right">Devido</th>
+                <th className="px-4 py-3 font-medium text-right">Recebido</th>
+                <th className="px-4 py-3 font-medium text-right">Em falta</th>
+                <th className="px-4 py-3 font-medium" />
+              </tr>
+            </thead>
+            <tbody>
+              {pending.map((d) => (
+                <tr key={d.contractId} className="border-b border-border/50 last:border-0 hover:bg-accent/30 transition-smooth">
+                  <td className="px-4 py-3">
+                    {d.residentId ? (
+                      <Link to={`/residents/${d.residentId}`} className="font-medium hover:underline">
+                        {d.residentName}
+                      </Link>
+                    ) : (
+                      <span className="font-medium">{d.residentName}</span>
+                    )}
+                  </td>
+                  <td className="px-4 py-3">
+                    <Link
+                      to={`/finance/contracts/${d.contractId}`}
+                      className="inline-flex items-center gap-1 hover:underline"
+                    >
+                      {fmtDate(d.startDate)} – {fmtDate(d.endDate)}
+                      <ExternalLink className="h-3 w-3" strokeWidth={1.5} />
+                    </Link>
+                    <Badge variant="secondary" className="ml-2 rounded-full text-[11px]">
+                      {statusLabels[d.status] ?? d.status}
+                    </Badge>
+                  </td>
+                  <td className="px-4 py-3 text-right">{eur(d.depositDue)}</td>
+                  <td className="px-4 py-3 text-right text-success">{eur(d.depositReceived)}</td>
+                  <td className="px-4 py-3 text-right font-medium text-destructive">
+                    {eur(d.depositDue - d.depositReceived)}
+                  </td>
+                  <td className="px-4 py-3 text-right">
+                    <Button size="sm" variant="outline" className="rounded-full" onClick={() => setSelectedId(d.contractId)}>
+                      Registar recebimento
+                    </Button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </Card>
+      )}
+
+      <DepositReceiptSheet deposit={selected} onClose={() => setSelectedId(null)} />
+    </div>
+  );
+};
+
+const DepositReceiptSheet = ({ deposit, onClose }: { deposit: DepositRow | null; onClose: () => void }) => {
+  const create = useCreateDepositReceipt();
+  const { data: movements = [] } = useDepositPayments(deposit?.contractId);
+  const [amount, setAmount] = useState("");
+  const [paidAt, setPaidAt] = useState(todayISO());
+  const [method, setMethod] = useState<PaymentMethod>("transfer");
+  const [reference, setReference] = useState("");
+
+  const missing = deposit ? deposit.depositDue - deposit.depositReceived : 0;
+
+  const reset = () => {
+    setAmount("");
+    setPaidAt(todayISO());
+    setMethod("transfer");
+    setReference("");
+  };
+
+  const submit = async () => {
+    if (!deposit) return;
+    const value = Number(String(amount).replace(",", "."));
+    if (!Number.isFinite(value) || value <= 0) {
+      toast({ title: "Valor inválido", description: "Indica um valor superior a zero.", variant: "destructive" });
+      return;
+    }
+    try {
+      await create.mutateAsync({
+        contractId: deposit.contractId,
+        amount: value,
+        paidAt,
+        method,
+        reference,
+        currentReceived: deposit.depositReceived,
+      });
+      toast({ title: "Recebimento registado" });
+      reset();
+      onClose();
+    } catch (e: any) {
+      toast({ title: "Erro ao registar recebimento", description: e?.message, variant: "destructive" });
+    }
+  };
+
+  return (
+    <Sheet
+      open={!!deposit}
+      onOpenChange={(o) => {
+        if (!o) {
+          reset();
+          onClose();
+        }
+      }}
+    >
+      <SheetContent className="w-full sm:max-w-lg overflow-y-auto">
+        {deposit && (
+          <>
+            <SheetHeader>
+              <div className="mb-2">
+                <Badge variant="secondary" className="rounded-full text-[11px]">
+                  {statusLabels[deposit.status] ?? deposit.status}
+                </Badge>
+              </div>
+              <SheetTitle className="font-display text-2xl">{deposit.residentName}</SheetTitle>
+            </SheetHeader>
+
+            <div className="mt-4 grid grid-cols-3 gap-3 text-sm">
+              <div>
+                <div className="text-xs text-muted-foreground">Devido</div>
+                <div className="font-medium">{eur(deposit.depositDue)}</div>
+              </div>
+              <div>
+                <div className="text-xs text-muted-foreground">Recebido</div>
+                <div className="font-medium text-success">{eur(deposit.depositReceived)}</div>
+              </div>
+              <div>
+                <div className="text-xs text-muted-foreground">Em falta</div>
+                <div className="font-medium text-destructive">{eur(missing)}</div>
+              </div>
+            </div>
+
+            <div className="mt-6 space-y-3">
+              <h3 className="font-display text-lg font-semibold">Registar recebimento</h3>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label className="text-xs text-muted-foreground">Valor recebido (€)</Label>
+                  <Input
+                    className="mt-1"
+                    inputMode="decimal"
+                    placeholder={missing.toFixed(2)}
+                    value={amount}
+                    onChange={(e) => setAmount(e.target.value)}
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs text-muted-foreground">Data</Label>
+                  <Input type="date" className="mt-1" value={paidAt} onChange={(e) => setPaidAt(e.target.value)} />
+                </div>
+                <div>
+                  <Label className="text-xs text-muted-foreground">Método</Label>
+                  <Select value={method} onValueChange={(v) => setMethod(v as PaymentMethod)}>
+                    <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {(Object.keys(paymentMethodLabels) as PaymentMethod[]).map((k) => (
+                        <SelectItem key={k} value={k}>{paymentMethodLabels[k]}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label className="text-xs text-muted-foreground">Referência</Label>
+                  <Input
+                    className="mt-1"
+                    placeholder="Opcional"
+                    value={reference}
+                    onChange={(e) => setReference(e.target.value)}
+                  />
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button className="rounded-full" onClick={submit} disabled={create.isPending}>
+                  {create.isPending ? "A registar…" : "Registar recebimento"}
+                </Button>
+                <Button variant="outline" className="rounded-full" onClick={() => setAmount(missing.toFixed(2))}>
+                  Valor em falta
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Recebimentos parciais são somados ao total já recebido.
+              </p>
+            </div>
+
+            <div className="mt-6">
+              <h3 className="font-display text-lg font-semibold mb-2">Movimentos de caução</h3>
+              {movements.length === 0 ? (
+                <p className="text-sm text-muted-foreground">Ainda sem movimentos registados.</p>
+              ) : (
+                <div className="space-y-2">
+                  {movements.map((p) => (
+                    <div
+                      key={p.id}
+                      className="flex items-center justify-between rounded-lg border border-border/60 px-3 py-2 text-sm"
+                    >
+                      <div>
+                        <div className="font-medium">
+                          {p.kind === "deposit_return" ? "− " : "+ "}
+                          {eur(Number(p.amount))}
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          {fmtDate(p.paid_at)}
+                          {p.method ? ` · ${paymentMethodLabels[p.method as PaymentMethod]}` : ""}
+                          {p.reference ? ` · ${p.reference}` : ""}
+                        </div>
+                      </div>
+                      <span className="text-xs text-muted-foreground">
+                        {p.kind === "deposit_return" ? "Devolução" : "Caução"}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="mt-6">
+              <Link to={`/finance/contracts/${deposit.contractId}`} className="inline-flex items-center gap-1 text-sm hover:underline">
+                Ver contrato <ExternalLink className="h-3.5 w-3.5" strokeWidth={1.5} />
+              </Link>
+            </div>
+          </>
+        )}
+      </SheetContent>
+    </Sheet>
+  );
+};
+
+// ============ Taxa de reserva ============
+
+const ReservationFeesSection = () => {
+  const { data: fees = [], isLoading } = useReservationFees();
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const selected = fees.find((f) => f.contractId === selectedId) ?? null;
+
+  const totals = useMemo(
+    () => ({
+      expected: fees.reduce((a, f) => a + f.feeAmount, 0),
+      received: fees.reduce((a, f) => a + f.received, 0),
+      outstanding: fees.reduce((a, f) => a + Math.max(f.outstanding, 0), 0),
+    }),
+    [fees]
+  );
+
+  return (
+    <div>
+      <div className="grid grid-cols-3 gap-3 mb-6">
+        <Card className="p-4 border-border/60 shadow-card">
+          <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
+            <TrendingUp className="h-4 w-4" strokeWidth={1.5} /> Previsto
+          </div>
+          <div className="font-display text-2xl font-semibold">{eur(totals.expected)}</div>
+        </Card>
+        <Card className="p-4 border-border/60 shadow-card">
+          <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
+            <Wallet className="h-4 w-4" strokeWidth={1.5} /> Recebido
+          </div>
+          <div className="font-display text-2xl font-semibold text-success">{eur(totals.received)}</div>
+        </Card>
+        <Card className="p-4 border-border/60 shadow-card">
+          <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
+            <AlertTriangle className="h-4 w-4" strokeWidth={1.5} /> Em falta
+          </div>
+          <div className="font-display text-2xl font-semibold text-destructive">{eur(totals.outstanding)}</div>
+        </Card>
+      </div>
+
+      {isLoading ? (
+        <p className="text-muted-foreground text-sm">A carregar…</p>
+      ) : fees.length === 0 ? (
+        <Card className="p-10 text-center border-dashed border-border/60">
+          <FileText className="h-10 w-10 text-muted-foreground mx-auto mb-3" strokeWidth={1.5} />
+          <p className="font-medium">Sem taxas de reserva</p>
+          <p className="text-sm text-muted-foreground mt-1">
+            Aparecem aqui os contratos com taxa de reserva definida.
+          </p>
+        </Card>
+      ) : (
+        <Card className="border-border/60 shadow-card overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-border text-left text-xs uppercase tracking-wider text-muted-foreground">
+                <th className="px-4 py-3 font-medium">Residente</th>
+                <th className="px-4 py-3 font-medium">Contrato</th>
+                <th className="px-4 py-3 font-medium">Prazo</th>
+                <th className="px-4 py-3 font-medium text-right">Taxa</th>
+                <th className="px-4 py-3 font-medium">Estado</th>
+                <th className="px-4 py-3 font-medium text-right">Recebido</th>
+                <th className="px-4 py-3 font-medium text-right">Em falta</th>
+                <th className="px-4 py-3 font-medium" />
+              </tr>
+            </thead>
+            <tbody>
+              {fees.map((f) => {
+                const missing = Math.max(f.outstanding, 0);
+                return (
+                  <tr key={f.contractId} className="border-b border-border/50 last:border-0 hover:bg-accent/30 transition-smooth">
+                    <td className="px-4 py-3">
+                      {f.residentId ? (
+                        <Link to={`/residents/${f.residentId}`} className="font-medium hover:underline">
+                          {f.residentName}
+                        </Link>
+                      ) : (
+                        <span className="font-medium">{f.residentName}</span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3">
+                      <Link
+                        to={`/finance/contracts/${f.contractId}`}
+                        className="inline-flex items-center gap-1 hover:underline"
+                      >
+                        {fmtDate(f.startDate)} – {fmtDate(f.endDate)}
+                        <ExternalLink className="h-3 w-3" strokeWidth={1.5} />
+                      </Link>
+                      <Badge variant="secondary" className="ml-2 rounded-full text-[11px]">
+                        {statusLabels[f.status] ?? f.status}
+                      </Badge>
+                    </td>
+                    <td className="px-4 py-3 text-muted-foreground">{fmtDate(f.deadline)}</td>
+                    <td className="px-4 py-3 text-right">{eur(f.feeAmount)}</td>
+                    <td className="px-4 py-3">
+                      <PaymentStateBadge state={missing < 0.005 ? "paid" : f.received > 0.005 ? "partial" : "due"} />
+                    </td>
+                    <td className="px-4 py-3 text-right text-success">{eur(f.received)}</td>
+                    <td
+                      className={`px-4 py-3 text-right ${
+                        missing > 0.005 ? "text-destructive font-medium" : "text-muted-foreground"
+                      }`}
+                    >
+                      {eur(missing)}
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      <Button size="sm" variant="outline" className="rounded-full" onClick={() => setSelectedId(f.contractId)}>
+                        {missing > 0.005 ? "Registar recebimento" : "Ver"}
+                      </Button>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </Card>
+      )}
+
+      <ReservationFeeSheet fee={selected} onClose={() => setSelectedId(null)} />
+    </div>
+  );
+};
+
+const ReservationFeeSheet = ({ fee, onClose }: { fee: ReservationFeeRow | null; onClose: () => void }) => {
+  const create = useCreateBookingFeePayment();
+  const { data: payments = [] } = useBookingFeePayments(fee?.contractId);
+  const [amount, setAmount] = useState("");
+  const [paidAt, setPaidAt] = useState(todayISO());
+  const [method, setMethod] = useState<PaymentMethod>("transfer");
+  const [reference, setReference] = useState("");
+
+  const missing = fee ? Math.max(fee.outstanding, 0) : 0;
+
+  const reset = () => {
+    setAmount("");
+    setPaidAt(todayISO());
+    setMethod("transfer");
+    setReference("");
+  };
+
+  const submit = async () => {
+    if (!fee) return;
+    const value = Number(String(amount).replace(",", "."));
+    if (!Number.isFinite(value) || value <= 0) {
+      toast({ title: "Valor inválido", description: "Indica um valor superior a zero.", variant: "destructive" });
+      return;
+    }
+    try {
+      await create.mutateAsync({
+        contractId: fee.contractId,
+        amount: value,
+        paidAt,
+        method,
+        reference,
+      });
+      toast({ title: "Taxa de reserva registada" });
+      reset();
+      onClose();
+    } catch (e: any) {
+      toast({ title: "Erro ao registar pagamento", description: e?.message, variant: "destructive" });
+    }
+  };
+
+  return (
+    <Sheet
+      open={!!fee}
+      onOpenChange={(o) => {
+        if (!o) {
+          reset();
+          onClose();
+        }
+      }}
+    >
+      <SheetContent className="w-full sm:max-w-lg overflow-y-auto">
+        {fee && (
+          <>
+            <SheetHeader>
+              <div className="mb-2">
+                <PaymentStateBadge state={missing < 0.005 ? "paid" : fee.received > 0.005 ? "partial" : "due"} />
+              </div>
+              <SheetTitle className="font-display text-2xl">{fee.residentName}</SheetTitle>
+            </SheetHeader>
+
+            <div className="mt-4 grid grid-cols-3 gap-3 text-sm">
+              <div>
+                <div className="text-xs text-muted-foreground">Taxa</div>
+                <div className="font-medium">{eur(fee.feeAmount)}</div>
+              </div>
+              <div>
+                <div className="text-xs text-muted-foreground">Recebido</div>
+                <div className="font-medium text-success">{eur(fee.received)}</div>
+              </div>
+              <div>
+                <div className="text-xs text-muted-foreground">Em falta</div>
+                <div className="font-medium text-destructive">{eur(missing)}</div>
+              </div>
+            </div>
+            <div className="mt-3 text-xs text-muted-foreground">
+              Prazo de reserva: {fmtDate(fee.deadline)}
+            </div>
+
+            {missing > 0.005 && (
+              <div className="mt-6 space-y-3">
+                <h3 className="font-display text-lg font-semibold">Registar recebimento</h3>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <Label className="text-xs text-muted-foreground">Valor (€)</Label>
+                    <Input
+                      className="mt-1"
+                      inputMode="decimal"
+                      placeholder={missing.toFixed(2)}
+                      value={amount}
+                      onChange={(e) => setAmount(e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-xs text-muted-foreground">Data</Label>
+                    <Input type="date" className="mt-1" value={paidAt} onChange={(e) => setPaidAt(e.target.value)} />
+                  </div>
+                  <div>
+                    <Label className="text-xs text-muted-foreground">Método</Label>
+                    <Select value={method} onValueChange={(v) => setMethod(v as PaymentMethod)}>
+                      <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        {(Object.keys(paymentMethodLabels) as PaymentMethod[]).map((k) => (
+                          <SelectItem key={k} value={k}>{paymentMethodLabels[k]}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label className="text-xs text-muted-foreground">Referência</Label>
+                    <Input
+                      className="mt-1"
+                      placeholder="Opcional"
+                      value={reference}
+                      onChange={(e) => setReference(e.target.value)}
+                    />
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button className="rounded-full" onClick={submit} disabled={create.isPending}>
+                    {create.isPending ? "A registar…" : "Registar recebimento"}
+                  </Button>
+                  <Button variant="outline" className="rounded-full" onClick={() => setAmount(missing.toFixed(2))}>
+                    Valor em falta
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            <div className="mt-6">
+              <h3 className="font-display text-lg font-semibold mb-2">Pagamentos registados</h3>
+              {payments.length === 0 ? (
+                <p className="text-sm text-muted-foreground">Ainda sem pagamentos.</p>
+              ) : (
+                <div className="space-y-2">
+                  {payments.map((p) => (
+                    <div
+                      key={p.id}
+                      className="flex items-center justify-between rounded-lg border border-border/60 px-3 py-2 text-sm"
+                    >
+                      <div>
+                        <div className="font-medium">{eur(Number(p.amount))}</div>
+                        <div className="text-xs text-muted-foreground">
+                          {fmtDate(p.paid_at)}
+                          {p.method ? ` · ${paymentMethodLabels[p.method as PaymentMethod]}` : ""}
+                          {p.reference ? ` · ${p.reference}` : ""}
+                        </div>
+                      </div>
+                      <span className="text-xs text-muted-foreground">Taxa de reserva</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="mt-6">
+              <Link to={`/finance/contracts/${fee.contractId}`} className="inline-flex items-center gap-1 text-sm hover:underline">
+                Ver contrato <ExternalLink className="h-3.5 w-3.5" strokeWidth={1.5} />
+              </Link>
+            </div>
+          </>
+        )}
+      </SheetContent>
+    </Sheet>
+  );
+};
+
 export default Payments;
 
