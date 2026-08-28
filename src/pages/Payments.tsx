@@ -345,6 +345,10 @@ const Payments = () => {
         <TabsContent value="deposits" className="mt-0">
           <DepositsSection />
         </TabsContent>
+
+        <TabsContent value="reservation" className="mt-0">
+          <ReservationFeesSection />
+        </TabsContent>
       </Tabs>
 
       <PaymentSheet charge={selected} onClose={() => setSelectedId(null)} />
