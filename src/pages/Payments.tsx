@@ -169,6 +169,7 @@ const Payments = () => {
         <TabsList className="rounded-full">
           <TabsTrigger value="rent" className="rounded-full">Rendas</TabsTrigger>
           <TabsTrigger value="deposits" className="rounded-full">Cauções</TabsTrigger>
+          <TabsTrigger value="reservation" className="rounded-full">Taxa de Reserva</TabsTrigger>
         </TabsList>
 
         <TabsContent value="rent" className="mt-0">
