@@ -604,9 +604,6 @@ const DepositsSection = () => {
 
   return (
     <div>
-      <DepositsToReceiveSection />
-
-      <h2 className="font-display text-xl font-semibold mb-3">Por devolver</h2>
       <div className="grid grid-cols-3 gap-3 mb-6">
         <Card className="p-4 border-border/60 shadow-card">
           <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
@@ -627,6 +624,10 @@ const DepositsSection = () => {
           <div className="font-display text-2xl font-semibold">{eur(totals.held)}</div>
         </Card>
       </div>
+
+      <DepositsToReceiveSection />
+
+      <h2 className="font-display text-xl font-semibold mb-3">Por devolver</h2>
 
       {isLoading ? (
         <p className="text-muted-foreground text-sm">A carregar…</p>
