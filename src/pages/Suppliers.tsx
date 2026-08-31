@@ -26,23 +26,23 @@ const Suppliers = () => {
 
   return (
     <div className="px-4 lg:px-10 2xl:px-14 py-6 lg:py-10 max-w-[1600px] mx-auto">
-      <div className="flex items-start justify-between gap-4 mb-6">
-        <div>
-          <h1 className="font-display text-3xl lg:text-4xl font-semibold">Fornecedores</h1>
-          <p className="text-muted-foreground mt-1">{suppliers.length} fornecedor{suppliers.length === 1 ? "" : "es"} registado{suppliers.length === 1 ? "" : "s"}</p>
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4 mb-6">
+        <div className="min-w-0">
+          <h1 className="font-display text-2xl lg:text-4xl font-semibold">Fornecedores</h1>
+          <p className="text-muted-foreground mt-1 text-sm">{suppliers.length} fornecedor{suppliers.length === 1 ? "" : "es"} registado{suppliers.length === 1 ? "" : "s"}</p>
         </div>
         <SupplierDialog
-          trigger={<Button className="rounded-full"><Plus className="h-4 w-4 mr-1.5" />Novo fornecedor</Button>}
+          trigger={<Button className="rounded-full w-full sm:w-auto shrink-0"><Plus className="h-4 w-4 mr-1.5" />Novo fornecedor</Button>}
         />
       </div>
 
       <div className="flex flex-wrap gap-2 mb-5">
-        <div className="relative flex-1 min-w-[200px] max-w-md">
+        <div className="relative w-full sm:flex-1 sm:min-w-[200px] sm:max-w-md">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input placeholder="Procurar fornecedor…" value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9 bg-card border-border/70 rounded-full" />
         </div>
         <Select value={category} onValueChange={setCategory}>
-          <SelectTrigger className="w-[200px] rounded-full"><SelectValue /></SelectTrigger>
+          <SelectTrigger className="flex-1 sm:flex-none sm:w-[200px] rounded-full"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todas as categorias</SelectItem>
             {Object.entries(supplierCategoryLabels).map(([k, v]) => (
@@ -51,7 +51,7 @@ const Suppliers = () => {
           </SelectContent>
         </Select>
         <Select value={status} onValueChange={setStatus}>
-          <SelectTrigger className="w-[140px] rounded-full"><SelectValue /></SelectTrigger>
+          <SelectTrigger className="flex-1 sm:flex-none sm:w-[140px] rounded-full"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todos</SelectItem>
             <SelectItem value="active">Ativos</SelectItem>
@@ -71,7 +71,7 @@ const Suppliers = () => {
       ) : (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {filtered.map((s) => (
-            <Link key={s.id} to={`/suppliers/${s.id}`}>
+            <Link key={s.id} to={`/suppliers/${s.id}`} className="min-w-0 block">
               <Card className="p-4 hover:shadow-elegant transition-smooth border-border/60 cursor-pointer h-full">
                 <div className="flex items-start justify-between gap-2 mb-2">
                   <div className="font-medium truncate">{s.name}</div>
