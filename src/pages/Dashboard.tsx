@@ -139,7 +139,7 @@ const Dashboard = () => {
       </div>
 
       <div className="grid lg:grid-cols-3 gap-5">
-        <Card className="lg:col-span-2 p-5 lg:p-6 border-border/70 shadow-none">
+        <Card className="min-w-0 lg:col-span-2 p-5 lg:p-6 border-border/70 shadow-none">
           <div className="flex items-center justify-between mb-4">
             <div>
               <h2 className="font-display text-base font-semibold">Pedidos abertos</h2>
@@ -189,7 +189,7 @@ const Dashboard = () => {
           </div>
         </Card>
 
-        <Card className="p-5 lg:p-6 border-border/70 shadow-none">
+        <Card className="min-w-0 p-5 lg:p-6 border-border/70 shadow-none">
           <div className="flex items-center justify-between mb-4">
             <div>
               <h2 className="font-display text-base font-semibold">Limpezas de hoje</h2>
@@ -227,7 +227,7 @@ const Dashboard = () => {
       </div>
 
       <div className="grid lg:grid-cols-2 gap-5 mt-5">
-        <Card className="p-5 lg:p-6 border-border/70 shadow-none">
+        <Card className="min-w-0 p-5 lg:p-6 border-border/70 shadow-none">
           <div className="flex items-center justify-between mb-4">
             <div>
               <h2 className="font-display text-base font-semibold flex items-center gap-2">
@@ -274,7 +274,7 @@ const Dashboard = () => {
           </div>
         </Card>
 
-        <Card className="p-5 lg:p-6 border-border/70 shadow-none">
+        <Card className="min-w-0 p-5 lg:p-6 border-border/70 shadow-none">
           <div className="flex items-center justify-between mb-4">
             <div>
               <h2 className="font-display text-base font-semibold flex items-center gap-2">
