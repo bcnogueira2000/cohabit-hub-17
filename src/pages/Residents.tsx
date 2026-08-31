@@ -39,7 +39,7 @@ const Residents = () => {
           const openReqs = requests.filter((req) => req.residentId === r.id && req.status !== "resolved" && req.status !== "closed").length;
           const initials = r.fullName.split(" ").map((s) => s[0]).slice(0, 2).join("");
           return (
-            <Link key={r.id} to={`/residents/${r.id}`}>
+            <Link key={r.id} to={`/residents/${r.id}`} className="min-w-0 block">
               <Card className="p-4 hover:shadow-elegant transition-smooth border-border/60 cursor-pointer h-full">
                 <div className="flex items-start gap-3 mb-3">
                   <div className="h-12 w-12 rounded-full flex items-center justify-center text-primary-foreground font-semibold shrink-0" style={{ backgroundColor: r.avatarColor }}>{initials}</div>
@@ -50,8 +50,8 @@ const Residents = () => {
                 </div>
                 <div className="space-y-1.5 text-xs text-muted-foreground">
                   <div className="flex items-center gap-2"><DoorClosed className="h-3 w-3" /> {room ? `Quarto ${room.number}` : "Sem quarto"}</div>
-                  <div className="flex items-center gap-2 truncate"><Mail className="h-3 w-3 shrink-0" /> {r.email}</div>
-                  <div className="flex items-center gap-2"><Phone className="h-3 w-3" /> {r.phone}</div>
+                  <div className="flex items-center gap-2 min-w-0"><Mail className="h-3 w-3 shrink-0" /> <span className="truncate">{r.email}</span></div>
+                  <div className="flex items-center gap-2 min-w-0"><Phone className="h-3 w-3 shrink-0" /> <span className="truncate">{r.phone}</span></div>
                   {(r.address || r.postalCode || r.city) && (
                     <div className="flex items-start gap-2">
                       <MapPin className="h-3 w-3 shrink-0 mt-0.5" strokeWidth={1.5} />
