@@ -85,10 +85,11 @@ const OccupancyMap = () => {
   const [floor, setFloor] = useState<string>("all");
   const [typology, setTypology] = useState<string>("all");
   const [monthOffset, setMonthOffset] = useState(0);
+  const [windowMonths, setWindowMonths] = useState(3);
   const [showEmpty, setShowEmpty] = useState(false);
 
   const windowStart = useMemo(() => addMonths(new Date(), monthOffset), [monthOffset]);
-  const windowEnd = useMemo(() => addMonths(windowStart, 3), [windowStart]);
+  const windowEnd = useMemo(() => addMonths(windowStart, windowMonths), [windowStart, windowMonths]);
   const totalDays = useMemo(() => diffDays(windowEnd, windowStart), [windowStart, windowEnd]);
 
   const days = useMemo(
@@ -107,28 +108,60 @@ const OccupancyMap = () => {
     return spans;
   }, [days]);
 
-  /** Colunas semanais (segunda a domingo), recortadas à janela visível. */
-  const weekSpans = useMemo(() => {
+  const useMonthColumns = windowMonths >= 6;
+
+  /** Colunas semanais (trimestre) ou mensais (semestre/ano), recortadas à janela visível. */
+  const timeSpans = useMemo(() => {
     const spans: { key: string; label: string; startIdx: number; count: number; hasToday: boolean }[] = [];
-    for (let i = 0; i < totalDays; ) {
-      const d = days[i];
-      const dow = (d.getDay() + 6) % 7; // 0 = segunda
-      const count = Math.min(7 - dow, totalDays - i);
-      const last = days[i + count - 1];
-      const fmt = (x: Date) => x.toLocaleDateString("pt-PT", { day: "numeric", month: "short" }).replace(".", "");
-      const today = new Date();
-      const hasToday = days.slice(i, i + count).some((x) => diffDays(x, today) === 0);
-      spans.push({
-        key: d.toISOString(),
-        label: `${d.getDate()}–${fmt(last)}`,
-        startIdx: i,
-        count,
-        hasToday,
-      });
-      i += count;
+    if (useMonthColumns) {
+      for (let i = 0; i < totalDays; ) {
+        const d = days[i];
+        const month = d.getMonth();
+        const year = d.getFullYear();
+        let count = 0;
+        while (
+          i + count < totalDays &&
+          days[i + count].getMonth() === month &&
+          days[i + count].getFullYear() === year
+        ) {
+          count++;
+        }
+        const last = days[i + count - 1];
+        const fmt = (x: Date) =>
+          x.toLocaleDateString("pt-PT", { day: "numeric", month: "short" }).replace(".", "");
+        const today = new Date();
+        const hasToday = days.slice(i, i + count).some((x) => diffDays(x, today) === 0);
+        spans.push({
+          key: d.toISOString(),
+          label: `${d.getDate()}–${fmt(last)}`,
+          startIdx: i,
+          count,
+          hasToday,
+        });
+        i += count;
+      }
+    } else {
+      for (let i = 0; i < totalDays; ) {
+        const d = days[i];
+        const dow = (d.getDay() + 6) % 7; // 0 = segunda
+        const count = Math.min(7 - dow, totalDays - i);
+        const last = days[i + count - 1];
+        const fmt = (x: Date) =>
+          x.toLocaleDateString("pt-PT", { day: "numeric", month: "short" }).replace(".", "");
+        const today = new Date();
+        const hasToday = days.slice(i, i + count).some((x) => diffDays(x, today) === 0);
+        spans.push({
+          key: d.toISOString(),
+          label: `${d.getDate()}–${fmt(last)}`,
+          startIdx: i,
+          count,
+          hasToday,
+        });
+        i += count;
+      }
     }
     return spans;
-  }, [days, totalDays]);
+  }, [days, totalDays, useMonthColumns]);
 
   const filteredRooms = useMemo(
     () =>
