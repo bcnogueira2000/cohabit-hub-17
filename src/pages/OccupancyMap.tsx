@@ -120,6 +120,41 @@ const OccupancyMap = () => {
 
   const useMonthColumns = windowMonths >= 6;
 
+  /** Largura disponível para a grelha — o zoom encaixa a janela no ecrã. */
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [viewportWidth, setViewportWidth] = useState(0);
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver(([entry]) => setViewportWidth(entry.contentRect.width));
+    ro.observe(el);
+    setViewportWidth(el.clientWidth);
+    return () => ro.disconnect();
+  }, []);
+
+  const zoomIndex = zoomLevels.findIndex((z) => z.months === windowMonths);
+  const zoomBy = (dir: -1 | 1) => {
+    const next = zoomLevels[Math.min(zoomLevels.length - 1, Math.max(0, zoomIndex + dir))];
+    if (next) setWindowMonths(next.months);
+  };
+
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    let last = 0;
+    const onWheel = (e: WheelEvent) => {
+      if (!e.ctrlKey && !e.metaKey) return;
+      e.preventDefault();
+      const now = Date.now();
+      if (now - last < 250) return;
+      last = now;
+      zoomBy(e.deltaY > 0 ? 1 : -1);
+    };
+    el.addEventListener("wheel", onWheel, { passive: false });
+    return () => el.removeEventListener("wheel", onWheel);
+  });
+
+
   /** Colunas semanais (trimestre) ou mensais (semestre/ano), recortadas à janela visível. */
   const timeSpans = useMemo(() => {
     const spans: { key: string; label: string; startIdx: number; count: number; hasToday: boolean }[] = [];
