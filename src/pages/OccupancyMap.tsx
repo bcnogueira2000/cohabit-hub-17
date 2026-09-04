@@ -368,22 +368,39 @@ const OccupancyMap = () => {
             </Select>
 
             <div className="flex items-center bg-muted p-1 rounded-lg border border-border/50">
-              {[
-                { label: "Trimestre", value: 3 },
-                { label: "Semestre", value: 6 },
-                { label: "Ano", value: 12 },
-              ].map((z) => (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-7 px-2 rounded-md text-muted-foreground hover:bg-card hover:text-foreground"
+                onClick={() => zoomBy(-1)}
+                disabled={zoomIndex <= 0}
+                title="Aproximar (mais detalhe)"
+              >
+                <ZoomIn className="h-3.5 w-3.5" strokeWidth={1.5} />
+              </Button>
+              {zoomLevels.map((z) => (
                 <Button
-                  key={z.value}
-                  variant={windowMonths === z.value ? "secondary" : "ghost"}
+                  key={z.months}
+                  variant={windowMonths === z.months ? "secondary" : "ghost"}
                   size="sm"
                   className="h-7 px-2.5 text-xs font-medium rounded-md"
-                  onClick={() => setWindowMonths(z.value)}
+                  onClick={() => setWindowMonths(z.months)}
                 >
                   {z.label}
                 </Button>
               ))}
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-7 px-2 rounded-md text-muted-foreground hover:bg-card hover:text-foreground"
+                onClick={() => zoomBy(1)}
+                disabled={zoomIndex >= zoomLevels.length - 1}
+                title="Afastar (visão de longo prazo)"
+              >
+                <ZoomOut className="h-3.5 w-3.5" strokeWidth={1.5} />
+              </Button>
             </div>
+
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
