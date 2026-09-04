@@ -1,7 +1,8 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { ChevronLeft, ChevronRight, CalendarDays } from "lucide-react";
+import { ChevronLeft, ChevronRight, CalendarDays, ZoomIn, ZoomOut } from "lucide-react";
+
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -14,7 +15,16 @@ import {
 } from "@/components/ui/select";
 import { cn, colorKey, getInitials, parseRoomNumber, type RoomSide } from "@/lib/utils";
 
+const zoomLevels = [
+  { months: 1, label: "Mês" },
+  { months: 3, label: "Trimestre" },
+  { months: 6, label: "Semestre" },
+  { months: 12, label: "Ano" },
+  { months: 24, label: "2 anos" },
+];
+
 const sideOrder: RoomSide[] = ["esquerdo", "direito", "indefinido"];
+
 const sideLabels: Record<RoomSide, string> = {
   esquerdo: "Esquerdo",
   direito: "Direito",
@@ -109,6 +119,41 @@ const OccupancyMap = () => {
   }, [days]);
 
   const useMonthColumns = windowMonths >= 6;
+
+  /** Largura disponível para a grelha — o zoom encaixa a janela no ecrã. */
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [viewportWidth, setViewportWidth] = useState(0);
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver(([entry]) => setViewportWidth(entry.contentRect.width));
+    ro.observe(el);
+    setViewportWidth(el.clientWidth);
+    return () => ro.disconnect();
+  }, []);
+
+  const zoomIndex = zoomLevels.findIndex((z) => z.months === windowMonths);
+  const zoomBy = (dir: -1 | 1) => {
+    const next = zoomLevels[Math.min(zoomLevels.length - 1, Math.max(0, zoomIndex + dir))];
+    if (next) setWindowMonths(next.months);
+  };
+
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    let last = 0;
+    const onWheel = (e: WheelEvent) => {
+      if (!e.ctrlKey && !e.metaKey) return;
+      e.preventDefault();
+      const now = Date.now();
+      if (now - last < 250) return;
+      last = now;
+      zoomBy(e.deltaY > 0 ? 1 : -1);
+    };
+    el.addEventListener("wheel", onWheel, { passive: false });
+    return () => el.removeEventListener("wheel", onWheel);
+  });
+
 
   /** Colunas semanais (trimestre) ou mensais (semestre/ano), recortadas à janela visível. */
   const timeSpans = useMemo(() => {
@@ -238,9 +283,12 @@ const OccupancyMap = () => {
 
   const hiddenCount = Object.keys(byFloor).length - visibleFloors.length;
 
-  const dayWidth = 8;
   const labelWidth = 200;
+  const available = Math.max(0, viewportWidth - labelWidth);
+  // Encaixa a janela na largura disponível; nunca abaixo de 1.6px/dia para manter as barras visíveis.
+  const dayWidth = available > 0 ? Math.max(1.6, available / totalDays) : 8;
   const gridWidth = totalDays * dayWidth;
+
 
   const openBar = (bar: Bar) => {
     if (bar.contractId) navigate(`/finance/contracts/${bar.contractId}`);
@@ -320,22 +368,39 @@ const OccupancyMap = () => {
             </Select>
 
             <div className="flex items-center bg-muted p-1 rounded-lg border border-border/50">
-              {[
-                { label: "Trimestre", value: 3 },
-                { label: "Semestre", value: 6 },
-                { label: "Ano", value: 12 },
-              ].map((z) => (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-7 px-2 rounded-md text-muted-foreground hover:bg-card hover:text-foreground"
+                onClick={() => zoomBy(-1)}
+                disabled={zoomIndex <= 0}
+                title="Aproximar (mais detalhe)"
+              >
+                <ZoomIn className="h-3.5 w-3.5" strokeWidth={1.5} />
+              </Button>
+              {zoomLevels.map((z) => (
                 <Button
-                  key={z.value}
-                  variant={windowMonths === z.value ? "secondary" : "ghost"}
+                  key={z.months}
+                  variant={windowMonths === z.months ? "secondary" : "ghost"}
                   size="sm"
                   className="h-7 px-2.5 text-xs font-medium rounded-md"
-                  onClick={() => setWindowMonths(z.value)}
+                  onClick={() => setWindowMonths(z.months)}
                 >
                   {z.label}
                 </Button>
               ))}
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-7 px-2 rounded-md text-muted-foreground hover:bg-card hover:text-foreground"
+                onClick={() => zoomBy(1)}
+                disabled={zoomIndex >= zoomLevels.length - 1}
+                title="Afastar (visão de longo prazo)"
+              >
+                <ZoomOut className="h-3.5 w-3.5" strokeWidth={1.5} />
+              </Button>
             </div>
+
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
@@ -372,7 +437,7 @@ const OccupancyMap = () => {
 
         {/* Timeline grid */}
         <Card className="overflow-hidden border border-border/60 shadow-card">
-          <div className="overflow-x-auto">
+          <div ref={scrollRef} className="overflow-x-auto">
             {isLoading ? (
               <div className="p-8 text-sm text-muted-foreground">A carregar…</div>
             ) : (
@@ -389,11 +454,13 @@ const OccupancyMap = () => {
                     <div
                       key={m.label}
                       style={{ width: m.count * dayWidth }}
-                      className="shrink-0 border-l border-border/40 px-3 py-3 text-xs font-semibold capitalize text-foreground"
+                      className="shrink-0 border-l border-border/40 px-1.5 py-3 text-[11px] font-semibold capitalize text-foreground truncate"
+                      title={m.label}
                     >
-                      {m.label}
+                      {m.count * dayWidth < 90 ? m.label.slice(0, 3) : m.label}
                     </div>
                   ))}
+
                 </div>
 
                 {/* Time header (weeks or months) */}
@@ -408,7 +475,7 @@ const OccupancyMap = () => {
                         w.hasToday ? "bg-primary/5 text-primary font-semibold" : "text-muted-foreground"
                       )}
                     >
-                      {w.label}
+                      {w.count * dayWidth >= 34 ? w.label : ""}
                     </div>
                   ))}
                 </div>
@@ -524,7 +591,7 @@ const OccupancyMap = () => {
 
         {/* Footer info */}
         <div className="flex items-center justify-between text-xs text-muted-foreground px-1">
-          <span>Janela de {windowMonths} meses · colunas {useMonthColumns ? "mensais" : "semanais"} · use os saltos para ver até 2 anos</span>
+          <span>Zoom: {zoomLevels[zoomIndex]?.label ?? `${windowMonths} meses`} · colunas {useMonthColumns ? "mensais" : "semanais"} · Ctrl + roda do rato para aproximar/afastar</span>
           <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-primary" />Semana atual destacada</span>
         </div>
       </div>
