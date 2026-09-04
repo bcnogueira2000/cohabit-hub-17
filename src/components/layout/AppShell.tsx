@@ -8,6 +8,17 @@ import { usePendingProfiles, useMyRoles, useProfile } from "@/hooks/useProfile";
 import { cn, getInitials } from "@/lib/utils";
 import { useState } from "react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { useAuth } from "@/hooks/useAuth";
 import { NotificationBell } from "@/components/NotificationBell";
 import { BrandAvatar } from "@/components/ui/BrandAvatar";
@@ -100,7 +111,49 @@ export const AppShell = () => {
   })();
 
   const [moreOpen, setMoreOpen] = useState(false);
-  const handleSignOut = async () => { await signOut(); navigate("/auth", { replace: true }); };
+
+  const SignOutButton = ({ mobile = false }: { mobile?: boolean }) => {
+    const { signOut } = useAuth();
+    const navigate = useNavigate();
+    return (
+      <AlertDialog>
+        <AlertDialogTrigger asChild>
+          {mobile ? (
+            <button
+              onClick={() => setMoreOpen(false)}
+              className="flex items-center gap-3 rounded-lg p-3 bg-muted/40 hover:bg-muted transition-smooth col-span-2"
+            >
+              <LogOut className="h-5 w-5 text-primary" />
+              <span className="text-sm font-medium">Sair</span>
+            </button>
+          ) : (
+            <button className="mt-1 w-full flex items-center gap-2 px-3 py-2 rounded-lg text-[13px] font-medium text-sidebar-foreground/80 hover:bg-sidebar-accent/60 transition-smooth">
+              <LogOut className="h-4 w-4" /> Sair
+            </button>
+          )}
+        </AlertDialogTrigger>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Tens a certeza que queres sair?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Vais ter de fazer login novamente para voltar à app.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={async () => {
+                await signOut();
+                navigate("/auth", { replace: true });
+              }}
+            >
+              Sair
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    );
+  };
 
   const flatItems = sections.flatMap((s) => s.items);
   const moreItems = flatItems.slice(5); // mobile "more"
@@ -177,12 +230,7 @@ export const AppShell = () => {
               <Wallet className="h-4 w-4" /> Financeiro
             </NavLink>
           )}
-          <button
-            onClick={handleSignOut}
-            className="mt-1 w-full flex items-center gap-2 px-3 py-2 rounded-lg text-[13px] font-medium text-sidebar-foreground/80 hover:bg-sidebar-accent/60 transition-smooth"
-          >
-            <LogOut className="h-4 w-4" /> Sair
-          </button>
+          <SignOutButton />
         </div>
       </aside>
 
@@ -249,13 +297,7 @@ export const AppShell = () => {
                     <span className="text-sm font-medium">{label}</span>
                   </NavLink>
                 ))}
-                <button
-                  onClick={() => { setMoreOpen(false); handleSignOut(); }}
-                  className="flex items-center gap-3 rounded-lg p-3 bg-muted/40 hover:bg-muted transition-smooth col-span-2"
-                >
-                  <LogOut className="h-5 w-5 text-primary" />
-                  <span className="text-sm font-medium">Sair</span>
-                </button>
+                <SignOutButton mobile />
               </div>
             </SheetContent>
           </Sheet>
