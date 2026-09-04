@@ -111,7 +111,49 @@ export const AppShell = () => {
   })();
 
   const [moreOpen, setMoreOpen] = useState(false);
-  const handleSignOut = async () => { await signOut(); navigate("/auth", { replace: true }); };
+
+  const SignOutButton = ({ mobile = false }: { mobile?: boolean }) => {
+    const { signOut } = useAuth();
+    const navigate = useNavigate();
+    return (
+      <AlertDialog>
+        <AlertDialogTrigger asChild>
+          {mobile ? (
+            <button
+              onClick={() => setMoreOpen(false)}
+              className="flex items-center gap-3 rounded-lg p-3 bg-muted/40 hover:bg-muted transition-smooth col-span-2"
+            >
+              <LogOut className="h-5 w-5 text-primary" />
+              <span className="text-sm font-medium">Sair</span>
+            </button>
+          ) : (
+            <button className="mt-1 w-full flex items-center gap-2 px-3 py-2 rounded-lg text-[13px] font-medium text-sidebar-foreground/80 hover:bg-sidebar-accent/60 transition-smooth">
+              <LogOut className="h-4 w-4" /> Sair
+            </button>
+          )}
+        </AlertDialogTrigger>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Tens a certeza que queres sair?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Vais ter de fazer login novamente para voltar à app.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={async () => {
+                await signOut();
+                navigate("/auth", { replace: true });
+              }}
+            >
+              Sair
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    );
+  };
 
   const flatItems = sections.flatMap((s) => s.items);
   const moreItems = flatItems.slice(5); // mobile "more"
