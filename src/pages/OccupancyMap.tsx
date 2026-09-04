@@ -475,7 +475,7 @@ const OccupancyMap = () => {
                         w.hasToday ? "bg-primary/5 text-primary font-semibold" : "text-muted-foreground"
                       )}
                     >
-                      {w.label}
+                      {w.count * dayWidth >= 34 ? w.label : ""}
                     </div>
                   ))}
                 </div>
@@ -591,7 +591,7 @@ const OccupancyMap = () => {
 
         {/* Footer info */}
         <div className="flex items-center justify-between text-xs text-muted-foreground px-1">
-          <span>Janela de {windowMonths} meses · colunas {useMonthColumns ? "mensais" : "semanais"} · use os saltos para ver até 2 anos</span>
+          <span>Zoom: {zoomLevels[zoomIndex]?.label ?? `${windowMonths} meses`} · colunas {useMonthColumns ? "mensais" : "semanais"} · Ctrl + roda do rato para aproximar/afastar</span>
           <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-primary" />Semana atual destacada</span>
         </div>
       </div>
