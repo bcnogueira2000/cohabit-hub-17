@@ -15,7 +15,16 @@ import {
 } from "@/components/ui/select";
 import { cn, colorKey, getInitials, parseRoomNumber, type RoomSide } from "@/lib/utils";
 
+const zoomLevels = [
+  { months: 1, label: "Mês" },
+  { months: 3, label: "Trimestre" },
+  { months: 6, label: "Semestre" },
+  { months: 12, label: "Ano" },
+  { months: 24, label: "2 anos" },
+];
+
 const sideOrder: RoomSide[] = ["esquerdo", "direito", "indefinido"];
+
 const sideLabels: Record<RoomSide, string> = {
   esquerdo: "Esquerdo",
   direito: "Direito",
