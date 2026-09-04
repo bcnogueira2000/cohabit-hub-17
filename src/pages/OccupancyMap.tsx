@@ -454,11 +454,13 @@ const OccupancyMap = () => {
                     <div
                       key={m.label}
                       style={{ width: m.count * dayWidth }}
-                      className="shrink-0 border-l border-border/40 px-3 py-3 text-xs font-semibold capitalize text-foreground"
+                      className="shrink-0 border-l border-border/40 px-1.5 py-3 text-[11px] font-semibold capitalize text-foreground truncate"
+                      title={m.label}
                     >
-                      {m.label}
+                      {m.count * dayWidth < 90 ? m.label.slice(0, 3) : m.label}
                     </div>
                   ))}
+
                 </div>
 
                 {/* Time header (weeks or months) */}
