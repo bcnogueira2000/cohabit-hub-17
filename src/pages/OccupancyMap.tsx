@@ -283,9 +283,12 @@ const OccupancyMap = () => {
 
   const hiddenCount = Object.keys(byFloor).length - visibleFloors.length;
 
-  const dayWidth = 8;
   const labelWidth = 200;
+  const available = Math.max(0, viewportWidth - labelWidth);
+  // Encaixa a janela na largura disponível; nunca abaixo de 1.6px/dia para manter as barras visíveis.
+  const dayWidth = available > 0 ? Math.max(1.6, available / totalDays) : 8;
   const gridWidth = totalDays * dayWidth;
+
 
   const openBar = (bar: Bar) => {
     if (bar.contractId) navigate(`/finance/contracts/${bar.contractId}`);
