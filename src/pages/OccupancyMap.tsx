@@ -396,10 +396,10 @@ const OccupancyMap = () => {
                   ))}
                 </div>
 
-                {/* Week header */}
+                {/* Time header (weeks or months) */}
                 <div className="flex border-b border-border/60 bg-muted/20">
                   <div style={{ width: labelWidth }} className="shrink-0 sticky left-0 z-20 bg-card border-r border-border/60 px-5" />
-                  {weekSpans.map((w) => (
+                  {timeSpans.map((w) => (
                     <div
                       key={w.key}
                       style={{ width: w.count * dayWidth }}
@@ -464,8 +464,8 @@ const OccupancyMap = () => {
                                   </div>
                                 </div>
                                 <div className="relative shrink-0 h-7 flex items-center" style={{ width: gridWidth }}>
-                                  {/* weekly grid lines */}
-                                  {weekSpans.map((w) => (
+                                  {/* time grid lines */}
+                                  {timeSpans.map((w) => (
                                     <div
                                       key={w.key}
                                       className={cn(
@@ -524,7 +524,7 @@ const OccupancyMap = () => {
 
         {/* Footer info */}
         <div className="flex items-center justify-between text-xs text-muted-foreground px-1">
-          <span>Janela de 3 meses · colunas semanais · use os saltos para ver até 2 anos</span>
+          <span>Janela de {windowMonths} meses · colunas {useMonthColumns ? "mensais" : "semanais"} · use os saltos para ver até 2 anos</span>
           <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-primary" />Semana atual destacada</span>
         </div>
       </div>
