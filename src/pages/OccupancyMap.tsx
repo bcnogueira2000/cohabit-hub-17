@@ -277,7 +277,7 @@ const OccupancyMap = () => {
                 variant="ghost"
                 size="sm"
                 className="h-7 px-2.5 text-xs font-medium text-muted-foreground hover:bg-card hover:text-foreground rounded-md"
-                onClick={() => setMonthOffset((o) => o - 3)}
+                onClick={() => setMonthOffset((o) => o - windowMonths)}
               >
                 <ChevronLeft className="h-3.5 w-3.5" strokeWidth={1.5} />
               </Button>
@@ -293,7 +293,7 @@ const OccupancyMap = () => {
                 variant="ghost"
                 size="sm"
                 className="h-7 px-2.5 text-xs font-medium text-muted-foreground hover:bg-card hover:text-foreground rounded-md"
-                onClick={() => setMonthOffset((o) => o + 3)}
+                onClick={() => setMonthOffset((o) => o + windowMonths)}
               >
                 <ChevronRight className="h-3.5 w-3.5" strokeWidth={1.5} />
               </Button>
@@ -318,6 +318,24 @@ const OccupancyMap = () => {
                 ))}
               </SelectContent>
             </Select>
+
+            <div className="flex items-center bg-muted p-1 rounded-lg border border-border/50">
+              {[
+                { label: "Trimestre", value: 3 },
+                { label: "Semestre", value: 6 },
+                { label: "Ano", value: 12 },
+              ].map((z) => (
+                <Button
+                  key={z.value}
+                  variant={windowMonths === z.value ? "secondary" : "ghost"}
+                  size="sm"
+                  className="h-7 px-2.5 text-xs font-medium rounded-md"
+                  onClick={() => setWindowMonths(z.value)}
+                >
+                  {z.label}
+                </Button>
+              ))}
+            </div>
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
