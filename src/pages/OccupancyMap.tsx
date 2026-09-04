@@ -437,7 +437,7 @@ const OccupancyMap = () => {
 
         {/* Timeline grid */}
         <Card className="overflow-hidden border border-border/60 shadow-card">
-          <div className="overflow-x-auto">
+          <div ref={scrollRef} className="overflow-x-auto">
             {isLoading ? (
               <div className="p-8 text-sm text-muted-foreground">A carregar…</div>
             ) : (
