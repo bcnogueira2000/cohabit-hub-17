@@ -770,27 +770,76 @@ const Leads = () => {
                     </Button>
                   )}
                   {selected.status === "reserved" && (
-                    <Button
-                      variant="outline"
-                      className="w-full rounded-full border-destructive text-destructive hover:bg-destructive/10 hover:text-destructive mt-2"
-                      disabled={giveUpBusy}
-                      onClick={async () => {
-                        setGiveUpBusy(true);
-                        try {
-                          await cancelReservation.mutateAsync(selected.id);
-                          await updateLead.mutateAsync({ id: selected.id, patch: { status: "lost" } });
-                          toast.success("Reserva cancelada e quarto libertado");
-                          setSelected(null);
-                        } catch (e) {
-                          toast.error(e instanceof Error ? e.message : "Não foi possível cancelar a reserva.");
-                        } finally {
-                          setGiveUpBusy(false);
-                        }
-                      }}
-                    >
-                      Desistiu
-                    </Button>
+                    <div className="grid grid-cols-2 gap-2 mt-2">
+                      <Button
+                        variant="outline"
+                        className="rounded-full"
+                        onClick={() => setLeadContractOpen(true)}
+                      >
+                        <FileText className="h-4 w-4 mr-1.5" strokeWidth={1.5} />
+                        {selected.contractGeneratedAt ? "Gerar contrato novamente" : "Gerar contrato"}
+                      </Button>
+                      {selected.contractGeneratedAt && (
+                        <Button
+                          variant="outline"
+                          className="rounded-full border-success text-success hover:bg-success/10 hover:text-success"
+                          disabled={signBusy}
+                          onClick={async () => {
+                            setSignBusy(true);
+                            try {
+                              const { data: fresh } = await supabase
+                                .from("leads" as any)
+                                .select("draft_rent_amount, draft_deposit_due, draft_payment_day")
+                                .eq("id", selected.id)
+                                .maybeSingle();
+                              const d: any = fresh ?? {};
+                              if (!d.draft_rent_amount) {
+                                toast.error("Gera primeiro o contrato para definir a renda.");
+                                return;
+                              }
+                              await promoteReservation.mutateAsync({
+                                leadId: selected.id,
+                                contractData: {
+                                  monthly_amount: Number(d.draft_rent_amount),
+                                  deposit_due: Number(d.draft_deposit_due ?? 0),
+                                  payment_day: Number(d.draft_payment_day ?? 5),
+                                },
+                              });
+                              toast.success("Contrato criado — residente e primeira renda gerados");
+                              setSelected(null);
+                            } catch (e) {
+                              toast.error(e instanceof Error ? e.message : "Não foi possível criar o contrato.");
+                            } finally {
+                              setSignBusy(false);
+                            }
+                          }}
+                        >
+                          <UserCheck className="h-4 w-4 mr-1.5" strokeWidth={1.5} /> Assinou
+                        </Button>
+                      )}
+                      <Button
+                        variant="outline"
+                        className="rounded-full border-destructive text-destructive hover:bg-destructive/10 hover:text-destructive"
+                        disabled={giveUpBusy}
+                        onClick={async () => {
+                          setGiveUpBusy(true);
+                          try {
+                            await cancelReservation.mutateAsync(selected.id);
+                            await updateLead.mutateAsync({ id: selected.id, patch: { status: "lost" } });
+                            toast.success("Reserva cancelada e quarto libertado");
+                            setSelected(null);
+                          } catch (e) {
+                            toast.error(e instanceof Error ? e.message : "Não foi possível cancelar a reserva.");
+                          } finally {
+                            setGiveUpBusy(false);
+                          }
+                        }}
+                      >
+                        Desistiu
+                      </Button>
+                    </div>
                   )}
+
                   {selected.contractId && (
                     <Button asChild variant="outline" className="w-full rounded-full mt-2">
                       <Link to={`/finance/contracts/${selected.contractId}`}>
