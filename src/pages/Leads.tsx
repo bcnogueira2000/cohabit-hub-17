@@ -758,7 +758,6 @@ const Leads = () => {
                   )}
                   {selected.fullName &&
                     selected.email &&
-                    selected.preferredRoomType &&
                     ["proposal_sent", "negotiating", "won"].includes(selected.status) && (
                     <Button
                       variant="outline"
@@ -766,6 +765,28 @@ const Leads = () => {
                       onClick={() => setReservationOpen(true)}
                     >
                       <FileText className="h-4 w-4 mr-1.5" strokeWidth={1.5} /> Gerar acordo de reserva
+                    </Button>
+                  )}
+                  {selected.status === "reserved" && (
+                    <Button
+                      variant="outline"
+                      className="w-full rounded-full border-destructive text-destructive hover:bg-destructive/10 hover:text-destructive mt-2"
+                      disabled={giveUpBusy}
+                      onClick={async () => {
+                        setGiveUpBusy(true);
+                        try {
+                          await cancelReservation.mutateAsync(selected.id);
+                          await updateLead.mutateAsync({ id: selected.id, patch: { status: "lost" } });
+                          toast.success("Reserva cancelada e quarto libertado");
+                          setSelected(null);
+                        } catch (e) {
+                          toast.error(e instanceof Error ? e.message : "Não foi possível cancelar a reserva.");
+                        } finally {
+                          setGiveUpBusy(false);
+                        }
+                      }}
+                    >
+                      Desistiu
                     </Button>
                   )}
                   {selected.contractId && (
