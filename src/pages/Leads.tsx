@@ -32,7 +32,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
-import { useLeads, useUpdateLead, useDeleteLead, useLeadActivity, type Lead, type LeadStatus } from "@/hooks/useLeads";
+import { useLeads, useUpdateLead, useDeleteLead, useLeadActivity, useCancelRoomReservation, type Lead, type LeadStatus } from "@/hooks/useLeads";
 import { useStaffUsers } from "@/hooks/useStaffUsers";
 import { NewLeadDialog } from "@/components/leads/NewLeadDialog";
 import {
@@ -56,7 +56,7 @@ type Filter = "new" | "contact" | "negotiation" | "won" | "lost" | "all";
 const groups: Record<Exclude<Filter, "all">, LeadStatus[]> = {
   new: ["new"],
   contact: ["contacted", "visit_scheduled", "visited"],
-  negotiation: ["proposal_sent", "negotiating"],
+  negotiation: ["proposal_sent", "negotiating", "reserved"],
   won: ["won"],
   lost: ["lost", "archived"],
 };
@@ -105,6 +105,7 @@ const Section = ({ title, children }: { title: string; children: React.ReactNode
 const Leads = () => {
   const { data: leads = [], isLoading } = useLeads();
   const updateLead = useUpdateLead();
+  const cancelReservation = useCancelRoomReservation();
   const deleteLead = useDeleteLead();
   const { data: staff = [] } = useStaffUsers();
   const [filter, setFilter] = useState<Filter>("new");
@@ -113,6 +114,7 @@ const Leads = () => {
   const [owner, setOwner] = useState("all");
   const [selected, setSelected] = useState<Lead | null>(null);
   const [reservationOpen, setReservationOpen] = useState(false);
+  const [giveUpBusy, setGiveUpBusy] = useState(false);
   const [editStatus, setEditStatus] = useState<LeadStatus>("new");
   const [editOwnerId, setEditOwnerId] = useState<string>("");
   const [editNextAction, setEditNextAction] = useState<string>("");
@@ -758,7 +760,6 @@ const Leads = () => {
                   )}
                   {selected.fullName &&
                     selected.email &&
-                    selected.preferredRoomType &&
                     ["proposal_sent", "negotiating", "won"].includes(selected.status) && (
                     <Button
                       variant="outline"
@@ -766,6 +767,28 @@ const Leads = () => {
                       onClick={() => setReservationOpen(true)}
                     >
                       <FileText className="h-4 w-4 mr-1.5" strokeWidth={1.5} /> Gerar acordo de reserva
+                    </Button>
+                  )}
+                  {selected.status === "reserved" && (
+                    <Button
+                      variant="outline"
+                      className="w-full rounded-full border-destructive text-destructive hover:bg-destructive/10 hover:text-destructive mt-2"
+                      disabled={giveUpBusy}
+                      onClick={async () => {
+                        setGiveUpBusy(true);
+                        try {
+                          await cancelReservation.mutateAsync(selected.id);
+                          await updateLead.mutateAsync({ id: selected.id, patch: { status: "lost" } });
+                          toast.success("Reserva cancelada e quarto libertado");
+                          setSelected(null);
+                        } catch (e) {
+                          toast.error(e instanceof Error ? e.message : "Não foi possível cancelar a reserva.");
+                        } finally {
+                          setGiveUpBusy(false);
+                        }
+                      }}
+                    >
+                      Desistiu
                     </Button>
                   )}
                   {selected.contractId && (

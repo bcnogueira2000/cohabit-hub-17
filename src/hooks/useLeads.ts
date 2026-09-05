@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 export type LeadStatus =
   | "new" | "contacted" | "visit_scheduled" | "visited"
-  | "proposal_sent" | "negotiating" | "won" | "lost" | "archived";
+  | "proposal_sent" | "negotiating" | "reserved" | "won" | "lost" | "archived";
 
 export type LeadSource =
   | "website_form" | "idealista" | "instagram" | "linkedin"
@@ -45,6 +45,8 @@ export interface Lead {
   documentNumber: string | null;
   documentValidity: string | null;
   taxNumber: string | null;
+  roomId: string | null;
+  contractGeneratedAt: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -84,6 +86,8 @@ export const mapLead = (r: any): Lead => ({
   documentNumber: r.document_number ?? null,
   documentValidity: r.document_validity ?? null,
   taxNumber: r.tax_number ?? null,
+  roomId: r.room_id ?? null,
+  contractGeneratedAt: r.contract_generated_at ?? null,
   createdAt: r.created_at,
   updatedAt: r.updated_at,
 });
@@ -121,6 +125,8 @@ export interface LeadInput {
   documentNumber?: string | null;
   documentValidity?: string | null;
   taxNumber?: string | null;
+  roomId?: string | null;
+  contractGeneratedAt?: string | null;
 }
 
 
@@ -158,6 +164,8 @@ const toDbPatch = (i: Partial<LeadInput>) => {
   if (i.documentNumber !== undefined) p.document_number = i.documentNumber;
   if (i.documentValidity !== undefined) p.document_validity = i.documentValidity;
   if (i.taxNumber !== undefined) p.tax_number = i.taxNumber;
+  if (i.roomId !== undefined) p.room_id = i.roomId;
+  if (i.contractGeneratedAt !== undefined) p.contract_generated_at = i.contractGeneratedAt;
 
   return p;
 };
@@ -264,3 +272,41 @@ export const useLeadActivity = (leadId: string | null) =>
       }));
     },
   });
+
+/** Reserva um quarto específico para uma lead (valida sobreposição na BD). */
+export const useReserveRoomForLead = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (args: { leadId: string; roomId: string; checkIn: string; checkOut: string }) => {
+      const { data, error } = await supabase.rpc("reserve_room_for_lead", {
+        p_lead_id: args.leadId,
+        p_room_id: args.roomId,
+        p_check_in: args.checkIn,
+        p_check_out: args.checkOut,
+      });
+      if (error) throw new Error(error.message);
+      return data as string;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["leads"] });
+      qc.invalidateQueries({ queryKey: ["stays"] });
+      qc.invalidateQueries({ queryKey: ["rooms"] });
+    },
+  });
+};
+
+/** Cancela a reserva de quarto ligada a uma lead. */
+export const useCancelRoomReservation = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (leadId: string) => {
+      const { error } = await supabase.rpc("cancel_room_reservation", { p_lead_id: leadId });
+      if (error) throw new Error(error.message);
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["leads"] });
+      qc.invalidateQueries({ queryKey: ["stays"] });
+      qc.invalidateQueries({ queryKey: ["rooms"] });
+    },
+  });
+};
