@@ -14,6 +14,7 @@ type StayWithContract = {
   id: string;
   roomId: string | null;
   residentId: string | null;
+  leadId: string | null;
   fullName: string;
   status: StayStatus;
   contractId: string | null;
@@ -25,6 +26,7 @@ type StayWithContract = {
     actualEndDate: string | null;
   } | null;
 };
+
 
 const mapContract = (contract: any): StayWithContract["contract"] => {
   const value = Array.isArray(contract) ? contract[0] : contract;
