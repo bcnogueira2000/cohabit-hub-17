@@ -32,7 +32,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
-import { useLeads, useUpdateLead, useDeleteLead, useLeadActivity, useCancelRoomReservation, type Lead, type LeadStatus } from "@/hooks/useLeads";
+import { useLeads, useUpdateLead, useDeleteLead, useLeadActivity, useCancelRoomReservation, usePromoteReservationToContract, type Lead, type LeadStatus } from "@/hooks/useLeads";
 import { useStaffUsers } from "@/hooks/useStaffUsers";
 import { NewLeadDialog } from "@/components/leads/NewLeadDialog";
 import {
@@ -46,6 +46,7 @@ import {
 import { leadStatusLabels, leadSourceLabels, leadProfileLabels } from "@/lib/labels";
 import { NewContractDialog } from "@/components/contracts/NewContractDialog";
 import { ReservationAgreementDialog } from "@/components/leads/ReservationAgreementDialog";
+import { LeadContractDialog } from "@/components/leads/LeadContractDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -106,6 +107,7 @@ const Leads = () => {
   const { data: leads = [], isLoading } = useLeads();
   const updateLead = useUpdateLead();
   const cancelReservation = useCancelRoomReservation();
+  const promoteReservation = usePromoteReservationToContract();
   const deleteLead = useDeleteLead();
   const { data: staff = [] } = useStaffUsers();
   const [filter, setFilter] = useState<Filter>("new");
@@ -115,6 +117,8 @@ const Leads = () => {
   const [selected, setSelected] = useState<Lead | null>(null);
   const [reservationOpen, setReservationOpen] = useState(false);
   const [giveUpBusy, setGiveUpBusy] = useState(false);
+  const [leadContractOpen, setLeadContractOpen] = useState(false);
+  const [signBusy, setSignBusy] = useState(false);
   const [editStatus, setEditStatus] = useState<LeadStatus>("new");
   const [editOwnerId, setEditOwnerId] = useState<string>("");
   const [editNextAction, setEditNextAction] = useState<string>("");
@@ -861,6 +865,14 @@ const Leads = () => {
           lead={selected}
           open={reservationOpen}
           onOpenChange={setReservationOpen}
+        />
+      )}
+
+      {selected && (
+        <LeadContractDialog
+          lead={selected}
+          open={leadContractOpen}
+          onOpenChange={setLeadContractOpen}
         />
       )}
 
