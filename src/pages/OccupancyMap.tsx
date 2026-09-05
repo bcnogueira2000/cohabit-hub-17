@@ -64,7 +64,8 @@ const useOccupancyData = () =>
         supabase
           .from("stays" as any)
           .select(
-            "id, room_id, check_in, check_out, status, contract_id, full_name, contract:contracts(id, status, start_date, end_date, actual_end_date)",
+            "id, room_id, check_in, check_out, status, contract_id, lead_id, resident_id, full_name, contract:contracts(id, status, start_date, end_date, actual_end_date)",
+
           ),
         supabase.from("room_typologies" as any).select("id, name").order("sort_order"),
       ]);
