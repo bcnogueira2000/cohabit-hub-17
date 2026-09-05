@@ -292,8 +292,8 @@ export const NewContractDialog = ({ open, onOpenChange, defaults, leadId, onCrea
             </div>
           </div>
           <div className="grid grid-cols-2 gap-3">
-            <div><Label>Check-in</Label><Input name="checkIn" type="date" required className="mt-1.5" /></div>
-            <div><Label>Check-out</Label><Input name="checkOut" type="date" required className="mt-1.5" /></div>
+            <div><Label>Data de início de contrato</Label><Input name="checkIn" type="date" required className="mt-1.5" /></div>
+            <div><Label>Data de fim de contrato</Label><Input name="checkOut" type="date" required className="mt-1.5" /></div>
           </div>
           <div className="flex items-start gap-2 rounded-xl border border-border/60 p-3">
             <Checkbox

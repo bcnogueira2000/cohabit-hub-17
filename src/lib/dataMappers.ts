@@ -40,6 +40,7 @@ export const mapResident = (r: any): Resident => ({
   profile: r.profile ?? null,
   gender: r.gender ?? null,
   age: r.age ?? null,
+  expectedArrivalDate: r.expected_arrival_date ?? null,
 });
 
 
@@ -135,6 +136,8 @@ export const mapStay = (s: any): Stay => ({
   roomId: s.room_id ?? null,
   checkIn: s.check_in,
   checkOut: s.check_out,
+  expectedCheckIn: s.expected_check_in ?? null,
+  leadId: s.lead_id ?? null,
   status: s.status,
   source: s.source,
   contractId: s.contract_id ?? null,
