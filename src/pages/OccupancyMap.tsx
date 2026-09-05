@@ -48,8 +48,11 @@ type StayRow = {
   check_out: string;
   status: string;
   contract_id: string | null;
+  lead_id: string | null;
+  resident_id: string | null;
   full_name: string;
   contract: { id: string; status: string; start_date: string; end_date: string; actual_end_date: string | null } | null;
+
 };
 
 const useOccupancyData = () =>
@@ -61,7 +64,8 @@ const useOccupancyData = () =>
         supabase
           .from("stays" as any)
           .select(
-            "id, room_id, check_in, check_out, status, contract_id, full_name, contract:contracts(id, status, start_date, end_date, actual_end_date)",
+            "id, room_id, check_in, check_out, status, contract_id, lead_id, resident_id, full_name, contract:contracts(id, status, start_date, end_date, actual_end_date)",
+
           ),
         supabase.from("room_typologies" as any).select("id, name").order("sort_order"),
       ]);
@@ -228,15 +232,18 @@ const OccupancyMap = () => {
       const c = s.contract;
       if (s.contract_id && c) {
         if (c.status === "cancelled") continue;
-        // ocupação vem das DATAS do contrato, não do status
+        // com contrato = Ocupado, independentemente de a data de início já ter chegado
         start = parseDay(c.start_date);
         end = parseDay(c.actual_end_date ?? c.end_date);
-        const today = parseDay(new Date().toISOString().slice(0, 10));
-        tone = start > today ? "reserved" : "occupied";
+        tone = "occupied";
+      } else if (s.lead_id && !s.resident_id) {
+        // reserva de lead ainda sem contrato: barra de check_in a check_out da estadia
+        if (s.status === "confirmed") tone = "reserved";
       } else if (!s.contract_id) {
         if (s.status === "confirmed") tone = "reserved";
         else if (s.status === "checked_in") tone = "occupied";
       }
+
       if (!tone) continue;
 
       // sobreposição com a janela visível

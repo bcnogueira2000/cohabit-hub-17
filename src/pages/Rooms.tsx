@@ -14,6 +14,7 @@ type StayWithContract = {
   id: string;
   roomId: string | null;
   residentId: string | null;
+  leadId: string | null;
   fullName: string;
   status: StayStatus;
   contractId: string | null;
@@ -25,6 +26,7 @@ type StayWithContract = {
     actualEndDate: string | null;
   } | null;
 };
+
 
 const mapContract = (contract: any): StayWithContract["contract"] => {
   const value = Array.isArray(contract) ? contract[0] : contract;
@@ -46,7 +48,7 @@ const useRoomStays = () =>
       const { data, error } = await supabase
         .from("stays" as any)
         .select(
-          "id, room_id, resident_id, full_name, status, contract_id, contract:contracts(id, status, start_date, end_date, actual_end_date)"
+          "id, room_id, resident_id, lead_id, full_name, status, contract_id, contract:contracts(id, status, start_date, end_date, actual_end_date)"
         )
         .not("room_id", "is", null)
         .order("check_in", { ascending: true });
@@ -55,12 +57,14 @@ const useRoomStays = () =>
         id: s.id,
         roomId: s.room_id,
         residentId: s.resident_id,
+        leadId: s.lead_id ?? null,
         fullName: s.full_name,
         status: s.status,
         contractId: s.contract_id,
         contract: mapContract(s.contract),
       }));
     },
+
   });
 
 // Badge tone per status
@@ -107,8 +111,9 @@ const Rooms = () => {
   const today = new Date().toISOString().slice(0, 10);
 
   // Estado efetivo derivado das estadias/contratos:
-  // - estadia com contrato: ocupação/receita vem das DATAS do contrato
-  // - estadia sem contrato: mantém regra antiga por status (confirmed/reserved, checked_in/occupied)
+  // - contrato não cancelado e ainda não terminado => Ocupado (mesmo com início no futuro)
+  // - estadia confirmada ligada a uma lead, sem residente nem contrato => Reservado
+  // - estadia sem contrato nem lead (uso interno): comportamento antigo por status
   const derived = useMemo(() => {
     const map = new Map<string, { status: RoomStatus; residentId: string | null; name: string | null }>();
     for (const s of stays) {
@@ -118,15 +123,18 @@ const Rooms = () => {
       let status: RoomStatus | null = null;
       if (s.contractId && s.contract) {
         if (s.contract.status === "cancelled") continue;
-        const start = s.contract.startDate;
         const end = s.contract.actualEndDate ?? s.contract.endDate;
         if (end < today) continue; // contrato já terminado
-        status = start > today ? "reserved" : "occupied";
+        status = "occupied";
+      } else if (s.leadId && !s.residentId && !s.contractId) {
+        // reserva de lead ainda sem contrato
+        if (s.status === "confirmed") status = "reserved";
       } else {
-        // estadia sem contrato (obras/uso interno): comportamento antigo
+        // estadia sem contrato nem lead (obras/uso interno): comportamento antigo
         if (s.status === "confirmed") status = "reserved";
         else if (s.status === "checked_in") status = "occupied";
       }
+
       if (!status) continue;
 
       const current = map.get(s.roomId);
