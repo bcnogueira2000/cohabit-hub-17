@@ -72,6 +72,7 @@ export const useUpdateResidentLegal = () => {
           address: values.address,
           postal_code: values.postalCode,
           city: values.city,
+          expected_arrival_date: values.expectedArrivalDate,
         } as any)
         .eq("id", id);
       if (error) throw error;
@@ -312,7 +313,7 @@ export const useCreateStay = () => {
   return useMutation({
     mutationFn: async (input: {
       fullName: string; email: string; phone?: string;
-      roomId?: string | null; checkIn: string; checkOut: string;
+      roomId?: string | null; checkIn: string; checkOut: string; expectedCheckIn?: string | null;
       status?: "pending" | "confirmed"; source?: "manual" | "public_form" | "external";
       notes?: string;
     }) => {
@@ -323,6 +324,7 @@ export const useCreateStay = () => {
         room_id: input.roomId ?? null,
         check_in: input.checkIn,
         check_out: input.checkOut,
+        expected_check_in: input.expectedCheckIn ?? input.checkIn,
         status: input.status ?? "confirmed",
         source: input.source ?? "manual",
         notes: input.notes ?? null,
@@ -349,6 +351,7 @@ export const useUpdateStay = () => {
       if (patch.roomId !== undefined) dbPatch.room_id = patch.roomId;
       if (patch.checkIn) dbPatch.check_in = patch.checkIn;
       if (patch.checkOut) dbPatch.check_out = patch.checkOut;
+      if (patch.expectedCheckIn !== undefined) dbPatch.expected_check_in = patch.expectedCheckIn;
       if (patch.notes !== undefined) dbPatch.notes = patch.notes;
       if (patch.fullName) dbPatch.full_name = patch.fullName;
       if (patch.phone !== undefined) dbPatch.phone = patch.phone;

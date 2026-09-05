@@ -81,6 +81,7 @@ const ResidentDetail = () => {
     address: null,
     postalCode: null,
     city: null,
+    expectedArrivalDate: null,
   });
 
   useEffect(() => {
@@ -99,8 +100,9 @@ const ResidentDetail = () => {
       address: resident.address,
       postalCode: resident.postalCode,
       city: resident.city,
+      expectedArrivalDate: resident.expectedArrivalDate ? resident.expectedArrivalDate.slice(0, 10) : null,
     });
-  }, [resident?.id, resident?.nationality, resident?.documentType, resident?.documentNumber, resident?.taxNumber, resident?.employerOrSchool, resident?.dateOfBirth, resident?.emergencyContactName, resident?.emergencyContactPhone, resident?.emergencyContactEmail, resident?.specialNeeds, resident?.address, resident?.postalCode, resident?.city]);
+  }, [resident?.id, resident?.nationality, resident?.documentType, resident?.documentNumber, resident?.taxNumber, resident?.employerOrSchool, resident?.dateOfBirth, resident?.emergencyContactName, resident?.emergencyContactPhone, resident?.emergencyContactEmail, resident?.specialNeeds, resident?.address, resident?.postalCode, resident?.city, resident?.expectedArrivalDate]);
 
   useEffect(() => {
     if (syncMoloni.error instanceof MoloniDuplicateError && syncMoloni.error.kind === "already_linked") {
@@ -131,6 +133,7 @@ const ResidentDetail = () => {
           address: clean(legal.address),
           postalCode: clean(legal.postalCode),
           city: clean(legal.city),
+          expectedArrivalDate: clean(legal.expectedArrivalDate),
         },
       },
       {
@@ -347,6 +350,14 @@ const ResidentDetail = () => {
                 <div className="font-medium">{resident.city || <span className="text-muted-foreground">—</span>}</div>
               </div>
               <div>
+                <div className="text-xs text-muted-foreground mb-0.5">Data prevista de entrada</div>
+                <div className="font-medium">
+                  {resident.expectedArrivalDate
+                    ? new Date(resident.expectedArrivalDate).toLocaleDateString("pt-PT")
+                    : <span className="text-muted-foreground">—</span>}
+                </div>
+              </div>
+              <div>
                 <div className="text-xs text-muted-foreground mb-0.5">Empresa / escola</div>
                 <div className="font-medium">{resident.employerOrSchool || <span className="text-muted-foreground">—</span>}</div>
               </div>
@@ -386,6 +397,16 @@ const ResidentDetail = () => {
                       className="mt-1.5"
                       value={legal.dateOfBirth ?? ""}
                       onChange={(e) => setLegal((s) => ({ ...s, dateOfBirth: e.target.value }))}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="legal-expected-arrival">Data prevista de entrada</Label>
+                    <Input
+                      id="legal-expected-arrival"
+                      type="date"
+                      className="mt-1.5"
+                      value={legal.expectedArrivalDate ?? ""}
+                      onChange={(e) => setLegal((s) => ({ ...s, expectedArrivalDate: e.target.value }))}
                     />
                   </div>
                   <div>

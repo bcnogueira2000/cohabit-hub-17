@@ -48,6 +48,7 @@ const baseSections: NavSection[] = [
     items: [
       { to: "/leads", label: "Leads", icon: UserPlus },
       { to: "/residents", label: "Residentes", icon: Users },
+      { to: "/stays", label: "Estadias", icon: CalendarRange },
       { to: "/occupancy-map", label: "Mapa de Ocupação", icon: CalendarRange },
       { to: "/approvals", label: "Aprovações", icon: UserCheck },
     ],

@@ -1229,6 +1229,7 @@ export type Database = {
           emergency_contact_name: string | null
           emergency_contact_phone: string | null
           employer_or_school: string | null
+          expected_arrival_date: string | null
           full_name: string
           gender: string | null
           id: string
@@ -1264,6 +1265,7 @@ export type Database = {
           emergency_contact_name?: string | null
           emergency_contact_phone?: string | null
           employer_or_school?: string | null
+          expected_arrival_date?: string | null
           full_name: string
           gender?: string | null
           id?: string
@@ -1299,6 +1301,7 @@ export type Database = {
           emergency_contact_name?: string | null
           emergency_contact_phone?: string | null
           employer_or_school?: string | null
+          expected_arrival_date?: string | null
           full_name?: string
           gender?: string | null
           id?: string
@@ -1415,6 +1418,7 @@ export type Database = {
           contract_id: string | null
           created_at: string
           email: string
+          expected_check_in: string | null
           full_name: string
           id: string
           lead_id: string | null
@@ -1432,6 +1436,7 @@ export type Database = {
           contract_id?: string | null
           created_at?: string
           email: string
+          expected_check_in?: string | null
           full_name: string
           id?: string
           lead_id?: string | null
@@ -1449,6 +1454,7 @@ export type Database = {
           contract_id?: string | null
           created_at?: string
           email?: string
+          expected_check_in?: string | null
           full_name?: string
           id?: string
           lead_id?: string | null

@@ -39,6 +39,7 @@ export interface Resident {
   profile: string | null;
   gender: string | null;
   age: string | null;
+  expectedArrivalDate: string | null;
 }
 
 
@@ -56,6 +57,7 @@ export interface ResidentLegalFields {
   address: string | null;
   postalCode: string | null;
   city: string | null;
+  expectedArrivalDate: string | null;
 }
 
 export interface ChecklistItem {
@@ -176,6 +178,8 @@ export interface Stay {
   roomId: string | null;
   checkIn: string;
   checkOut: string;
+  expectedCheckIn: string | null;
+  leadId: string | null;
   status: StayStatus;
   source: StaySource;
   contractId: string | null;

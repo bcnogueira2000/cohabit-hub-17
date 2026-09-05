@@ -136,7 +136,15 @@ const MyDay = () => {
   const setStatus = (it: Item, status: string) => {
     if (it.kind === "cleaning") updateCleaning.mutate({ id: it.id, patch: { status: status as any } });
     else if (it.kind === "task") updateTask.mutate({ id: it.id, patch: { status: status as any } });
-    else updateStay.mutate({ id: it.id, patch: { status: status as any } });
+    else {
+      const patch: any = { status };
+      if (it.kind === "stay_checkin" && status === "checked_in") {
+        const nowIso = new Date().toISOString();
+        const exp = (it.raw as any).expectedCheckIn as string | null;
+        if (!exp || exp.slice(0, 10) !== nowIso.slice(0, 10)) patch.expectedCheckIn = nowIso;
+      }
+      updateStay.mutate({ id: it.id, patch });
+    }
     setSel(null);
   };
 
