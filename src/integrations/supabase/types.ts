@@ -404,6 +404,7 @@ export type Database = {
           assigned_to: string | null
           assigned_to_user_id: string | null
           budget_range: string | null
+          contract_generated_at: string | null
           contract_id: string | null
           created_at: string
           document_number: string | null
@@ -427,6 +428,7 @@ export type Database = {
           profile_other: string | null
           reservation_deadline: string | null
           reservation_fee_amount: number | null
+          room_id: string | null
           source: Database["public"]["Enums"]["lead_source"]
           source_detail: string | null
           status: Database["public"]["Enums"]["lead_status"]
@@ -442,6 +444,7 @@ export type Database = {
           assigned_to?: string | null
           assigned_to_user_id?: string | null
           budget_range?: string | null
+          contract_generated_at?: string | null
           contract_id?: string | null
           created_at?: string
           document_number?: string | null
@@ -465,6 +468,7 @@ export type Database = {
           profile_other?: string | null
           reservation_deadline?: string | null
           reservation_fee_amount?: number | null
+          room_id?: string | null
           source?: Database["public"]["Enums"]["lead_source"]
           source_detail?: string | null
           status?: Database["public"]["Enums"]["lead_status"]
@@ -480,6 +484,7 @@ export type Database = {
           assigned_to?: string | null
           assigned_to_user_id?: string | null
           budget_range?: string | null
+          contract_generated_at?: string | null
           contract_id?: string | null
           created_at?: string
           document_number?: string | null
@@ -503,6 +508,7 @@ export type Database = {
           profile_other?: string | null
           reservation_deadline?: string | null
           reservation_fee_amount?: number | null
+          room_id?: string | null
           source?: Database["public"]["Enums"]["lead_source"]
           source_detail?: string | null
           status?: Database["public"]["Enums"]["lead_status"]
@@ -525,6 +531,13 @@ export type Database = {
             columns: ["contract_id"]
             isOneToOne: false
             referencedRelation: "contracts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leads_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "rooms"
             referencedColumns: ["id"]
           },
           {
@@ -1383,6 +1396,7 @@ export type Database = {
           email: string
           full_name: string
           id: string
+          lead_id: string | null
           notes: string | null
           phone: string | null
           resident_id: string | null
@@ -1399,6 +1413,7 @@ export type Database = {
           email: string
           full_name: string
           id?: string
+          lead_id?: string | null
           notes?: string | null
           phone?: string | null
           resident_id?: string | null
@@ -1415,6 +1430,7 @@ export type Database = {
           email?: string
           full_name?: string
           id?: string
+          lead_id?: string | null
           notes?: string | null
           phone?: string | null
           resident_id?: string | null
@@ -1436,6 +1452,13 @@ export type Database = {
             columns: ["contract_id"]
             isOneToOne: false
             referencedRelation: "contracts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stays_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
             referencedColumns: ["id"]
           },
         ]
@@ -1587,6 +1610,7 @@ export type Database = {
       }
     }
     Functions: {
+      cancel_room_reservation: { Args: { p_lead_id: string }; Returns: string }
       compensation_months: {
         Args: { p_end: string; p_start: string }
         Returns: number
@@ -1622,9 +1646,22 @@ export type Database = {
           user_id: string
         }[]
       }
+      promote_reservation_to_contract: {
+        Args: { p_contract_data: Json; p_lead_id: string }
+        Returns: Json
+      }
       recalculate_rent_charges: {
         Args: { p_contract_id: string }
         Returns: Json
+      }
+      reserve_room_for_lead: {
+        Args: {
+          p_check_in: string
+          p_check_out: string
+          p_lead_id: string
+          p_room_id: string
+        }
+        Returns: string
       }
       stay_daterange: { Args: { _in: string; _out: string }; Returns: unknown }
     }
@@ -1660,6 +1697,7 @@ export type Database = {
         | "visited"
         | "proposal_sent"
         | "negotiating"
+        | "reserved"
         | "won"
         | "lost"
         | "archived"
@@ -1917,6 +1955,7 @@ export const Constants = {
         "visited",
         "proposal_sent",
         "negotiating",
+        "reserved",
         "won",
         "lost",
         "archived",
