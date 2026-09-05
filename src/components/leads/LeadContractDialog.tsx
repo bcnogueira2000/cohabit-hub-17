@@ -49,15 +49,16 @@ export const LeadContractDialog = ({ lead, open, onOpenChange }: Props) => {
         .select("*")
         .eq("id", lead.id)
         .maybeSingle();
-      const { data: stay } = await supabase
+      const { data: stay, error: stayErr } = await supabase
         .from("stays" as any)
-        .select("check_in, check_out, room_id, rooms:room_id(number)")
+        .select("check_in, check_out, room_id")
         .eq("lead_id", lead.id)
         .in("status", ["confirmed", "checked_in"])
         .order("created_at", { ascending: false })
         .limit(1)
         .maybeSingle();
       if (cancelled) return;
+      if (stayErr) console.error("stay lookup", stayErr);
       const l: any = data ?? {};
       setMonthlyAmount(l.draft_rent_amount != null ? String(l.draft_rent_amount) : "");
       setDepositDue(l.draft_deposit_due != null ? String(l.draft_deposit_due) : "");
@@ -74,12 +75,22 @@ export const LeadContractDialog = ({ lead, open, onOpenChange }: Props) => {
       setProfile(lp ? PROFILES.find((p) => p.toLowerCase() === lp.toLowerCase()) ?? "Outro" : "");
       setEmployerOrSchool(l.employer_or_school ?? "");
       const s: any = stay ?? null;
+      let roomNumber = "";
+      if (s?.room_id) {
+        const { data: room } = await supabase
+          .from("rooms" as any)
+          .select("number")
+          .eq("id", s.room_id)
+          .maybeSingle();
+        roomNumber = (room as any)?.number ?? "";
+      }
+      if (cancelled) return;
       setStayDates(
         s
           ? {
               checkIn: String(s.check_in).split("T")[0],
               checkOut: String(s.check_out).split("T")[0],
-              roomNumber: s.rooms?.number ?? "",
+              roomNumber,
             }
           : null
       );
