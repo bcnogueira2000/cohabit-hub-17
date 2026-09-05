@@ -228,15 +228,18 @@ const OccupancyMap = () => {
       const c = s.contract;
       if (s.contract_id && c) {
         if (c.status === "cancelled") continue;
-        // ocupação vem das DATAS do contrato, não do status
+        // com contrato = Ocupado, independentemente de a data de início já ter chegado
         start = parseDay(c.start_date);
         end = parseDay(c.actual_end_date ?? c.end_date);
-        const today = parseDay(new Date().toISOString().slice(0, 10));
-        tone = start > today ? "reserved" : "occupied";
+        tone = "occupied";
+      } else if (s.lead_id && !s.resident_id) {
+        // reserva de lead ainda sem contrato: barra de check_in a check_out da estadia
+        if (s.status === "confirmed") tone = "reserved";
       } else if (!s.contract_id) {
         if (s.status === "confirmed") tone = "reserved";
         else if (s.status === "checked_in") tone = "occupied";
       }
+
       if (!tone) continue;
 
       // sobreposição com a janela visível
