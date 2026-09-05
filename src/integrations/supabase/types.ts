@@ -404,12 +404,18 @@ export type Database = {
           assigned_to: string | null
           assigned_to_user_id: string | null
           budget_range: string | null
+          city: string | null
           contract_generated_at: string | null
           contract_id: string | null
           created_at: string
+          date_of_birth: string | null
           document_number: string | null
           document_validity: string | null
+          draft_deposit_due: number | null
+          draft_payment_day: number | null
+          draft_rent_amount: number | null
           email: string
+          employer_or_school: string | null
           external_ref: string | null
           full_name: string
           gdpr_consent: boolean
@@ -422,6 +428,7 @@ export type Database = {
           next_action_date: string | null
           notes: string | null
           phone: string | null
+          postal_code: string | null
           preferred_move_in: string | null
           preferred_room_type: string | null
           profile: string | null
@@ -444,12 +451,18 @@ export type Database = {
           assigned_to?: string | null
           assigned_to_user_id?: string | null
           budget_range?: string | null
+          city?: string | null
           contract_generated_at?: string | null
           contract_id?: string | null
           created_at?: string
+          date_of_birth?: string | null
           document_number?: string | null
           document_validity?: string | null
+          draft_deposit_due?: number | null
+          draft_payment_day?: number | null
+          draft_rent_amount?: number | null
           email: string
+          employer_or_school?: string | null
           external_ref?: string | null
           full_name: string
           gdpr_consent?: boolean
@@ -462,6 +475,7 @@ export type Database = {
           next_action_date?: string | null
           notes?: string | null
           phone?: string | null
+          postal_code?: string | null
           preferred_move_in?: string | null
           preferred_room_type?: string | null
           profile?: string | null
@@ -484,12 +498,18 @@ export type Database = {
           assigned_to?: string | null
           assigned_to_user_id?: string | null
           budget_range?: string | null
+          city?: string | null
           contract_generated_at?: string | null
           contract_id?: string | null
           created_at?: string
+          date_of_birth?: string | null
           document_number?: string | null
           document_validity?: string | null
+          draft_deposit_due?: number | null
+          draft_payment_day?: number | null
+          draft_rent_amount?: number | null
           email?: string
+          employer_or_school?: string | null
           external_ref?: string | null
           full_name?: string
           gdpr_consent?: boolean
@@ -502,6 +522,7 @@ export type Database = {
           next_action_date?: string | null
           notes?: string | null
           phone?: string | null
+          postal_code?: string | null
           preferred_move_in?: string | null
           preferred_room_type?: string | null
           profile?: string | null

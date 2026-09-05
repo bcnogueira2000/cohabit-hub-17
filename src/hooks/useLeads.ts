@@ -310,3 +310,23 @@ export const useCancelRoomReservation = () => {
     },
   });
 };
+
+/** Promove a reserva de uma lead a contrato real (residente + contrato + rendas). */
+export const usePromoteReservationToContract = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (args: { leadId: string; contractData: Record<string, unknown> }) => {
+      const { data, error } = await supabase.rpc("promote_reservation_to_contract", {
+        p_lead_id: args.leadId,
+        p_contract_data: args.contractData as any,
+      });
+      if (error) throw new Error(error.message);
+      return data as { contract_id?: string; resident_id?: string; stay_id?: string } | null;
+    },
+    onSuccess: () => {
+      ["leads", "stays", "rooms", "contracts", "residents", "payments"].forEach((k) =>
+        qc.invalidateQueries({ queryKey: [k] })
+      );
+    },
+  });
+};

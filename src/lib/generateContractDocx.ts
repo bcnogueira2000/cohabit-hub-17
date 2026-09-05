@@ -6,28 +6,28 @@ import { compensacaoDenuncia, duracaoContrato } from "@/lib/contractDuration";
 import { isPortuguese, nationalityToEN } from "@/lib/nationalityEN";
 import { parseRoomNumber, shortName } from "@/lib/utils";
 
-const TEMPLATE_BUCKET = "contract-templates";
-const TEMPLATE_PT = "PT_Template.docx";
-const TEMPLATE_BILINGUE = "Bilingue_Template.docx";
-const OUTPUT_BUCKET = "resident-documents";
+export const TEMPLATE_BUCKET = "contract-templates";
+export const TEMPLATE_PT = "PT_Template.docx";
+export const TEMPLATE_BILINGUE = "Bilingue_Template.docx";
+export const OUTPUT_BUCKET = "resident-documents";
 
 /** Escolhe o modelo Word conforme a nacionalidade do residente. */
 export function getTemplateForContract(resident: { nationality?: string | null }): string {
   return isPortuguese(resident?.nationality) ? TEMPLATE_PT : TEMPLATE_BILINGUE;
 }
 
-const MESES_PT = [
+export const MESES_PT = [
   "janeiro", "fevereiro", "março", "abril", "maio", "junho",
   "julho", "agosto", "setembro", "outubro", "novembro", "dezembro",
 ];
 
-const MESES_EN = [
+export const MESES_EN = [
   "January", "February", "March", "April", "May", "June",
   "July", "August", "September", "October", "November", "December",
 ];
 
 
-const fmtDate = (d: string | null | undefined): string => {
+export const fmtDate = (d: string | null | undefined): string => {
   if (!d) return "";
   const dt = new Date(d);
   if (Number.isNaN(dt.getTime())) return "";
@@ -36,11 +36,11 @@ const fmtDate = (d: string | null | undefined): string => {
   return `${dd}/${mm}/${dt.getFullYear()}`;
 };
 
-const eur = (v: number): string =>
+export const eur = (v: number): string =>
   new Intl.NumberFormat("pt-PT", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(v) + " €";
 
 /** Acrescenta o par Campo / Campo_Extenso a partir de um valor em euros. */
-const setMoney = (data: Record<string, string>, key: string, value: number | null) => {
+export const setMoney = (data: Record<string, string>, key: string, value: number | null) => {
   if (value == null) {
     data[key] = "Não aplicável";
     data[`${key}_Extenso`] = "Não aplicável";
@@ -51,7 +51,7 @@ const setMoney = (data: Record<string, string>, key: string, value: number | nul
 };
 
 /** Remove acentos e espaços para usar em caminhos de Storage. */
-const slugifyForPath = (s: string): string =>
+export const slugifyForPath = (s: string): string =>
   s
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
