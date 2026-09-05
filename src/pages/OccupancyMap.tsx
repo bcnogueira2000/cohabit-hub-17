@@ -48,8 +48,11 @@ type StayRow = {
   check_out: string;
   status: string;
   contract_id: string | null;
+  lead_id: string | null;
+  resident_id: string | null;
   full_name: string;
   contract: { id: string; status: string; start_date: string; end_date: string; actual_end_date: string | null } | null;
+
 };
 
 const useOccupancyData = () =>
