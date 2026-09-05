@@ -63,16 +63,17 @@ const Contracts = () => {
 
   const today = new Date().toISOString().slice(0, 10);
 
-  /** contratos não cancelados que cobrem hoje (ocupação vem das DATAS) */
+  /** contratos não cancelados que ainda não terminaram (mesmo com início no futuro) */
   const activeByDates = useMemo(
     () =>
       contracts.filter((c) => {
         if (c.status === "cancelled") return false;
         const end = c.actualEndDate ?? c.endDate;
-        return c.startDate <= today && end >= today;
+        return end >= today;
       }),
     [contracts, today]
   );
+
 
   /** quartos ocupados por contratos a decorrer hoje */
   const occupiedByContract = useMemo(() => {
