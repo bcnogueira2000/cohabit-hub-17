@@ -111,8 +111,9 @@ const Rooms = () => {
   const today = new Date().toISOString().slice(0, 10);
 
   // Estado efetivo derivado das estadias/contratos:
-  // - estadia com contrato: ocupação/receita vem das DATAS do contrato
-  // - estadia sem contrato: mantém regra antiga por status (confirmed/reserved, checked_in/occupied)
+  // - contrato não cancelado e ainda não terminado => Ocupado (mesmo com início no futuro)
+  // - estadia confirmada ligada a uma lead, sem residente nem contrato => Reservado
+  // - estadia sem contrato nem lead (uso interno): comportamento antigo por status
   const derived = useMemo(() => {
     const map = new Map<string, { status: RoomStatus; residentId: string | null; name: string | null }>();
     for (const s of stays) {
@@ -122,15 +123,18 @@ const Rooms = () => {
       let status: RoomStatus | null = null;
       if (s.contractId && s.contract) {
         if (s.contract.status === "cancelled") continue;
-        const start = s.contract.startDate;
         const end = s.contract.actualEndDate ?? s.contract.endDate;
         if (end < today) continue; // contrato já terminado
-        status = start > today ? "reserved" : "occupied";
+        status = "occupied";
+      } else if (s.leadId && !s.residentId && !s.contractId) {
+        // reserva de lead ainda sem contrato
+        if (s.status === "confirmed") status = "reserved";
       } else {
-        // estadia sem contrato (obras/uso interno): comportamento antigo
+        // estadia sem contrato nem lead (obras/uso interno): comportamento antigo
         if (s.status === "confirmed") status = "reserved";
         else if (s.status === "checked_in") status = "occupied";
       }
+
       if (!status) continue;
 
       const current = map.get(s.roomId);
