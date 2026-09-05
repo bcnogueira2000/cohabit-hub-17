@@ -56,7 +56,7 @@ type Filter = "new" | "contact" | "negotiation" | "won" | "lost" | "all";
 const groups: Record<Exclude<Filter, "all">, LeadStatus[]> = {
   new: ["new"],
   contact: ["contacted", "visit_scheduled", "visited"],
-  negotiation: ["proposal_sent", "negotiating"],
+  negotiation: ["proposal_sent", "negotiating", "reserved"],
   won: ["won"],
   lost: ["lost", "archived"],
 };

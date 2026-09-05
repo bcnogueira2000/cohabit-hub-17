@@ -19,6 +19,7 @@ export const statusTone: Record<LeadStatus, string> = {
   visited: "bg-info/10 text-info",
   proposal_sent: "bg-warning/10 text-warning",
   negotiating: "bg-warning/10 text-warning",
+  reserved: "bg-primary/10 text-primary",
   won: "bg-success/10 text-success",
   lost: "bg-destructive/10 text-destructive",
   archived: "bg-secondary text-secondary-foreground",

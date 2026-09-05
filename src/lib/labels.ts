@@ -124,6 +124,7 @@ export const leadStatusLabels: Record<string, string> = {
   visited: "Visitou",
   proposal_sent: "Proposta enviada",
   negotiating: "Em negociação",
+  reserved: "Reservado",
   won: "Contratado",
   lost: "Perdido",
   archived: "Arquivado",
