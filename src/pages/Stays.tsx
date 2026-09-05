@@ -87,6 +87,9 @@ const Stays = () => {
       roomId: roomId || null,
       checkIn: new Date(String(fd.get("checkIn"))).toISOString(),
       checkOut: new Date(String(fd.get("checkOut"))).toISOString(),
+      expectedCheckIn: fd.get("expectedCheckIn")
+        ? new Date(String(fd.get("expectedCheckIn"))).toISOString()
+        : null,
       status: fd.get("status") as any,
       notes: String(fd.get("notes") || ""),
     }, {
@@ -116,7 +119,14 @@ const Stays = () => {
       s.status === "confirmed" ? "checked_in" :
       s.status === "checked_in" ? "checked_out" : s.status;
     if (next === s.status) return;
-    updateStay.mutate({ id: s.id, patch: { status: next } }, {
+    const patch: any = { status: next };
+    if (next === "checked_in") {
+      const nowIso = new Date().toISOString();
+      if (!s.expectedCheckIn || s.expectedCheckIn.slice(0, 10) !== nowIso.slice(0, 10)) {
+        patch.expectedCheckIn = nowIso;
+      }
+    }
+    updateStay.mutate({ id: s.id, patch }, {
       onSuccess: () => toast.success(`Estado: ${statusLabel[next]}`),
       onError: (e: any) => toast.error(e.message),
     });
@@ -274,8 +284,13 @@ const Stays = () => {
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-3">
-                <div><Label>Check-in</Label><Input name="checkIn" type="date" required className="mt-1.5" /></div>
-                <div><Label>Check-out</Label><Input name="checkOut" type="date" required className="mt-1.5" /></div>
+                <div><Label>Data de início</Label><Input name="checkIn" type="date" required className="mt-1.5" /></div>
+                <div><Label>Data de fim</Label><Input name="checkOut" type="date" required className="mt-1.5" /></div>
+              </div>
+              <div>
+                <Label>Data prevista de entrada <span className="text-muted-foreground font-normal">(opcional)</span></Label>
+                <Input name="expectedCheckIn" type="date" className="mt-1.5" />
+                <p className="text-[11px] text-muted-foreground mt-1">Se ficar vazia, usa a data de início.</p>
               </div>
               <div>
                 <Label>NIF <span className="text-muted-foreground font-normal">(opcional)</span></Label>
@@ -339,8 +354,12 @@ const Stays = () => {
                         <Badge variant="outline" className="text-muted-foreground hover:bg-muted">Contrato</Badge>
                       </Link>
                     ) : (
-                      (s.status === "confirmed" || s.status === "checked_in") && (
-                        <Badge variant="outline" className="bg-destructive/10 text-destructive border-destructive/30">Sem contrato</Badge>
+                      s.leadId && !s.residentId ? (
+                        <Badge variant="outline" className="bg-warning/10 text-warning border-warning/30">Reserva de contacto</Badge>
+                      ) : (
+                        (s.status === "confirmed" || s.status === "checked_in") && (
+                          <Badge variant="outline" className="bg-destructive/10 text-destructive border-destructive/30">Sem contrato</Badge>
+                        )
                       )
                     )}
                     {room && <span className="text-xs text-muted-foreground flex items-center gap-1"><Home className="h-3 w-3" /> Quarto {room.number}</span>}
@@ -355,6 +374,32 @@ const Stays = () => {
                     <span className="text-xs text-muted-foreground ml-auto">
                       {Math.max(1, Math.round((co.getTime() - ci.getTime()) / 86400000))} noites
                     </span>
+                  </div>
+                  {s.leadId && !s.residentId && (
+                    <div className="text-[11px] text-muted-foreground mt-1">
+                      Reserva no nome de <span className="font-medium text-foreground">{s.fullName}</span> (ainda sem residente criado)
+                    </div>
+                  )}
+                  <div className="flex items-center gap-2 mt-2">
+                    <Label htmlFor={`exp-${s.id}`} className="text-xs text-muted-foreground whitespace-nowrap">
+                      Data prevista de entrada
+                    </Label>
+                    <Input
+                      id={`exp-${s.id}`}
+                      type="date"
+                      className="h-8 w-[150px]"
+                      value={s.expectedCheckIn ? s.expectedCheckIn.slice(0, 10) : ""}
+                      onChange={(e) => {
+                        const v = e.target.value;
+                        updateStay.mutate(
+                          { id: s.id, patch: { expectedCheckIn: v ? new Date(v).toISOString() : null } },
+                          {
+                            onSuccess: () => toast.success("Data prevista atualizada"),
+                            onError: (err: any) => toast.error(err.message),
+                          },
+                        );
+                      }}
+                    />
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
