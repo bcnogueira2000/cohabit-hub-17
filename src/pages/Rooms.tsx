@@ -48,7 +48,7 @@ const useRoomStays = () =>
       const { data, error } = await supabase
         .from("stays" as any)
         .select(
-          "id, room_id, resident_id, full_name, status, contract_id, contract:contracts(id, status, start_date, end_date, actual_end_date)"
+          "id, room_id, resident_id, lead_id, full_name, status, contract_id, contract:contracts(id, status, start_date, end_date, actual_end_date)"
         )
         .not("room_id", "is", null)
         .order("check_in", { ascending: true });
@@ -57,12 +57,14 @@ const useRoomStays = () =>
         id: s.id,
         roomId: s.room_id,
         residentId: s.resident_id,
+        leadId: s.lead_id ?? null,
         fullName: s.full_name,
         status: s.status,
         contractId: s.contract_id,
         contract: mapContract(s.contract),
       }));
     },
+
   });
 
 // Badge tone per status
