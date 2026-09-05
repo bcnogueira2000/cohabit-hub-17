@@ -32,7 +32,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
-import { useLeads, useUpdateLead, useDeleteLead, useLeadActivity, type Lead, type LeadStatus } from "@/hooks/useLeads";
+import { useLeads, useUpdateLead, useDeleteLead, useLeadActivity, useCancelRoomReservation, type Lead, type LeadStatus } from "@/hooks/useLeads";
 import { useStaffUsers } from "@/hooks/useStaffUsers";
 import { NewLeadDialog } from "@/components/leads/NewLeadDialog";
 import {
@@ -105,6 +105,7 @@ const Section = ({ title, children }: { title: string; children: React.ReactNode
 const Leads = () => {
   const { data: leads = [], isLoading } = useLeads();
   const updateLead = useUpdateLead();
+  const cancelReservation = useCancelRoomReservation();
   const deleteLead = useDeleteLead();
   const { data: staff = [] } = useStaffUsers();
   const [filter, setFilter] = useState<Filter>("new");
@@ -113,6 +114,7 @@ const Leads = () => {
   const [owner, setOwner] = useState("all");
   const [selected, setSelected] = useState<Lead | null>(null);
   const [reservationOpen, setReservationOpen] = useState(false);
+  const [giveUpBusy, setGiveUpBusy] = useState(false);
   const [editStatus, setEditStatus] = useState<LeadStatus>("new");
   const [editOwnerId, setEditOwnerId] = useState<string>("");
   const [editNextAction, setEditNextAction] = useState<string>("");
