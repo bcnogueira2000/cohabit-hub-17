@@ -1,11 +1,16 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { FileText, Loader2 } from "lucide-react";
 import { toast } from "sonner";
-import { useUpdateLead, type Lead } from "@/hooks/useLeads";
+import { useUpdateLead, useReserveRoomForLead, type Lead } from "@/hooks/useLeads";
 import { generateReservationDocx } from "@/lib/generateReservationDocx";
+import { RoomCombobox } from "@/components/rooms/RoomCombobox";
+import { useRooms } from "@/hooks/useData";
+import { supabase } from "@/integrations/supabase/client";
+
 
 interface Props {
   lead: Lead;
