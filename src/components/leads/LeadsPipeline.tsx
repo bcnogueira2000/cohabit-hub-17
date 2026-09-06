@@ -44,14 +44,18 @@ export const sortByUrgency = (a: Lead, b: Lead) => {
   return (a.nextActionDate || "").localeCompare(b.nextActionDate || "");
 };
 
+const isClosed = (l: Lead) => ["won", "lost", "archived"].includes(l.status);
+
 export const urgencyBorder = (l: Lead) => {
+  if (l.status === "negotiating" && l.formSubmittedAt) return "border-l-[3px] border-success";
+  if (isClosed(l)) return "";
   const r = rank(l);
   if (r === 0) return "border-l-[3px] border-destructive";
   if (r === 1) return "border-l-[3px] border-warning";
   return "";
 };
 
-export const isOverdue = (l: Lead) => rank(l) === 0;
+export const isOverdue = (l: Lead) => !isClosed(l) && rank(l) === 0;
 
 export const LeadStatusBadge = ({
   lead,
