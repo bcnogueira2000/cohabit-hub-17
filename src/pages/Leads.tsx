@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Search, Clock, User as UserIcon, X, ChevronDown, Trash2, LayoutList, Columns3, AlertTriangle, UserCheck, CheckCircle2, ArrowRight, FileText } from "lucide-react";
+import { Search, Clock, User as UserIcon, X, ChevronDown, Trash2, LayoutList, Columns3, AlertTriangle, UserCheck, Mail, CheckCircle2, ArrowRight, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -32,7 +32,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
-import { useLeads, useUpdateLead, useDeleteLead, useLeadActivity, useCancelRoomReservation, usePromoteReservationToContract, type Lead, type LeadStatus } from "@/hooks/useLeads";
+import { useLeads, useUpdateLead, useDeleteLead, useLeadActivity, useCancelRoomReservation, usePromoteReservationToContract, useSendCandidateForm, type Lead, type LeadStatus } from "@/hooks/useLeads";
 import { useStaffUsers } from "@/hooks/useStaffUsers";
 import { NewLeadDialog } from "@/components/leads/NewLeadDialog";
 import {
@@ -108,6 +108,7 @@ const Leads = () => {
   const updateLead = useUpdateLead();
   const cancelReservation = useCancelRoomReservation();
   const promoteReservation = usePromoteReservationToContract();
+  const sendCandidateForm = useSendCandidateForm();
   const deleteLead = useDeleteLead();
   const { data: staff = [] } = useStaffUsers();
   const [filter, setFilter] = useState<Filter>("new");
@@ -771,6 +772,26 @@ const Leads = () => {
                       onClick={() => setReservationOpen(true)}
                     >
                       <FileText className="h-4 w-4 mr-1.5" strokeWidth={1.5} /> Gerar acordo de reserva
+                    </Button>
+                  )}
+                  {selected.status === "negotiating" && selected.email && (
+                    <Button
+                      variant="outline"
+                      className="w-full rounded-full mt-2"
+                      disabled={sendCandidateForm.isPending}
+                      onClick={() => {
+                        sendCandidateForm.mutate(selected.id, {
+                          onSuccess: (res) =>
+                            toast.success(`Formulário enviado para ${res.email}`),
+                          onError: (e) =>
+                            toast.error(
+                              e instanceof Error ? e.message : "Não foi possível enviar o formulário."
+                            ),
+                        });
+                      }}
+                    >
+                      <Mail className="h-4 w-4 mr-1.5" strokeWidth={1.5} />
+                      {sendCandidateForm.isPending ? "A enviar..." : "Enviar formulário de candidatura"}
                     </Button>
                   )}
                   {selected.status === "reserved" && (
