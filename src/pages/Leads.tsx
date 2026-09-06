@@ -187,11 +187,11 @@ const Leads = () => {
 
   const columns = useMemo(
     () =>
-      (Object.keys(groups) as Exclude<Filter, "all">[]).map((k) => ({
-        key: k,
-        label: groupLabels[k],
-        statuses: groups[k],
-        leads: baseFiltered.filter((l) => groups[k].includes(l.status)).sort(sortByUrgency),
+      pipelineColumns.map((c) => ({
+        key: c.key,
+        label: c.label,
+        statuses: c.statuses,
+        leads: baseFiltered.filter((l) => c.statuses.includes(l.status)).sort(sortByUrgency),
       })),
     [baseFiltered]
   );
