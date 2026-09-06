@@ -1276,7 +1276,10 @@ const ReservationFeesSection = () => {
 
 const ReservationFeeSheet = ({ fee, onClose }: { fee: ReservationFeeRow | null; onClose: () => void }) => {
   const create = useCreateBookingFeePayment();
-  const { data: payments = [] } = useBookingFeePayments(fee?.contractId);
+  const { data: payments = [] } = useBookingFeePayments(
+    fee ? { contractId: fee.contractId, leadId: fee.leadId } : undefined
+  );
+
   const [amount, setAmount] = useState("");
   const [paidAt, setPaidAt] = useState(todayISO());
   const [method, setMethod] = useState<PaymentMethod>("transfer");
