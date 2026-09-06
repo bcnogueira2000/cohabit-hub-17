@@ -32,7 +32,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
-import { useLeads, useUpdateLead, useDeleteLead, useLeadActivity, useCancelRoomReservation, usePromoteReservationToContract, useSendCandidateForm, type Lead, type LeadStatus } from "@/hooks/useLeads";
+import { useLeadDocuments, downloadLeadDocument, useLeads, useUpdateLead, useDeleteLead, useLeadActivity, useCancelRoomReservation, usePromoteReservationToContract, useSendCandidateForm, type Lead, type LeadStatus } from "@/hooks/useLeads";
 import { useStaffUsers } from "@/hooks/useStaffUsers";
 import { NewLeadDialog } from "@/components/leads/NewLeadDialog";
 import {
@@ -875,6 +875,8 @@ const Leads = () => {
                 </div>
               </Section>
 
+              {selected && <LeadDocuments leadId={selected.id} />}
+
               {selected && <LeadHistory leadId={selected.id} />}
             </div>
           )}
@@ -931,6 +933,44 @@ const Leads = () => {
   );
 };
 
+const LeadDocuments = ({ leadId }: { leadId: string }) => {
+  const { data: docs } = useLeadDocuments(leadId);
+  const fmt = (iso: string) =>
+    new Date(iso).toLocaleDateString("pt-PT", { day: "numeric", month: "short", year: "numeric" });
+
+  const open = async (path: string) => {
+    try {
+      const url = await downloadLeadDocument(path);
+      window.open(url, "_blank", "noopener");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Não foi possível abrir o documento");
+    }
+  };
+
+  return (
+    <Section title="Documentos do candidato">
+      {!docs || docs.length === 0 ? (
+        <div className="text-sm text-muted-foreground">Sem documentos anexados.</div>
+      ) : (
+        <div className="space-y-2">
+          {docs.map((d) => (
+            <button
+              key={d.id}
+              type="button"
+              onClick={() => open(d.storagePath)}
+              className="w-full flex items-center gap-2.5 rounded-xl border border-border/60 px-3 py-2.5 text-left hover:bg-muted/40 transition-colors"
+            >
+              <FileText className="h-4 w-4 text-primary shrink-0" strokeWidth={1.5} />
+              <span className="text-sm font-medium truncate flex-1">{d.fileName}</span>
+              <span className="text-xs text-muted-foreground shrink-0">{fmt(d.uploadedAt)}</span>
+            </button>
+          ))}
+        </div>
+      )}
+    </Section>
+  );
+};
+
 const LeadHistory = ({ leadId }: { leadId: string }) => {
   const { data: history } = useLeadActivity(leadId);
   const fmtDateTime = (iso: string) =>
@@ -978,6 +1018,15 @@ const LeadHistory = ({ leadId }: { leadId: string }) => {
                       <span className="text-muted-foreground"> — {entry.payload.source_detail}</span>
                     )}
                   </>
+                ) : entry.kind === "form_sent" ? (
+                  <>
+                    Formulário de candidatura enviado
+                    {entry.payload?.email && (
+                      <span className="text-muted-foreground"> — {entry.payload.email}</span>
+                    )}
+                  </>
+                ) : entry.kind === "form_submitted" ? (
+                  <>Formulário de candidatura preenchido pelo candidato</>
                 ) : entry.kind === "duplicate_submission" ? (
                   <>
                     Nova submissão do site para esta lead

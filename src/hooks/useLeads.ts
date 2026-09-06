@@ -374,3 +374,44 @@ export const useSendCandidateForm = () => {
     },
   });
 };
+
+export interface LeadDocument {
+  id: string;
+  leadId: string;
+  fileName: string;
+  storagePath: string;
+  fileType: string | null;
+  uploadedAt: string;
+}
+
+/** Documentos anexados pelo candidato no formulário público. */
+export const useLeadDocuments = (leadId: string | null) =>
+  useQuery({
+    queryKey: ["lead_documents", leadId],
+    enabled: leadId !== null,
+    queryFn: async (): Promise<LeadDocument[]> => {
+      const { data, error } = await supabase
+        .from("lead_documents" as any)
+        .select("*")
+        .eq("lead_id", leadId)
+        .order("uploaded_at", { ascending: false });
+      if (error) throw error;
+      return ((data ?? []) as any[]).map((r) => ({
+        id: r.id,
+        leadId: r.lead_id,
+        fileName: r.file_name,
+        storagePath: r.storage_path,
+        fileType: r.file_type ?? null,
+        uploadedAt: r.uploaded_at,
+      }));
+    },
+  });
+
+/** Gera um link temporário para descarregar um documento da candidatura. */
+export const downloadLeadDocument = async (storagePath: string) => {
+  const { data, error } = await supabase.storage
+    .from("lead-documents")
+    .createSignedUrl(storagePath, 60 * 5);
+  if (error) throw new Error(error.message);
+  return data.signedUrl;
+};

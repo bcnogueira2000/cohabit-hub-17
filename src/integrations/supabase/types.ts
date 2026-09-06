@@ -1773,11 +1773,30 @@ export type Database = {
         Args: { p_token: string }
         Returns: {
           address: string
+          candidate_comments: string
+          city: string
+          course: string
+          course_duration: string
+          date_of_birth: string
+          document_number: string
+          document_type: string
+          document_validity: string
           email: string
+          emergency_contact_email: string
+          emergency_contact_name: string
+          emergency_contact_phone: string
+          emergency_contact_relation: string
+          employer_or_school: string
           form_submitted_at: string
           full_name: string
+          gdpr_consent: boolean
+          job_title: string
+          language: string
           nationality: string
           phone: string
+          postal_code: string
+          profile: string
+          tax_number: string
         }[]
       }
       has_role: {
@@ -1788,6 +1807,7 @@ export type Database = {
         Returns: boolean
       }
       is_staff: { Args: { _user_id: string }; Returns: boolean }
+      lead_id_for_form_token: { Args: { p_token: string }; Returns: string }
       list_staff_users: {
         Args: never
         Returns: {
@@ -1804,6 +1824,15 @@ export type Database = {
       recalculate_rent_charges: {
         Args: { p_contract_id: string }
         Returns: Json
+      }
+      register_lead_document: {
+        Args: {
+          p_file_name: string
+          p_file_type: string
+          p_storage_path: string
+          p_token: string
+        }
+        Returns: string
       }
       reserve_room_for_lead: {
         Args: {
