@@ -1,0 +1,1 @@
+ALTER FUNCTION public.generate_lead_form_token(uuid) SET search_path = public, extensions;
