@@ -461,18 +461,24 @@ const CandidateForm = () => {
                   />
                 </div>
                 <div className="field">
-                  <label htmlFor="date_of_birth">
+                  <label htmlFor="date_of_birth" id="date_of_birth-label">
                     <span>{t.lblDob}</span>
                     <span className="req">*</span>
                   </label>
-                  <input
-                    type="date"
+                  <CandidateDateField
                     id="date_of_birth"
                     name="date_of_birth"
-                    required
-                    defaultValue={lead.date_of_birth ?? ""}
+                    value={dob}
+                    onChange={setDob}
+                    lang={lang}
+                    placeholder={lang === "pt" ? "dd/mm/aaaa" : "dd/mm/yyyy"}
+                    invalid={dateError && !dob}
+                    fromYear={1930}
+                    toYear={new Date().getFullYear() - 15}
+                    defaultMonthYear={2000}
                   />
                 </div>
+
               </div>
 
               <div className="field-grid cols-2">
