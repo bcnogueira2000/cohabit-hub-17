@@ -42,6 +42,7 @@ export interface Lead {
   reservationDeadline: string | null;
   reservationFeeAmount: number | null;
   address: string | null;
+  documentType: string | null;
   documentNumber: string | null;
   documentValidity: string | null;
   taxNumber: string | null;
