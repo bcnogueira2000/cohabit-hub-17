@@ -1362,6 +1362,14 @@ const ReservationFeeSheet = ({ fee, onClose }: { fee: ReservationFeeRow | null; 
             <div className="mt-3 text-xs text-muted-foreground">
               Prazo de reserva: {fmtDate(fee.deadline)}
             </div>
+            {fee.source === "lead" && (
+              <div className="mt-2 text-xs text-muted-foreground">
+                {fee.roomId && fee.plannedCheckIn && fee.plannedCheckOut
+                  ? `Ao registar o pagamento, o quarto é reservado de ${fmtDate(fee.plannedCheckIn)} a ${fmtDate(fee.plannedCheckOut)}.`
+                  : "Falta escolher quarto e datas no acordo de reserva antes de registar o pagamento."}
+              </div>
+            )}
+
 
             {missing > 0.005 && (
               <div className="mt-6 space-y-3">
