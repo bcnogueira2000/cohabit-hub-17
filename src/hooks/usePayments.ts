@@ -419,6 +419,7 @@ export const useReservationFees = () =>
       const leads = ((leadData ?? []) as any[]).filter(
         (l) =>
           Number(l.reservation_fee_amount ?? 0) > 0.005 &&
+          l.room_id &&
           !l.contract_id &&
           !["won", "lost", "archived"].includes(l.status)
       );
