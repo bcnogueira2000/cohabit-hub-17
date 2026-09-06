@@ -253,6 +253,9 @@ const CandidateForm = () => {
       setProfile(row.profile === "student" || row.profile === "professional" ? row.profile : "");
       setNoTax((row.tax_number ?? "") === "999999999");
       setConsent(!!row.gdpr_consent);
+      setDob(row.date_of_birth ?? "");
+      setDocValidity(row.document_validity ?? "");
+
       const l = String(row.language ?? "").trim().toLowerCase();
       setLang(l === "en" ? "en" : "pt");
       setLoading(false);
