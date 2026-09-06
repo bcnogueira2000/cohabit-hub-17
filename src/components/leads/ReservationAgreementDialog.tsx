@@ -113,10 +113,12 @@ export const ReservationAgreementDialog = ({ lead, open, onOpenChange }: Props) 
     }
     setBusy(true);
     try {
-      await reserveRoom.mutateAsync({ leadId: lead.id, roomId, checkIn, checkOut });
       await updateLead.mutateAsync({
         id: lead.id,
         patch: {
+          roomId,
+          plannedCheckIn: checkIn,
+          plannedCheckOut: checkOut,
           reservationDeadline: deadline,
           reservationFeeAmount: feeNumber,
           address: address.trim(),
@@ -127,7 +129,7 @@ export const ReservationAgreementDialog = ({ lead, open, onOpenChange }: Props) 
       });
       const doc = await generateReservationDocx(lead.id);
       if (doc.signedUrl) window.open(doc.signedUrl, "_blank");
-      toast.success("Quarto reservado e acordo gerado");
+      toast.success("Acordo gerado. O quarto só fica reservado após o pagamento da taxa.");
       onOpenChange(false);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Não foi possível gerar o acordo de reserva.");
@@ -135,6 +137,7 @@ export const ReservationAgreementDialog = ({ lead, open, onOpenChange }: Props) 
       setBusy(false);
     }
   };
+
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
