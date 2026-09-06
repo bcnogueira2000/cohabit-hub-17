@@ -514,18 +514,24 @@ const CandidateForm = () => {
 
               <div className="field-grid cols-2">
                 <div className="field">
-                  <label htmlFor="document_validity">
+                  <label htmlFor="document_validity" id="document_validity-label">
                     <span>{t.lblDocValidity}</span>
                     <span className="req">*</span>
                   </label>
-                  <input
-                    type="date"
+                  <CandidateDateField
                     id="document_validity"
                     name="document_validity"
-                    required
-                    defaultValue={lead.document_validity ?? ""}
+                    value={docValidity}
+                    onChange={setDocValidity}
+                    lang={lang}
+                    placeholder={lang === "pt" ? "dd/mm/aaaa" : "dd/mm/yyyy"}
+                    invalid={dateError && !docValidity}
+                    fromYear={new Date().getFullYear() - 5}
+                    toYear={new Date().getFullYear() + 30}
+                    defaultMonthYear={new Date().getFullYear() + 1}
                   />
                 </div>
+
                 <div className="field">
                   <label htmlFor="tax_number">
                     <span>{t.lblTaxNumber}</span>
