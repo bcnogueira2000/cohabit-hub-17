@@ -62,6 +62,15 @@ const groups: Record<Exclude<Filter, "all">, LeadStatus[]> = {
   lost: ["lost", "archived"],
 };
 
+const pipelineColumns: { key: string; label: string; statuses: LeadStatus[] }[] = [
+  { key: "new", label: "Novos", statuses: ["new"] },
+  { key: "contact", label: "Em contacto", statuses: ["contacted", "visit_scheduled", "visited"] },
+  { key: "negotiation", label: "Em negociação", statuses: ["proposal_sent", "negotiating"] },
+  { key: "reserved", label: "Reservado", statuses: ["reserved"] },
+  { key: "won", label: "Contratados", statuses: ["won"] },
+  { key: "lost", label: "Perdidos", statuses: ["lost", "archived"] },
+];
+
 const groupLabels: Record<Exclude<Filter, "all">, string> = {
   new: "Novos",
   contact: "Em contacto",
