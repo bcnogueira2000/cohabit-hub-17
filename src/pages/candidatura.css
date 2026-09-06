@@ -179,6 +179,15 @@
     transition: border-color .15s ease, background-color .15s ease;
   }
 .lc-form textarea { resize: vertical; min-height: 90px; font-family: inherit; }
+.lc-form input[type="date"] {
+    -webkit-appearance: none;
+    appearance: none;
+    font-family: 'General Sans', Arial, Helvetica, sans-serif;
+    font-size: 15px;
+    line-height: 1.5;
+    color: var(--charcoal);
+    background-color: var(--cream);
+  }
 .lc-form input::placeholder, .lc-form textarea::placeholder { color: #A6A196; }
 .lc-form input:focus, .lc-form select:focus, .lc-form textarea:focus {
     outline: none;
