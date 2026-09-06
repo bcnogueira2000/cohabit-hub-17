@@ -1190,8 +1190,9 @@ const ReservationFeesSection = () => {
           <FileText className="h-10 w-10 text-muted-foreground mx-auto mb-3" strokeWidth={1.5} />
           <p className="font-medium">Sem taxas de reserva</p>
           <p className="text-sm text-muted-foreground mt-1">
-            Aparecem aqui os contratos com taxa de reserva definida.
+            Aparecem aqui os contratos e as candidaturas com taxa de reserva definida.
           </p>
+
         </Card>
       ) : (
         <Card className="border-border/60 shadow-card overflow-x-auto">
