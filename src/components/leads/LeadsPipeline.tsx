@@ -138,6 +138,7 @@ const columnBorder: Record<string, string> = {
   new: "border-muted-foreground",
   contact: "border-info",
   negotiation: "border-warning",
+  reserved: "border-primary",
   won: "border-success",
   lost: "border-destructive",
 };
