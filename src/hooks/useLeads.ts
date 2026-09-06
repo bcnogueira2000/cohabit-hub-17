@@ -50,6 +50,7 @@ export interface Lead {
   plannedCheckIn: string | null;
   plannedCheckOut: string | null;
   contractGeneratedAt: string | null;
+  formSubmittedAt: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -94,6 +95,7 @@ export const mapLead = (r: any): Lead => ({
   plannedCheckIn: r.planned_check_in ?? null,
   plannedCheckOut: r.planned_check_out ?? null,
   contractGeneratedAt: r.contract_generated_at ?? null,
+  formSubmittedAt: r.form_submitted_at ?? null,
   createdAt: r.created_at,
   updatedAt: r.updated_at,
 });
