@@ -62,6 +62,15 @@ const groups: Record<Exclude<Filter, "all">, LeadStatus[]> = {
   lost: ["lost", "archived"],
 };
 
+const pipelineColumns: { key: string; label: string; statuses: LeadStatus[] }[] = [
+  { key: "new", label: "Novos", statuses: ["new"] },
+  { key: "contact", label: "Em contacto", statuses: ["contacted", "visit_scheduled", "visited"] },
+  { key: "negotiation", label: "Em negociação", statuses: ["proposal_sent", "negotiating"] },
+  { key: "reserved", label: "Reservado", statuses: ["reserved"] },
+  { key: "won", label: "Contratados", statuses: ["won"] },
+  { key: "lost", label: "Perdidos", statuses: ["lost", "archived"] },
+];
+
 const groupLabels: Record<Exclude<Filter, "all">, string> = {
   new: "Novos",
   contact: "Em contacto",
@@ -187,11 +196,11 @@ const Leads = () => {
 
   const columns = useMemo(
     () =>
-      (Object.keys(groups) as Exclude<Filter, "all">[]).map((k) => ({
-        key: k,
-        label: groupLabels[k],
-        statuses: groups[k],
-        leads: baseFiltered.filter((l) => groups[k].includes(l.status)).sort(sortByUrgency),
+      pipelineColumns.map((c) => ({
+        key: c.key,
+        label: c.label,
+        statuses: c.statuses,
+        leads: baseFiltered.filter((l) => c.statuses.includes(l.status)).sort(sortByUrgency),
       })),
     [baseFiltered]
   );
@@ -893,6 +902,8 @@ const Leads = () => {
                 </div>
               </Section>
 
+              <CandidateFormData lead={selected} />
+
               {selected && <LeadDocuments leadId={selected.id} />}
 
               {selected && <LeadHistory leadId={selected.id} />}
@@ -948,6 +959,84 @@ const Leads = () => {
       )}
     </div>
 
+  );
+};
+
+const CandidateFormData = ({ lead }: { lead: Lead | null }) => {
+  if (!lead) return null;
+  const isStudent = lead.profile === "student";
+  const fullAddress = [lead.address, [lead.postalCode, lead.city].filter(Boolean).join(" ")]
+    .filter((v) => v && String(v).trim() !== "")
+    .join(", ");
+  const values = [
+    lead.dateOfBirth,
+    lead.documentType,
+    lead.documentNumber,
+    lead.documentValidity,
+    fullAddress,
+    lead.employerOrSchool,
+    lead.course,
+    lead.courseDuration,
+    lead.jobTitle,
+    lead.emergencyContactName,
+    lead.emergencyContactRelation,
+    lead.emergencyContactPhone,
+    lead.emergencyContactEmail,
+    lead.candidateComments,
+  ];
+  if (!values.some((v) => v && String(v).trim() !== "")) return null;
+
+  return (
+    <Section title="Dados da candidatura">
+      <div className="grid grid-cols-2 gap-3">
+        <Field label="Data de nascimento" value={lead.dateOfBirth ? fmtDate(lead.dateOfBirth) : null} />
+        <Field label="Tipo de documento" value={lead.documentType} />
+        <Field label="Nº do documento" value={lead.documentNumber} />
+        <Field label="Validade do documento" value={lead.documentValidity ? fmtDate(lead.documentValidity) : null} />
+      </div>
+
+      {fullAddress && (
+        <div className="grid grid-cols-1 gap-3">
+          <Field label="Morada" value={fullAddress} />
+        </div>
+      )}
+
+      <div className="grid grid-cols-2 gap-3">
+        <Field
+          label={isStudent ? "Instituição de ensino" : "Local de trabalho"}
+          value={lead.employerOrSchool}
+        />
+        {isStudent ? (
+          <>
+            <Field label="Curso" value={lead.course} />
+            <Field label="Duração do curso" value={lead.courseDuration} />
+          </>
+        ) : (
+          <Field label="Função" value={lead.jobTitle} />
+        )}
+      </div>
+
+      {(lead.emergencyContactName ||
+        lead.emergencyContactRelation ||
+        lead.emergencyContactPhone ||
+        lead.emergencyContactEmail) && (
+        <div className="rounded-xl bg-muted/50 p-3 grid grid-cols-2 gap-3">
+          <Field label="Contacto de emergência" value={lead.emergencyContactName} />
+          <Field label="Relação" value={lead.emergencyContactRelation} />
+          <Field label="Telefone" value={lead.emergencyContactPhone} />
+          <Field label="Email" value={lead.emergencyContactEmail} />
+        </div>
+      )}
+
+      {lead.candidateComments && (
+        <div className="rounded-xl bg-muted/50 p-3 text-sm">
+          <div className="text-[11px] uppercase tracking-wide text-muted-foreground mb-1">
+            Comentários do candidato
+          </div>
+          {lead.candidateComments}
+        </div>
+      )}
+    </Section>
   );
 };
 

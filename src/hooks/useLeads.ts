@@ -51,6 +51,19 @@ export interface Lead {
   plannedCheckOut: string | null;
   contractGeneratedAt: string | null;
   formSubmittedAt: string | null;
+  dateOfBirth: string | null;
+  postalCode: string | null;
+  city: string | null;
+  employerOrSchool: string | null;
+  course: string | null;
+  courseDuration: string | null;
+  jobTitle: string | null;
+  emergencyContactName: string | null;
+  emergencyContactRelation: string | null;
+  emergencyContactPhone: string | null;
+  emergencyContactEmail: string | null;
+  candidateComments: string | null;
+  shortName: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -96,6 +109,19 @@ export const mapLead = (r: any): Lead => ({
   plannedCheckOut: r.planned_check_out ?? null,
   contractGeneratedAt: r.contract_generated_at ?? null,
   formSubmittedAt: r.form_submitted_at ?? null,
+  dateOfBirth: r.date_of_birth ?? null,
+  postalCode: r.postal_code ?? null,
+  city: r.city ?? null,
+  employerOrSchool: r.employer_or_school ?? null,
+  course: r.course ?? null,
+  courseDuration: r.course_duration ?? null,
+  jobTitle: r.job_title ?? null,
+  emergencyContactName: r.emergency_contact_name ?? null,
+  emergencyContactRelation: r.emergency_contact_relation ?? null,
+  emergencyContactPhone: r.emergency_contact_phone ?? null,
+  emergencyContactEmail: r.emergency_contact_email ?? null,
+  candidateComments: r.candidate_comments ?? null,
+  shortName: r.short_name ?? null,
   createdAt: r.created_at,
   updatedAt: r.updated_at,
 });
