@@ -448,6 +448,7 @@ export type Database = {
           created_at: string
           date_of_birth: string | null
           document_number: string | null
+          document_type: string | null
           document_validity: string | null
           draft_deposit_due: number | null
           draft_payment_day: number | null
@@ -509,6 +510,7 @@ export type Database = {
           created_at?: string
           date_of_birth?: string | null
           document_number?: string | null
+          document_type?: string | null
           document_validity?: string | null
           draft_deposit_due?: number | null
           draft_payment_day?: number | null
@@ -570,6 +572,7 @@ export type Database = {
           created_at?: string
           date_of_birth?: string | null
           document_number?: string | null
+          document_type?: string | null
           document_validity?: string | null
           draft_deposit_due?: number | null
           draft_payment_day?: number | null
