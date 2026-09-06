@@ -902,6 +902,8 @@ const Leads = () => {
                 </div>
               </Section>
 
+              <CandidateFormData lead={selected} />
+
               {selected && <LeadDocuments leadId={selected.id} />}
 
               {selected && <LeadHistory leadId={selected.id} />}
