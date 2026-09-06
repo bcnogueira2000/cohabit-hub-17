@@ -51,6 +51,19 @@ export interface Lead {
   plannedCheckOut: string | null;
   contractGeneratedAt: string | null;
   formSubmittedAt: string | null;
+  dateOfBirth: string | null;
+  postalCode: string | null;
+  city: string | null;
+  employerOrSchool: string | null;
+  course: string | null;
+  courseDuration: string | null;
+  jobTitle: string | null;
+  emergencyContactName: string | null;
+  emergencyContactRelation: string | null;
+  emergencyContactPhone: string | null;
+  emergencyContactEmail: string | null;
+  candidateComments: string | null;
+  shortName: string | null;
   createdAt: string;
   updatedAt: string;
 }
