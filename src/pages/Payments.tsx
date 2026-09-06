@@ -1148,7 +1148,8 @@ const DepositReceiptSheet = ({ deposit, onClose }: { deposit: DepositRow | null;
 const ReservationFeesSection = () => {
   const { data: fees = [], isLoading } = useReservationFees();
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const selected = fees.find((f) => f.contractId === selectedId) ?? null;
+  const selected = fees.find((f) => f.key === selectedId) ?? null;
+
 
   const totals = useMemo(
     () => ({
