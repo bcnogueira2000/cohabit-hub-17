@@ -293,10 +293,20 @@ const CandidateForm = () => {
     if (!form) return;
     const okFiles = files.length > 0;
     setFileError(!okFiles);
-    if (!form.reportValidity() || !okFiles) {
-      if (!okFiles) dropRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+    const okDates = !!dob && !!docValidity;
+    setDateError(!okDates);
+    if (!form.reportValidity() || !okFiles || !okDates) {
+      if (!okDates) {
+        document.getElementById("date_of_birth-label")?.scrollIntoView({
+          behavior: "smooth",
+          block: "center",
+        });
+      } else if (!okFiles) {
+        dropRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
       return;
     }
+
 
     setBusy(true);
     setError(null);
