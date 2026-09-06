@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import CandidateDateField from "./CandidateDateField";
 import "./candidatura.css";
+
 
 type Lang = "pt" | "en";
 
@@ -219,6 +221,10 @@ const CandidateForm = () => {
   const [noTax, setNoTax] = useState(false);
   const [files, setFiles] = useState<File[]>([]);
   const [fileError, setFileError] = useState(false);
+  const [dob, setDob] = useState("");
+  const [docValidity, setDocValidity] = useState("");
+  const [dateError, setDateError] = useState(false);
+
   const [consent, setConsent] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -247,6 +253,9 @@ const CandidateForm = () => {
       setProfile(row.profile === "student" || row.profile === "professional" ? row.profile : "");
       setNoTax((row.tax_number ?? "") === "999999999");
       setConsent(!!row.gdpr_consent);
+      setDob(row.date_of_birth ?? "");
+      setDocValidity(row.document_validity ?? "");
+
       const l = String(row.language ?? "").trim().toLowerCase();
       setLang(l === "en" ? "en" : "pt");
       setLoading(false);
@@ -284,10 +293,20 @@ const CandidateForm = () => {
     if (!form) return;
     const okFiles = files.length > 0;
     setFileError(!okFiles);
-    if (!form.reportValidity() || !okFiles) {
-      if (!okFiles) dropRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+    const okDates = !!dob && !!docValidity;
+    setDateError(!okDates);
+    if (!form.reportValidity() || !okFiles || !okDates) {
+      if (!okDates) {
+        document.getElementById("date_of_birth-label")?.scrollIntoView({
+          behavior: "smooth",
+          block: "center",
+        });
+      } else if (!okFiles) {
+        dropRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
       return;
     }
+
 
     setBusy(true);
     setError(null);
@@ -461,18 +480,24 @@ const CandidateForm = () => {
                   />
                 </div>
                 <div className="field">
-                  <label htmlFor="date_of_birth">
+                  <label htmlFor="date_of_birth" id="date_of_birth-label">
                     <span>{t.lblDob}</span>
                     <span className="req">*</span>
                   </label>
-                  <input
-                    type="date"
+                  <CandidateDateField
                     id="date_of_birth"
                     name="date_of_birth"
-                    required
-                    defaultValue={lead.date_of_birth ?? ""}
+                    value={dob}
+                    onChange={setDob}
+                    lang={lang}
+                    placeholder={lang === "pt" ? "dd/mm/aaaa" : "dd/mm/yyyy"}
+                    invalid={dateError && !dob}
+                    fromYear={1930}
+                    toYear={new Date().getFullYear() - 15}
+                    defaultMonthYear={2000}
                   />
                 </div>
+
               </div>
 
               <div className="field-grid cols-2">
@@ -508,18 +533,24 @@ const CandidateForm = () => {
 
               <div className="field-grid cols-2">
                 <div className="field">
-                  <label htmlFor="document_validity">
+                  <label htmlFor="document_validity" id="document_validity-label">
                     <span>{t.lblDocValidity}</span>
                     <span className="req">*</span>
                   </label>
-                  <input
-                    type="date"
+                  <CandidateDateField
                     id="document_validity"
                     name="document_validity"
-                    required
-                    defaultValue={lead.document_validity ?? ""}
+                    value={docValidity}
+                    onChange={setDocValidity}
+                    lang={lang}
+                    placeholder={lang === "pt" ? "dd/mm/aaaa" : "dd/mm/yyyy"}
+                    invalid={dateError && !docValidity}
+                    fromYear={new Date().getFullYear() - 5}
+                    toYear={new Date().getFullYear() + 30}
+                    defaultMonthYear={new Date().getFullYear() + 1}
                   />
                 </div>
+
                 <div className="field">
                   <label htmlFor="tax_number">
                     <span>{t.lblTaxNumber}</span>
