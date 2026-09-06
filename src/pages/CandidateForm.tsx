@@ -221,6 +221,10 @@ const CandidateForm = () => {
   const [noTax, setNoTax] = useState(false);
   const [files, setFiles] = useState<File[]>([]);
   const [fileError, setFileError] = useState(false);
+  const [dob, setDob] = useState("");
+  const [docValidity, setDocValidity] = useState("");
+  const [dateError, setDateError] = useState(false);
+
   const [consent, setConsent] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
