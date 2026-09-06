@@ -1448,10 +1448,17 @@ const ReservationFeeSheet = ({ fee, onClose }: { fee: ReservationFeeRow | null; 
             </div>
 
             <div className="mt-6">
-              <Link to={`/finance/contracts/${fee.contractId}`} className="inline-flex items-center gap-1 text-sm hover:underline">
-                Ver contrato <ExternalLink className="h-3.5 w-3.5" strokeWidth={1.5} />
-              </Link>
+              {fee.source === "contract" ? (
+                <Link to={`/finance/contracts/${fee.contractId}`} className="inline-flex items-center gap-1 text-sm hover:underline">
+                  Ver contrato <ExternalLink className="h-3.5 w-3.5" strokeWidth={1.5} />
+                </Link>
+              ) : (
+                <Link to="/leads" className="inline-flex items-center gap-1 text-sm hover:underline">
+                  Ver candidaturas <ExternalLink className="h-3.5 w-3.5" strokeWidth={1.5} />
+                </Link>
+              )}
             </div>
+
           </>
         )}
       </SheetContent>
