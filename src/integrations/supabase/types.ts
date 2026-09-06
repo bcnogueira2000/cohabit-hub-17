@@ -397,6 +397,41 @@ export type Database = {
           },
         ]
       }
+      lead_documents: {
+        Row: {
+          file_name: string
+          file_type: string | null
+          id: string
+          lead_id: string
+          storage_path: string
+          uploaded_at: string
+        }
+        Insert: {
+          file_name: string
+          file_type?: string | null
+          id?: string
+          lead_id: string
+          storage_path: string
+          uploaded_at?: string
+        }
+        Update: {
+          file_name?: string
+          file_type?: string | null
+          id?: string
+          lead_id?: string
+          storage_path?: string
+          uploaded_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lead_documents_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       leads: {
         Row: {
           address: string | null
@@ -404,9 +439,12 @@ export type Database = {
           assigned_to: string | null
           assigned_to_user_id: string | null
           budget_range: string | null
+          candidate_comments: string | null
           city: string | null
           contract_generated_at: string | null
           contract_id: string | null
+          course: string | null
+          course_duration: string | null
           created_at: string
           date_of_birth: string | null
           document_number: string | null
@@ -415,12 +453,18 @@ export type Database = {
           draft_payment_day: number | null
           draft_rent_amount: number | null
           email: string
+          emergency_contact_email: string | null
+          emergency_contact_name: string | null
+          emergency_contact_phone: string | null
+          emergency_contact_relation: string | null
           employer_or_school: string | null
           external_ref: string | null
+          form_submitted_at: string | null
           full_name: string
           gdpr_consent: boolean
           gender: string | null
           id: string
+          job_title: string | null
           language: string | null
           lost_reason: string | null
           nationality: string | null
@@ -435,9 +479,12 @@ export type Database = {
           preferred_room_type: string | null
           profile: string | null
           profile_other: string | null
+          public_token: string | null
+          public_token_expires_at: string | null
           reservation_deadline: string | null
           reservation_fee_amount: number | null
           room_id: string | null
+          short_name: string | null
           source: Database["public"]["Enums"]["lead_source"]
           source_detail: string | null
           status: Database["public"]["Enums"]["lead_status"]
@@ -453,9 +500,12 @@ export type Database = {
           assigned_to?: string | null
           assigned_to_user_id?: string | null
           budget_range?: string | null
+          candidate_comments?: string | null
           city?: string | null
           contract_generated_at?: string | null
           contract_id?: string | null
+          course?: string | null
+          course_duration?: string | null
           created_at?: string
           date_of_birth?: string | null
           document_number?: string | null
@@ -464,12 +514,18 @@ export type Database = {
           draft_payment_day?: number | null
           draft_rent_amount?: number | null
           email: string
+          emergency_contact_email?: string | null
+          emergency_contact_name?: string | null
+          emergency_contact_phone?: string | null
+          emergency_contact_relation?: string | null
           employer_or_school?: string | null
           external_ref?: string | null
+          form_submitted_at?: string | null
           full_name: string
           gdpr_consent?: boolean
           gender?: string | null
           id?: string
+          job_title?: string | null
           language?: string | null
           lost_reason?: string | null
           nationality?: string | null
@@ -484,9 +540,12 @@ export type Database = {
           preferred_room_type?: string | null
           profile?: string | null
           profile_other?: string | null
+          public_token?: string | null
+          public_token_expires_at?: string | null
           reservation_deadline?: string | null
           reservation_fee_amount?: number | null
           room_id?: string | null
+          short_name?: string | null
           source?: Database["public"]["Enums"]["lead_source"]
           source_detail?: string | null
           status?: Database["public"]["Enums"]["lead_status"]
@@ -502,9 +561,12 @@ export type Database = {
           assigned_to?: string | null
           assigned_to_user_id?: string | null
           budget_range?: string | null
+          candidate_comments?: string | null
           city?: string | null
           contract_generated_at?: string | null
           contract_id?: string | null
+          course?: string | null
+          course_duration?: string | null
           created_at?: string
           date_of_birth?: string | null
           document_number?: string | null
@@ -513,12 +575,18 @@ export type Database = {
           draft_payment_day?: number | null
           draft_rent_amount?: number | null
           email?: string
+          emergency_contact_email?: string | null
+          emergency_contact_name?: string | null
+          emergency_contact_phone?: string | null
+          emergency_contact_relation?: string | null
           employer_or_school?: string | null
           external_ref?: string | null
+          form_submitted_at?: string | null
           full_name?: string
           gdpr_consent?: boolean
           gender?: string | null
           id?: string
+          job_title?: string | null
           language?: string | null
           lost_reason?: string | null
           nationality?: string | null
@@ -533,9 +601,12 @@ export type Database = {
           preferred_room_type?: string | null
           profile?: string | null
           profile_other?: string | null
+          public_token?: string | null
+          public_token_expires_at?: string | null
           reservation_deadline?: string | null
           reservation_fee_amount?: number | null
           room_id?: string | null
+          short_name?: string | null
           source?: Database["public"]["Enums"]["lead_source"]
           source_detail?: string | null
           status?: Database["public"]["Enums"]["lead_status"]
@@ -1235,6 +1306,8 @@ export type Database = {
           checkin_checklist: Json
           city: string | null
           code: string | null
+          course: string | null
+          course_duration: string | null
           created_at: string
           date_of_birth: string | null
           document_number: string | null
@@ -1244,11 +1317,13 @@ export type Database = {
           emergency_contact_email: string | null
           emergency_contact_name: string | null
           emergency_contact_phone: string | null
+          emergency_contact_relation: string | null
           employer_or_school: string | null
           expected_arrival_date: string | null
           full_name: string
           gender: string | null
           id: string
+          job_title: string | null
           moloni_customer_id: number | null
           moloni_synced_at: string | null
           move_in: string | null
@@ -1258,6 +1333,7 @@ export type Database = {
           postal_code: string | null
           profile: string | null
           room_id: string | null
+          short_name: string | null
           special_needs: string | null
           status: Database["public"]["Enums"]["resident_status"]
           tax_number: string | null
@@ -1271,6 +1347,8 @@ export type Database = {
           checkin_checklist?: Json
           city?: string | null
           code?: string | null
+          course?: string | null
+          course_duration?: string | null
           created_at?: string
           date_of_birth?: string | null
           document_number?: string | null
@@ -1280,11 +1358,13 @@ export type Database = {
           emergency_contact_email?: string | null
           emergency_contact_name?: string | null
           emergency_contact_phone?: string | null
+          emergency_contact_relation?: string | null
           employer_or_school?: string | null
           expected_arrival_date?: string | null
           full_name: string
           gender?: string | null
           id?: string
+          job_title?: string | null
           moloni_customer_id?: number | null
           moloni_synced_at?: string | null
           move_in?: string | null
@@ -1294,6 +1374,7 @@ export type Database = {
           postal_code?: string | null
           profile?: string | null
           room_id?: string | null
+          short_name?: string | null
           special_needs?: string | null
           status?: Database["public"]["Enums"]["resident_status"]
           tax_number?: string | null
@@ -1307,6 +1388,8 @@ export type Database = {
           checkin_checklist?: Json
           city?: string | null
           code?: string | null
+          course?: string | null
+          course_duration?: string | null
           created_at?: string
           date_of_birth?: string | null
           document_number?: string | null
@@ -1316,11 +1399,13 @@ export type Database = {
           emergency_contact_email?: string | null
           emergency_contact_name?: string | null
           emergency_contact_phone?: string | null
+          emergency_contact_relation?: string | null
           employer_or_school?: string | null
           expected_arrival_date?: string | null
           full_name?: string
           gender?: string | null
           id?: string
+          job_title?: string | null
           moloni_customer_id?: number | null
           moloni_synced_at?: string | null
           move_in?: string | null
@@ -1330,6 +1415,7 @@ export type Database = {
           postal_code?: string | null
           profile?: string | null
           room_id?: string | null
+          short_name?: string | null
           special_needs?: string | null
           status?: Database["public"]["Enums"]["resident_status"]
           tax_number?: string | null
@@ -1662,6 +1748,7 @@ export type Database = {
         Args: { p_contract_id: string; p_month: number; p_year: number }
         Returns: Record<string, unknown>
       }
+      compute_short_name: { Args: { p_full_name: string }; Returns: string }
       current_resident_id: { Args: never; Returns: string }
       generate_cleaning_instances: {
         Args: { p_count?: number; p_schedule_id: string }
