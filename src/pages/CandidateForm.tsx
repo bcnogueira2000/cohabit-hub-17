@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import CandidateDateField from "./CandidateDateField";
 import "./candidatura.css";
+
 
 type Lang = "pt" | "en";
 
