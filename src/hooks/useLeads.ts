@@ -86,6 +86,7 @@ export const mapLead = (r: any): Lead => ({
   reservationDeadline: r.reservation_deadline ?? null,
   reservationFeeAmount: r.reservation_fee_amount == null ? null : Number(r.reservation_fee_amount),
   address: r.address ?? null,
+  documentType: r.document_type ?? null,
   documentNumber: r.document_number ?? null,
   documentValidity: r.document_validity ?? null,
   taxNumber: r.tax_number ?? null,
