@@ -1304,12 +1304,20 @@ const ReservationFeeSheet = ({ fee, onClose }: { fee: ReservationFeeRow | null; 
     try {
       await create.mutateAsync({
         contractId: fee.contractId,
+        leadId: fee.leadId,
+        roomId: fee.roomId,
+        checkIn: fee.plannedCheckIn,
+        checkOut: fee.plannedCheckOut,
         amount: value,
         paidAt,
         method,
         reference,
       });
-      toast({ title: "Taxa de reserva registada" });
+      toast({
+        title: "Taxa de reserva registada",
+        description: fee.source === "lead" ? "O quarto ficou reservado para esta candidatura." : undefined,
+      });
+
       reset();
       onClose();
     } catch (e: any) {
