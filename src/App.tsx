@@ -21,6 +21,7 @@ import Requests from "./pages/Requests";
 import RequestDetail from "./pages/RequestDetail";
 import NewRequest from "./pages/NewRequest";
 import PublicRequest from "./pages/PublicRequest";
+import CandidateForm from "./pages/CandidateForm";
 import Cleaning from "./pages/Cleaning";
 import Tasks from "./pages/Tasks";
 import Leads from "./pages/Leads";
@@ -67,6 +68,7 @@ const App = () => (
             <Route path="/auth" element={<Auth />} />
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/submit" element={<PublicRequest />} />
+            <Route path="/candidatura/:token" element={<CandidateForm />} />
 
             {/* Pending approval — accessible to authenticated users without role */}
             <Route path="/app/pending-approval" element={<ProtectedRoute><PendingApproval /></ProtectedRoute>} />

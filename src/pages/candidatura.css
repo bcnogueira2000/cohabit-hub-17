@@ -1,0 +1,325 @@
+/* Formulario publico de candidatura */
+
+.lc-form {
+    --cream: #F2EDE4;
+    --sage: #4C827D;
+    --sage-deep: #3E6D65;
+    --sage-deeper: #305650;
+    --sage-dark: #345A56;
+    --charcoal: #171717;
+    --muted: #6B6B63;
+    --border: #E4DDCC;
+    --error: #A8412E;
+    --white: #FFFFFF;
+    --radius: 14px;
+  }
+.lc-form * { box-sizing: border-box; }
+.lc-form {
+    background-color: var(--cream);
+    color: var(--charcoal);
+    font-family: 'General Sans', Arial, Helvetica, sans-serif;
+    font-size: 15px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    position: relative;
+    overflow-x: hidden;
+  }
+.lc-form h1, .lc-form h2, .lc-form .section-num {
+    font-family: 'Syne', Arial, sans-serif;
+    font-weight: 700;
+    color: var(--charcoal);
+  }
+.lc-form .brand-texture {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    overflow: hidden;
+  }
+.lc-form .brand-texture svg { position: absolute; opacity: 0.5; }
+.lc-form .frag-sage { color: var(--sage); }
+.lc-form .frag-dark { color: var(--sage-dark); }
+.lc-form .page {
+    position: relative;
+    z-index: 1;
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 28px 16px 64px;
+  }
+.lc-form .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 28px;
+  }
+.lc-form .logo { display: block; height: 34px; width: auto; }
+.lc-form .lang-switch {
+    display: inline-flex;
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 3px;
+    gap: 2px;
+  }
+.lc-form .lang-switch button {
+    font-family: 'General Sans', Arial, sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    border: none;
+    background: transparent;
+    color: var(--muted);
+    padding: 6px 12px;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: background-color .15s ease, color .15s ease;
+  }
+.lc-form .lang-switch button.active {
+    background: var(--sage-dark);
+    color: var(--white);
+  }
+.lc-form .card {
+    background: var(--white);
+    border-radius: var(--radius);
+    box-shadow: 0 1px 3px rgba(23,23,23,0.06), 0 12px 32px rgba(23,23,23,0.06);
+    padding: 40px 32px 44px;
+  }
+@media (max-width: 560px) {
+.lc-form .card { padding: 28px 18px 32px; }
+  }
+.lc-form .hero-title {
+    font-size: 26px;
+    line-height: 1.3;
+    margin: 0 0 10px;
+  }
+.lc-form .hero-subtitle {
+    margin: 0 0 8px;
+    color: var(--muted);
+    font-size: 14.5px;
+    line-height: 1.6;
+    max-width: 52ch;
+  }
+.lc-form .required-note {
+    font-size: 12px;
+    color: var(--muted);
+    margin: 18px 0 0;
+  }
+.lc-form .required-note .req { color: var(--sage-deeper); font-weight: 700; }
+.lc-form fieldset {
+    border: none;
+    margin: 0;
+    padding: 0;
+  }
+.lc-form .section {
+    padding-top: 40px;
+    margin-top: 40px;
+    border-top: 1px solid var(--border);
+  }
+.lc-form .section:first-of-type {
+    padding-top: 32px;
+    margin-top: 32px;
+  }
+.lc-form .section-head {
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    margin-bottom: 22px;
+  }
+.lc-form .section-num {
+    font-size: 13px;
+    color: var(--sage);
+    min-width: 22px;
+  }
+.lc-form .section-title {
+    font-size: 19px;
+    margin: 0;
+  }
+.lc-form .field-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 18px;
+  }
+@media (min-width: 640px) {
+.lc-form .field-grid.cols-2 { grid-template-columns: 1fr 1fr; }
+  }
+.lc-form .field { display: flex; flex-direction: column; gap: 6px; }
+.lc-form .field label {
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--charcoal);
+    letter-spacing: 0.01em;
+  }
+.lc-form .field label .req { color: var(--sage-deeper); margin-left: 3px; }
+.lc-form .checkbox-inline {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 6px;
+    font-size: 12.5px;
+    font-weight: 400;
+    color: var(--muted);
+    cursor: pointer;
+  }
+.lc-form .checkbox-inline input[type="checkbox"] {
+    width: 15px;
+    height: 15px;
+    accent-color: var(--sage-dark);
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+.lc-form input[type="text"], .lc-form input[type="email"], .lc-form input[type="tel"], .lc-form input[type="date"], .lc-form select, .lc-form textarea {
+    font-family: 'General Sans', Arial, sans-serif;
+    font-size: 15px;
+    color: var(--charcoal);
+    background: var(--cream);
+    border: 1.5px solid transparent;
+    border-radius: 9px;
+    padding: 11px 13px;
+    width: 100%;
+    transition: border-color .15s ease, background-color .15s ease;
+  }
+.lc-form textarea { resize: vertical; min-height: 90px; font-family: inherit; }
+.lc-form input::placeholder, .lc-form textarea::placeholder { color: #A6A196; }
+.lc-form input:focus, .lc-form select:focus, .lc-form textarea:focus {
+    outline: none;
+    border-color: var(--sage);
+    background: var(--white);
+  }
+.lc-form input:disabled, .lc-form input[readonly] {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+.lc-form input:invalid.touched, .lc-form select:invalid.touched {
+    border-color: var(--error);
+  }
+.lc-form .field-error {
+    display: none;
+    font-size: 12px;
+    color: var(--error);
+  }
+.lc-form .field-error.show { display: block; }
+.lc-form .radio-row { display: flex; gap: 10px; flex-wrap: wrap; }
+.lc-form .radio-pill {
+    position: relative;
+  }
+.lc-form .radio-pill input {
+    position: absolute;
+    opacity: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    cursor: pointer;
+  }
+.lc-form .radio-pill span {
+    display: inline-flex;
+    align-items: center;
+    padding: 10px 20px;
+    border-radius: 999px;
+    border: 1.5px solid var(--border);
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--charcoal);
+    background: var(--cream);
+    transition: all .15s ease;
+  }
+.lc-form .radio-pill input:checked + span {
+    background: var(--sage-dark);
+    border-color: var(--sage-dark);
+    color: var(--white);
+  }
+.lc-form .conditional-block {
+    margin-top: 18px;
+    display: none;
+  }
+.lc-form .conditional-block.active { display: block; }
+.lc-form .dropzone {
+    border: 1.5px dashed var(--border);
+    border-radius: 12px;
+    padding: 28px 20px;
+    text-align: center;
+    cursor: pointer;
+    background: var(--cream);
+    transition: border-color .15s ease, background-color .15s ease;
+  }
+.lc-form .dropzone.dragover {
+    border-color: var(--sage);
+    background: #EAF1EF;
+  }
+.lc-form .dropzone svg { display: block; margin: 0 auto 10px; color: var(--sage); }
+.lc-form .dropzone-text { font-size: 14px; font-weight: 600; color: var(--charcoal); margin: 0 0 4px; }
+.lc-form .dropzone-hint { font-size: 12px; color: var(--muted); margin: 0; }
+.lc-form input[type="file"] { display: none; }
+.lc-form .file-list { list-style: none; margin: 14px 0 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.lc-form .file-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--cream);
+    border-radius: 9px;
+    padding: 9px 12px;
+  }
+.lc-form .file-item .file-icon { color: var(--sage); flex-shrink: 0; }
+.lc-form .file-item .file-name { font-size: 13.5px; font-weight: 600; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lc-form .file-item .file-size { font-size: 12px; color: var(--muted); flex-shrink: 0; }
+.lc-form .file-item button {
+    border: none;
+    background: transparent;
+    color: var(--muted);
+    font-size: 18px;
+    line-height: 1;
+    cursor: pointer;
+    padding: 2px 4px;
+    flex-shrink: 0;
+  }
+.lc-form .file-item button:hover { color: var(--error); }
+.lc-form .consent-row {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    background: var(--cream);
+    border-radius: 12px;
+    padding: 18px 18px;
+  }
+.lc-form .consent-row input[type="checkbox"] {
+    margin-top: 3px;
+    width: 18px;
+    height: 18px;
+    accent-color: var(--sage-dark);
+    flex-shrink: 0;
+    cursor: pointer;
+  }
+.lc-form .consent-row label {
+    font-size: 13.5px;
+    line-height: 1.55;
+    color: var(--charcoal);
+    cursor: pointer;
+  }
+.lc-form .submit-row { margin-top: 34px; text-align: center; }
+.lc-form button[type="submit"] {
+    font-family: 'General Sans', Arial, sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--white);
+    background: var(--sage-deep);
+    border: none;
+    border-radius: 999px;
+    padding: 15px 40px;
+    cursor: pointer;
+    transition: background-color .15s ease, opacity .15s ease;
+  }
+.lc-form button[type="submit"]:hover:not(:disabled) { background: var(--sage-deeper); }
+.lc-form button[type="submit"]:disabled {
+    background: #C9C2B2;
+    cursor: not-allowed;
+  }
+.lc-form .submit-hint { margin-top: 12px; font-size: 12px; color: var(--muted); }
+.lc-form .success-panel {
+    display: none;
+    text-align: center;
+    padding: 36px 20px;
+  }
+.lc-form .success-panel.show { display: block; }
+.lc-form .success-panel svg { color: var(--sage-deep); margin-bottom: 14px; }
+.lc-form .success-panel h2 { font-size: 22px; margin: 0 0 8px; }
+.lc-form .success-panel p { color: var(--muted); margin: 0; }
+.lc-form form.hidden-on-success { display: none; }
