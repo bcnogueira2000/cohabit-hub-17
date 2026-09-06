@@ -455,6 +455,11 @@ const Leads = () => {
                         </Badge>
                       )
                     )}
+                    {l.formSubmittedAt && (
+                      <Badge variant="outline" className="bg-info/10 text-info border-info/30 gap-1">
+                        <CheckCircle2 className="h-3 w-3" strokeWidth={1.5} /> Formulário
+                      </Badge>
+                    )}
                   </div>
                   <div className="font-display text-lg font-semibold truncate">{l.fullName}</div>
                   <div className="text-xs text-muted-foreground truncate">{l.email}</div>
