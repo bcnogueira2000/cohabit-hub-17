@@ -338,3 +338,35 @@ export const usePromoteReservationToContract = () => {
     },
   });
 };
+
+/** Envia por email o link do formulário de autopreenchimento ao candidato. */
+export const useSendCandidateForm = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (leadId: string) => {
+      const { data, error } = await supabase.functions.invoke(
+        "enviar-formulario-candidatura",
+        { body: { lead_id: leadId } }
+      );
+      if (error) {
+        let details = error.message;
+        try {
+          const ctx = (error as any).context;
+          if (ctx?.text) {
+            const raw = await ctx.text();
+            const parsed = JSON.parse(raw);
+            details = parsed?.error ?? raw;
+          }
+        } catch {
+          /* mantém a mensagem original */
+        }
+        throw new Error(details);
+      }
+      return data as { ok: boolean; email: string; link: string };
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["leads"] });
+      qc.invalidateQueries({ queryKey: ["lead_activity"] });
+    },
+  });
+};
