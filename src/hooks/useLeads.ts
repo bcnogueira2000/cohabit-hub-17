@@ -170,6 +170,7 @@ const toDbPatch = (i: Partial<LeadInput>) => {
   if (i.reservationDeadline !== undefined) p.reservation_deadline = i.reservationDeadline;
   if (i.reservationFeeAmount !== undefined) p.reservation_fee_amount = i.reservationFeeAmount;
   if (i.address !== undefined) p.address = i.address;
+  if (i.documentType !== undefined) p.document_type = i.documentType;
   if (i.documentNumber !== undefined) p.document_number = i.documentNumber;
   if (i.documentValidity !== undefined) p.document_validity = i.documentValidity;
   if (i.taxNumber !== undefined) p.tax_number = i.taxNumber;
