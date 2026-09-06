@@ -152,7 +152,7 @@ Deno.serve(async (req) => {
       lead_id: leadId,
       actor_user_id: callerId,
       kind: "form_sent",
-      payload: { email: lead.email, expires_at: row?.expires_at ?? null },
+      payload: { email: lead.email, expires_at: row?.expires_at ?? null, language: isEN ? "en" : "pt" },
     });
 
     return json({ ok: true, email: lead.email, link, message_id: sent?.id ?? null });
