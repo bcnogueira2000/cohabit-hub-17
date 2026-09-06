@@ -768,35 +768,47 @@ const Leads = () => {
                       <UserCheck className="h-4 w-4 mr-1.5" strokeWidth={1.5} /> Criar contrato
                     </Button>
                   )}
+                  {selected.status === "negotiating" && selected.email && !selected.formSubmittedAt && (
+                    <>
+                      <Button
+                        className="w-full rounded-full gradient-warm text-white mt-2"
+                        disabled={sendCandidateForm.isPending}
+                        onClick={() => {
+                          sendCandidateForm.mutate(selected.id, {
+                            onSuccess: (res) =>
+                              toast.success(`Formulário enviado para ${res.email}`),
+                            onError: (e) =>
+                              toast.error(
+                                e instanceof Error ? e.message : "Não foi possível enviar o formulário."
+                              ),
+                          });
+                        }}
+                      >
+                        <Mail className="h-4 w-4 mr-1.5" strokeWidth={1.5} />
+                        {sendCandidateForm.isPending ? "A enviar..." : "Enviar formulário de candidatura"}
+                      </Button>
+                      {bypassFormLeadId !== selected.id && (
+                        <button
+                          type="button"
+                          className="w-full text-center text-xs text-muted-foreground underline underline-offset-2 mt-2 hover:text-foreground"
+                          onClick={() => setBypassFormLeadId(selected.id)}
+                        >
+                          Já tenho os dados, avançar na mesma
+                        </button>
+                      )}
+                    </>
+                  )}
                   {selected.fullName &&
                     selected.email &&
-                    ["proposal_sent", "negotiating", "won"].includes(selected.status) && (
+                    (["proposal_sent", "won"].includes(selected.status) ||
+                      (selected.status === "negotiating" &&
+                        (!!selected.formSubmittedAt || bypassFormLeadId === selected.id))) && (
                     <Button
                       variant="outline"
                       className="w-full rounded-full mt-2"
                       onClick={() => setReservationOpen(true)}
                     >
                       <FileText className="h-4 w-4 mr-1.5" strokeWidth={1.5} /> Gerar acordo de reserva
-                    </Button>
-                  )}
-                  {selected.status === "negotiating" && selected.email && (
-                    <Button
-                      variant="outline"
-                      className="w-full rounded-full mt-2"
-                      disabled={sendCandidateForm.isPending}
-                      onClick={() => {
-                        sendCandidateForm.mutate(selected.id, {
-                          onSuccess: (res) =>
-                            toast.success(`Formulário enviado para ${res.email}`),
-                          onError: (e) =>
-                            toast.error(
-                              e instanceof Error ? e.message : "Não foi possível enviar o formulário."
-                            ),
-                        });
-                      }}
-                    >
-                      <Mail className="h-4 w-4 mr-1.5" strokeWidth={1.5} />
-                      {sendCandidateForm.isPending ? "A enviar..." : "Enviar formulário de candidatura"}
                     </Button>
                   )}
                   {selected.status === "reserved" && (
