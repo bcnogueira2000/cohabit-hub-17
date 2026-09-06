@@ -370,53 +370,81 @@ export const useCreateDepositReceipt = () => {
 // ============ Taxa de reserva ============
 
 export interface ReservationFeeRow {
-  contractId: string;
+  /** identificador único da linha (contrato ou lead) */
+  key: string;
+  source: "contract" | "lead";
+  contractId: string | null;
+  leadId: string | null;
   residentId: string | null;
   residentName: string;
   status: string;
-  startDate: string;
-  endDate: string;
+  startDate: string | null;
+  endDate: string | null;
   deadline: string | null;
   feeAmount: number;
   received: number;
   outstanding: number;
+  roomId: string | null;
+  plannedCheckIn: string | null;
+  plannedCheckOut: string | null;
 }
 
-/** Contratos com taxa de reserva definida, com o total já recebido (payments kind=booking_fee). */
+/** Contratos e leads com taxa de reserva definida, com o total já recebido (payments kind=booking_fee). */
 export const useReservationFees = () =>
   useQuery({
     queryKey: ["reservation-fees"],
     queryFn: async (): Promise<ReservationFeeRow[]> => {
-      const { data, error } = await supabase
-        .from("contracts" as any)
-        .select(
-          "id, status, start_date, end_date, resident_id, reservation_fee_amount, reservation_deadline, residents:resident_id(id, full_name)"
-        )
-        .not("reservation_fee_amount", "is", null)
-        .order("start_date", { ascending: true });
+      const [{ data: contractData, error }, { data: leadData, error: leadErr }] = await Promise.all([
+        supabase
+          .from("contracts" as any)
+          .select(
+            "id, status, start_date, end_date, resident_id, reservation_fee_amount, reservation_deadline, residents:resident_id(id, full_name)"
+          )
+          .not("reservation_fee_amount", "is", null)
+          .order("start_date", { ascending: true }),
+        supabase
+          .from("leads" as any)
+          .select(
+            "id, full_name, status, reservation_fee_amount, reservation_deadline, room_id, planned_check_in, planned_check_out, contract_id"
+          )
+          .not("reservation_fee_amount", "is", null)
+          .order("created_at", { ascending: true }),
+      ]);
       if (error) throw error;
-      const contracts = ((data ?? []) as any[]).filter(
+      if (leadErr) throw leadErr;
+
+      const contracts = ((contractData ?? []) as any[]).filter(
         (c) => Number(c.reservation_fee_amount ?? 0) > 0.005
       );
-      if (contracts.length === 0) return [];
+      const leads = ((leadData ?? []) as any[]).filter(
+        (l) =>
+          Number(l.reservation_fee_amount ?? 0) > 0.005 &&
+          !l.contract_id &&
+          !["won", "lost", "archived"].includes(l.status)
+      );
+      if (contracts.length === 0 && leads.length === 0) return [];
 
       const { data: pays, error: payErr } = await supabase
         .from("payments" as any)
-        .select("contract_id, amount")
-        .eq("kind", "booking_fee")
-        .in("contract_id", contracts.map((c) => c.id));
+        .select("contract_id, lead_id, amount")
+        .eq("kind", "booking_fee");
       if (payErr) throw payErr;
 
-      const paidMap: Record<string, number> = {};
+      const paidByContract: Record<string, number> = {};
+      const paidByLead: Record<string, number> = {};
       for (const p of ((pays ?? []) as any[])) {
-        paidMap[p.contract_id] = (paidMap[p.contract_id] ?? 0) + Number(p.amount ?? 0);
+        if (p.contract_id) paidByContract[p.contract_id] = (paidByContract[p.contract_id] ?? 0) + Number(p.amount ?? 0);
+        else if (p.lead_id) paidByLead[p.lead_id] = (paidByLead[p.lead_id] ?? 0) + Number(p.amount ?? 0);
       }
 
-      return contracts.map((c): ReservationFeeRow => {
+      const contractRows = contracts.map((c): ReservationFeeRow => {
         const feeAmount = Number(c.reservation_fee_amount ?? 0);
-        const received = paidMap[c.id] ?? 0;
+        const received = paidByContract[c.id] ?? 0;
         return {
+          key: `contract:${c.id}`,
+          source: "contract",
           contractId: c.id,
+          leadId: null,
           residentId: c.resident_id ?? null,
           residentName: c.residents?.full_name ?? "—",
           status: c.status,
@@ -426,42 +454,89 @@ export const useReservationFees = () =>
           feeAmount,
           received,
           outstanding: feeAmount - received,
+          roomId: null,
+          plannedCheckIn: null,
+          plannedCheckOut: null,
         };
       });
+
+      const leadRows = leads.map((l): ReservationFeeRow => {
+        const feeAmount = Number(l.reservation_fee_amount ?? 0);
+        const received = paidByLead[l.id] ?? 0;
+        return {
+          key: `lead:${l.id}`,
+          source: "lead",
+          contractId: null,
+          leadId: l.id,
+          residentId: null,
+          residentName: l.full_name ?? "—",
+          status: l.status,
+          startDate: l.planned_check_in ?? null,
+          endDate: l.planned_check_out ?? null,
+          deadline: l.reservation_deadline ?? null,
+          feeAmount,
+          received,
+          outstanding: feeAmount - received,
+          roomId: l.room_id ?? null,
+          plannedCheckIn: l.planned_check_in ?? null,
+          plannedCheckOut: l.planned_check_out ?? null,
+        };
+      });
+
+      return [...leadRows, ...contractRows];
     },
   });
 
-/** Pagamentos de taxa de reserva de um contrato */
-export const useBookingFeePayments = (contractId: string | undefined) =>
+/** Pagamentos de taxa de reserva de um contrato ou de uma lead */
+export const useBookingFeePayments = (ref: { contractId?: string | null; leadId?: string | null } | undefined) =>
   useQuery({
-    enabled: !!contractId,
-    queryKey: ["booking-fee-payments", contractId],
+    enabled: !!(ref?.contractId || ref?.leadId),
+    queryKey: ["booking-fee-payments", ref?.contractId ?? null, ref?.leadId ?? null],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("payments" as any)
-        .select("*")
-        .eq("contract_id", contractId!)
-        .eq("kind", "booking_fee")
-        .order("paid_at", { ascending: false });
+      let q = supabase.from("payments" as any).select("*").eq("kind", "booking_fee");
+      q = ref?.contractId ? q.eq("contract_id", ref.contractId) : q.eq("lead_id", ref!.leadId!);
+      const { data, error } = await q.order("paid_at", { ascending: false });
       if (error) throw error;
       return (data ?? []) as any[];
     },
   });
 
-/** Registar recebimento de taxa de reserva (kind=booking_fee) */
+/** Registar recebimento de taxa de reserva (kind=booking_fee). Para leads, reserva o quarto primeiro. */
 export const useCreateBookingFeePayment = () => {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (input: {
-      contractId: string;
+      contractId?: string | null;
+      leadId?: string | null;
+      roomId?: string | null;
+      checkIn?: string | null;
+      checkOut?: string | null;
       amount: number;
       paidAt: string;
       method: PaymentMethod;
       reference?: string | null;
       notes?: string | null;
     }) => {
+      let reserved = false;
+      if (input.leadId) {
+        if (!input.roomId || !input.checkIn || !input.checkOut) {
+          throw new Error(
+            "Falta o quarto ou as datas previstas nesta lead. Gera primeiro o acordo de reserva com quarto e datas."
+          );
+        }
+        const { error: rpcErr } = await supabase.rpc("reserve_room_for_lead", {
+          p_lead_id: input.leadId,
+          p_room_id: input.roomId,
+          p_check_in: input.checkIn,
+          p_check_out: input.checkOut,
+        });
+        if (rpcErr) throw new Error(rpcErr.message);
+        reserved = true;
+      }
+
       const { error } = await supabase.from("payments" as any).insert({
-        contract_id: input.contractId,
+        contract_id: input.contractId ?? null,
+        lead_id: input.leadId ?? null,
         kind: "booking_fee",
         amount: input.amount,
         paid_at: input.paidAt,
@@ -469,14 +544,23 @@ export const useCreateBookingFeePayment = () => {
         reference: input.reference?.trim() || null,
         notes: input.notes?.trim() || null,
       } as any);
-      if (error) throw error;
+      if (error) {
+        if (reserved && input.leadId) {
+          await supabase.rpc("cancel_room_reservation", { p_lead_id: input.leadId });
+        }
+        throw error;
+      }
     },
     onSuccess: (_d, input) => {
       qc.invalidateQueries({ queryKey: ["reservation-fees"] });
-      qc.invalidateQueries({ queryKey: ["booking-fee-payments", input.contractId] });
-      qc.invalidateQueries({ queryKey: ["contract", input.contractId] });
+      qc.invalidateQueries({ queryKey: ["booking-fee-payments"] });
       qc.invalidateQueries({ queryKey: ["contracts"] });
+      qc.invalidateQueries({ queryKey: ["leads"] });
+      qc.invalidateQueries({ queryKey: ["rooms"] });
+      qc.invalidateQueries({ queryKey: ["stays"] });
+      if (input.contractId) qc.invalidateQueries({ queryKey: ["contract", input.contractId] });
     },
   });
 };
+
 

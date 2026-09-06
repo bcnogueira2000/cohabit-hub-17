@@ -46,6 +46,8 @@ export interface Lead {
   documentValidity: string | null;
   taxNumber: string | null;
   roomId: string | null;
+  plannedCheckIn: string | null;
+  plannedCheckOut: string | null;
   contractGeneratedAt: string | null;
   createdAt: string;
   updatedAt: string;
@@ -87,6 +89,8 @@ export const mapLead = (r: any): Lead => ({
   documentValidity: r.document_validity ?? null,
   taxNumber: r.tax_number ?? null,
   roomId: r.room_id ?? null,
+  plannedCheckIn: r.planned_check_in ?? null,
+  plannedCheckOut: r.planned_check_out ?? null,
   contractGeneratedAt: r.contract_generated_at ?? null,
   createdAt: r.created_at,
   updatedAt: r.updated_at,
@@ -126,6 +130,8 @@ export interface LeadInput {
   documentValidity?: string | null;
   taxNumber?: string | null;
   roomId?: string | null;
+  plannedCheckIn?: string | null;
+  plannedCheckOut?: string | null;
   contractGeneratedAt?: string | null;
 }
 
@@ -165,6 +171,8 @@ const toDbPatch = (i: Partial<LeadInput>) => {
   if (i.documentValidity !== undefined) p.document_validity = i.documentValidity;
   if (i.taxNumber !== undefined) p.tax_number = i.taxNumber;
   if (i.roomId !== undefined) p.room_id = i.roomId;
+  if (i.plannedCheckIn !== undefined) p.planned_check_in = i.plannedCheckIn;
+  if (i.plannedCheckOut !== undefined) p.planned_check_out = i.plannedCheckOut;
   if (i.contractGeneratedAt !== undefined) p.contract_generated_at = i.contractGeneratedAt;
 
   return p;

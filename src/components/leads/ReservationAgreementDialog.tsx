@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { FileText, Loader2 } from "lucide-react";
 import { toast } from "sonner";
-import { useUpdateLead, useReserveRoomForLead, type Lead } from "@/hooks/useLeads";
+import { useUpdateLead, type Lead } from "@/hooks/useLeads";
 import { generateReservationDocx } from "@/lib/generateReservationDocx";
 import { RoomCombobox } from "@/components/rooms/RoomCombobox";
 import { useRooms } from "@/hooks/useData";
@@ -30,7 +30,6 @@ const Field = ({
 
 export const ReservationAgreementDialog = ({ lead, open, onOpenChange }: Props) => {
   const updateLead = useUpdateLead();
-  const reserveRoom = useReserveRoomForLead();
   const { data: rooms = [] } = useRooms();
   const [roomId, setRoomId] = useState("");
   const [checkIn, setCheckIn] = useState("");
@@ -52,8 +51,8 @@ export const ReservationAgreementDialog = ({ lead, open, onOpenChange }: Props) 
     setDocumentValidity(lead.documentValidity ?? "");
     setTaxNumber(lead.taxNumber ?? "");
     setRoomId(lead.roomId ?? "");
-    setCheckIn("");
-    setCheckOut("");
+    setCheckIn(lead.plannedCheckIn ?? "");
+    setCheckOut(lead.plannedCheckOut ?? "");
   }, [open, lead]);
 
   // Estadias que ocupam quartos no período escolhido (confirmadas ou em curso)
@@ -113,10 +112,12 @@ export const ReservationAgreementDialog = ({ lead, open, onOpenChange }: Props) 
     }
     setBusy(true);
     try {
-      await reserveRoom.mutateAsync({ leadId: lead.id, roomId, checkIn, checkOut });
       await updateLead.mutateAsync({
         id: lead.id,
         patch: {
+          roomId,
+          plannedCheckIn: checkIn,
+          plannedCheckOut: checkOut,
           reservationDeadline: deadline,
           reservationFeeAmount: feeNumber,
           address: address.trim(),
@@ -127,7 +128,7 @@ export const ReservationAgreementDialog = ({ lead, open, onOpenChange }: Props) 
       });
       const doc = await generateReservationDocx(lead.id);
       if (doc.signedUrl) window.open(doc.signedUrl, "_blank");
-      toast.success("Quarto reservado e acordo gerado");
+      toast.success("Acordo gerado. O quarto só fica reservado após o pagamento da taxa.");
       onOpenChange(false);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Não foi possível gerar o acordo de reserva.");
@@ -136,13 +137,14 @@ export const ReservationAgreementDialog = ({ lead, open, onOpenChange }: Props) 
     }
   };
 
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle className="font-display">Acordo de reserva</DialogTitle>
           <DialogDescription>
-            Escolhe o quarto e as datas. O quarto é reservado antes de gerar o documento.
+            Escolhe o quarto e as datas previstas. O quarto só fica reservado quando a taxa for paga.
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-1">
@@ -217,7 +219,7 @@ export const ReservationAgreementDialog = ({ lead, open, onOpenChange }: Props) 
             ) : (
               <FileText className="h-4 w-4 mr-1.5" strokeWidth={1.5} />
             )}
-            Reservar e gerar
+            Gerar acordo
           </Button>
         </DialogFooter>
       </DialogContent>

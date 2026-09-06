@@ -1148,7 +1148,8 @@ const DepositReceiptSheet = ({ deposit, onClose }: { deposit: DepositRow | null;
 const ReservationFeesSection = () => {
   const { data: fees = [], isLoading } = useReservationFees();
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const selected = fees.find((f) => f.contractId === selectedId) ?? null;
+  const selected = fees.find((f) => f.key === selectedId) ?? null;
+
 
   const totals = useMemo(
     () => ({
@@ -1189,16 +1190,17 @@ const ReservationFeesSection = () => {
           <FileText className="h-10 w-10 text-muted-foreground mx-auto mb-3" strokeWidth={1.5} />
           <p className="font-medium">Sem taxas de reserva</p>
           <p className="text-sm text-muted-foreground mt-1">
-            Aparecem aqui os contratos com taxa de reserva definida.
+            Aparecem aqui os contratos e as candidaturas com taxa de reserva definida.
           </p>
+
         </Card>
       ) : (
         <Card className="border-border/60 shadow-card overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-border text-left text-xs uppercase tracking-wider text-muted-foreground">
-                <th className="px-4 py-3 font-medium">Residente</th>
-                <th className="px-4 py-3 font-medium">Contrato</th>
+                <th className="px-4 py-3 font-medium">Nome</th>
+                <th className="px-4 py-3 font-medium">Origem</th>
                 <th className="px-4 py-3 font-medium">Prazo</th>
                 <th className="px-4 py-3 font-medium text-right">Taxa</th>
                 <th className="px-4 py-3 font-medium">Estado</th>
@@ -1211,7 +1213,7 @@ const ReservationFeesSection = () => {
               {fees.map((f) => {
                 const missing = Math.max(f.outstanding, 0);
                 return (
-                  <tr key={f.contractId} className="border-b border-border/50 last:border-0 hover:bg-accent/30 transition-smooth">
+                  <tr key={f.key} className="border-b border-border/50 last:border-0 hover:bg-accent/30 transition-smooth">
                     <td className="px-4 py-3">
                       {f.residentId ? (
                         <Link to={`/residents/${f.residentId}`} className="font-medium hover:underline">
@@ -1222,15 +1224,22 @@ const ReservationFeesSection = () => {
                       )}
                     </td>
                     <td className="px-4 py-3">
-                      <Link
-                        to={`/finance/contracts/${f.contractId}`}
-                        className="inline-flex items-center gap-1 hover:underline"
-                      >
-                        {fmtDate(f.startDate)} – {fmtDate(f.endDate)}
-                        <ExternalLink className="h-3 w-3" strokeWidth={1.5} />
-                      </Link>
+                      {f.source === "contract" ? (
+                        <Link
+                          to={`/finance/contracts/${f.contractId}`}
+                          className="inline-flex items-center gap-1 hover:underline"
+                        >
+                          {fmtDate(f.startDate)} – {fmtDate(f.endDate)}
+                          <ExternalLink className="h-3 w-3" strokeWidth={1.5} />
+                        </Link>
+                      ) : (
+                        <Link to="/leads" className="inline-flex items-center gap-1 hover:underline">
+                          {f.plannedCheckIn ? `${fmtDate(f.startDate)} – ${fmtDate(f.endDate)}` : "Datas a definir"}
+                          <ExternalLink className="h-3 w-3" strokeWidth={1.5} />
+                        </Link>
+                      )}
                       <Badge variant="secondary" className="ml-2 rounded-full text-[11px]">
-                        {statusLabels[f.status] ?? f.status}
+                        {f.source === "lead" ? "Candidatura" : statusLabels[f.status] ?? f.status}
                       </Badge>
                     </td>
                     <td className="px-4 py-3 text-muted-foreground">{fmtDate(f.deadline)}</td>
@@ -1247,13 +1256,14 @@ const ReservationFeesSection = () => {
                       {eur(missing)}
                     </td>
                     <td className="px-4 py-3 text-right">
-                      <Button size="sm" variant="outline" className="rounded-full" onClick={() => setSelectedId(f.contractId)}>
+                      <Button size="sm" variant="outline" className="rounded-full" onClick={() => setSelectedId(f.key)}>
                         {missing > 0.005 ? "Registar recebimento" : "Ver"}
                       </Button>
                     </td>
                   </tr>
                 );
               })}
+
             </tbody>
           </table>
         </Card>
@@ -1266,7 +1276,10 @@ const ReservationFeesSection = () => {
 
 const ReservationFeeSheet = ({ fee, onClose }: { fee: ReservationFeeRow | null; onClose: () => void }) => {
   const create = useCreateBookingFeePayment();
-  const { data: payments = [] } = useBookingFeePayments(fee?.contractId);
+  const { data: payments = [] } = useBookingFeePayments(
+    fee ? { contractId: fee.contractId, leadId: fee.leadId } : undefined
+  );
+
   const [amount, setAmount] = useState("");
   const [paidAt, setPaidAt] = useState(todayISO());
   const [method, setMethod] = useState<PaymentMethod>("transfer");
@@ -1291,12 +1304,20 @@ const ReservationFeeSheet = ({ fee, onClose }: { fee: ReservationFeeRow | null; 
     try {
       await create.mutateAsync({
         contractId: fee.contractId,
+        leadId: fee.leadId,
+        roomId: fee.roomId,
+        checkIn: fee.plannedCheckIn,
+        checkOut: fee.plannedCheckOut,
         amount: value,
         paidAt,
         method,
         reference,
       });
-      toast({ title: "Taxa de reserva registada" });
+      toast({
+        title: "Taxa de reserva registada",
+        description: fee.source === "lead" ? "O quarto ficou reservado para esta candidatura." : undefined,
+      });
+
       reset();
       onClose();
     } catch (e: any) {
@@ -1341,6 +1362,14 @@ const ReservationFeeSheet = ({ fee, onClose }: { fee: ReservationFeeRow | null; 
             <div className="mt-3 text-xs text-muted-foreground">
               Prazo de reserva: {fmtDate(fee.deadline)}
             </div>
+            {fee.source === "lead" && (
+              <div className="mt-2 text-xs text-muted-foreground">
+                {fee.roomId && fee.plannedCheckIn && fee.plannedCheckOut
+                  ? `Ao registar o pagamento, o quarto é reservado de ${fmtDate(fee.plannedCheckIn)} a ${fmtDate(fee.plannedCheckOut)}.`
+                  : "Falta escolher quarto e datas no acordo de reserva antes de registar o pagamento."}
+              </div>
+            )}
+
 
             {missing > 0.005 && (
               <div className="mt-6 space-y-3">
@@ -1419,10 +1448,17 @@ const ReservationFeeSheet = ({ fee, onClose }: { fee: ReservationFeeRow | null; 
             </div>
 
             <div className="mt-6">
-              <Link to={`/finance/contracts/${fee.contractId}`} className="inline-flex items-center gap-1 text-sm hover:underline">
-                Ver contrato <ExternalLink className="h-3.5 w-3.5" strokeWidth={1.5} />
-              </Link>
+              {fee.source === "contract" ? (
+                <Link to={`/finance/contracts/${fee.contractId}`} className="inline-flex items-center gap-1 text-sm hover:underline">
+                  Ver contrato <ExternalLink className="h-3.5 w-3.5" strokeWidth={1.5} />
+                </Link>
+              ) : (
+                <Link to="/leads" className="inline-flex items-center gap-1 text-sm hover:underline">
+                  Ver candidaturas <ExternalLink className="h-3.5 w-3.5" strokeWidth={1.5} />
+                </Link>
+              )}
             </div>
+
           </>
         )}
       </SheetContent>

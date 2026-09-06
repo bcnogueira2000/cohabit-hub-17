@@ -428,6 +428,8 @@ export type Database = {
           next_action_date: string | null
           notes: string | null
           phone: string | null
+          planned_check_in: string | null
+          planned_check_out: string | null
           postal_code: string | null
           preferred_move_in: string | null
           preferred_room_type: string | null
@@ -475,6 +477,8 @@ export type Database = {
           next_action_date?: string | null
           notes?: string | null
           phone?: string | null
+          planned_check_in?: string | null
+          planned_check_out?: string | null
           postal_code?: string | null
           preferred_move_in?: string | null
           preferred_room_type?: string | null
@@ -522,6 +526,8 @@ export type Database = {
           next_action_date?: string | null
           notes?: string | null
           phone?: string | null
+          planned_check_in?: string | null
+          planned_check_out?: string | null
           postal_code?: string | null
           preferred_move_in?: string | null
           preferred_room_type?: string | null
@@ -848,10 +854,11 @@ export type Database = {
       payments: {
         Row: {
           amount: number
-          contract_id: string
+          contract_id: string | null
           created_at: string
           id: string
           kind: Database["public"]["Enums"]["payment_kind"]
+          lead_id: string | null
           method: Database["public"]["Enums"]["payment_method"] | null
           notes: string | null
           paid_at: string
@@ -860,10 +867,11 @@ export type Database = {
         }
         Insert: {
           amount: number
-          contract_id: string
+          contract_id?: string | null
           created_at?: string
           id?: string
           kind?: Database["public"]["Enums"]["payment_kind"]
+          lead_id?: string | null
           method?: Database["public"]["Enums"]["payment_method"] | null
           notes?: string | null
           paid_at?: string
@@ -872,10 +880,11 @@ export type Database = {
         }
         Update: {
           amount?: number
-          contract_id?: string
+          contract_id?: string | null
           created_at?: string
           id?: string
           kind?: Database["public"]["Enums"]["payment_kind"]
+          lead_id?: string | null
           method?: Database["public"]["Enums"]["payment_method"] | null
           notes?: string | null
           paid_at?: string
@@ -895,6 +904,13 @@ export type Database = {
             columns: ["contract_id"]
             isOneToOne: false
             referencedRelation: "contracts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payments_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
             referencedColumns: ["id"]
           },
           {
