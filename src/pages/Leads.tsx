@@ -117,6 +117,7 @@ const Leads = () => {
   const [owner, setOwner] = useState("all");
   const [selected, setSelected] = useState<Lead | null>(null);
   const [reservationOpen, setReservationOpen] = useState(false);
+  const [bypassFormLeadId, setBypassFormLeadId] = useState<string | null>(null);
   const [giveUpBusy, setGiveUpBusy] = useState(false);
   const [leadContractOpen, setLeadContractOpen] = useState(false);
   const [signBusy, setSignBusy] = useState(false);
