@@ -67,7 +67,7 @@ Deno.serve(async (req) => {
 
     const { data: lead, error: leadErr } = await admin
       .from("leads")
-      .select("id, full_name, short_name, email")
+      .select("id, full_name, short_name, email, language")
       .eq("id", leadId)
       .maybeSingle();
     if (leadErr) return json({ error: leadErr.message }, 500);
@@ -84,16 +84,41 @@ Deno.serve(async (req) => {
     if (!token) return json({ error: "Não foi possível gerar o link" }, 500);
 
     const link = `${FORM_BASE_URL}/candidatura/${token}`;
-    const greeting = (lead.short_name || lead.full_name || "").split(" ")[0] || "Olá";
+    const firstName = (lead.short_name || lead.full_name || "").split(" ")[0] || "";
+    const isEN = String(lead.language ?? "").trim().toLowerCase() === "en";
+
+    const copy = isEN
+      ? {
+          subject: "Application form — Living Colours",
+          greeting: firstName ? `Hi ${firstName},` : "Hi,",
+          intro:
+            "To move forward with your application, please fill in the form below with your details.",
+          cta: "Fill in the form",
+          fallback:
+            "If the button doesn't work, copy this address into your browser:",
+          validity: "This link is personal and valid for 14 days.",
+          signoff: "Thank you,<br />The Living Colours team",
+        }
+      : {
+          subject: "Formulário de candidatura — Living Colours",
+          greeting: firstName ? `Olá ${firstName},` : "Olá,",
+          intro:
+            "Para avançarmos com a tua candidatura, pedimos que preenchas o formulário abaixo com os teus dados.",
+          cta: "Preencher formulário",
+          fallback:
+            "Se o botão não funcionar, copia este endereço para o navegador:",
+          validity: "Este link é pessoal e é válido durante 14 dias.",
+          signoff: "Obrigado,<br />Equipa Living Colours",
+        };
 
     const html = `
       <div style="font-family: Arial, Helvetica, sans-serif; font-size: 15px; color: #1f2937; line-height: 1.6;">
-        <p>Olá ${greeting},</p>
-        <p>Para avançarmos com a tua candidatura, pedimos que preenchas o formulário abaixo com os teus dados.</p>
-        <p><a href="${link}" style="display:inline-block;padding:12px 20px;background:#1f6f6b;color:#ffffff;border-radius:9999px;text-decoration:none;">Preencher formulário</a></p>
-        <p style="font-size:13px;color:#6b7280;">Se o botão não funcionar, copia este endereço para o navegador:<br />${link}</p>
-        <p style="font-size:13px;color:#6b7280;">Este link é pessoal e é válido durante 14 dias.</p>
-        <p>Obrigado,<br />Equipa Living Colours</p>
+        <p>${copy.greeting}</p>
+        <p>${copy.intro}</p>
+        <p><a href="${link}" style="display:inline-block;padding:12px 20px;background:#1f6f6b;color:#ffffff;border-radius:9999px;text-decoration:none;">${copy.cta}</a></p>
+        <p style="font-size:13px;color:#6b7280;">${copy.fallback}<br />${link}</p>
+        <p style="font-size:13px;color:#6b7280;">${copy.validity}</p>
+        <p>${copy.signoff}</p>
       </div>
     `;
 
@@ -106,10 +131,11 @@ Deno.serve(async (req) => {
       body: JSON.stringify({
         from: FROM_EMAIL,
         to: [lead.email],
-        subject: "Formulário de candidatura — Living Colours",
+        subject: copy.subject,
         html,
       }),
     });
+
 
     if (!resendRes.ok) {
       const details = await resendRes.text();
@@ -126,7 +152,7 @@ Deno.serve(async (req) => {
       lead_id: leadId,
       actor_user_id: callerId,
       kind: "form_sent",
-      payload: { email: lead.email, expires_at: row?.expires_at ?? null },
+      payload: { email: lead.email, expires_at: row?.expires_at ?? null, language: isEN ? "en" : "pt" },
     });
 
     return json({ ok: true, email: lead.email, link, message_id: sent?.id ?? null });
