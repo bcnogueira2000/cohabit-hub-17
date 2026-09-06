@@ -188,6 +188,13 @@
     color: var(--charcoal);
     background-color: var(--cream);
   }
+.lc-form input[type="date"]::-webkit-date-and-time-value {
+    text-align: left;
+    font-family: 'General Sans', Arial, Helvetica, sans-serif;
+    font-size: 15px;
+    line-height: 1.5;
+    color: var(--charcoal);
+  }
 .lc-form input::placeholder, .lc-form textarea::placeholder { color: #A6A196; }
 .lc-form input:focus, .lc-form select:focus, .lc-form textarea:focus {
     outline: none;
