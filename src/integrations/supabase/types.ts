@@ -1755,9 +1755,27 @@ export type Database = {
         Returns: number
       }
       generate_finance_alerts: { Args: never; Returns: number }
+      generate_lead_form_token: {
+        Args: { p_lead_id: string }
+        Returns: {
+          expires_at: string
+          token: string
+        }[]
+      }
       generate_rent_charges: {
         Args: { p_contract_id: string }
         Returns: number
+      }
+      get_lead_form_data: {
+        Args: { p_token: string }
+        Returns: {
+          address: string
+          email: string
+          form_submitted_at: string
+          full_name: string
+          nationality: string
+          phone: string
+        }[]
       }
       has_role: {
         Args: {
@@ -1794,6 +1812,10 @@ export type Database = {
         Returns: string
       }
       stay_daterange: { Args: { _in: string; _out: string }; Returns: unknown }
+      submit_lead_form: {
+        Args: { p_data: Json; p_token: string }
+        Returns: string
+      }
     }
     Enums: {
       account_status: "pending_approval" | "active" | "rejected" | "disabled"
