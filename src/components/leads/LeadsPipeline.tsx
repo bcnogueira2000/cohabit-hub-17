@@ -237,6 +237,11 @@ export const LeadsPipeline = ({
                       <CheckCircle2 className="h-3 w-3" strokeWidth={1.5} /> Convertido
                     </Badge>
                   )}
+                  {l.formSubmittedAt && (
+                    <Badge variant="outline" className="bg-info/10 text-info border-info/30 gap-1">
+                      <CheckCircle2 className="h-3 w-3" strokeWidth={1.5} /> Formulário
+                    </Badge>
+                  )}
 
                 </div>
                 <div className="font-display text-sm font-semibold truncate">{l.fullName}</div>

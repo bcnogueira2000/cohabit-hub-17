@@ -1,0 +1,1 @@
+REVOKE EXECUTE ON FUNCTION public.notify_staff_form_submitted() FROM anon, authenticated, PUBLIC;
