@@ -1199,8 +1199,8 @@ const ReservationFeesSection = () => {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-border text-left text-xs uppercase tracking-wider text-muted-foreground">
-                <th className="px-4 py-3 font-medium">Residente</th>
-                <th className="px-4 py-3 font-medium">Contrato</th>
+                <th className="px-4 py-3 font-medium">Nome</th>
+                <th className="px-4 py-3 font-medium">Origem</th>
                 <th className="px-4 py-3 font-medium">Prazo</th>
                 <th className="px-4 py-3 font-medium text-right">Taxa</th>
                 <th className="px-4 py-3 font-medium">Estado</th>
@@ -1213,7 +1213,7 @@ const ReservationFeesSection = () => {
               {fees.map((f) => {
                 const missing = Math.max(f.outstanding, 0);
                 return (
-                  <tr key={f.contractId} className="border-b border-border/50 last:border-0 hover:bg-accent/30 transition-smooth">
+                  <tr key={f.key} className="border-b border-border/50 last:border-0 hover:bg-accent/30 transition-smooth">
                     <td className="px-4 py-3">
                       {f.residentId ? (
                         <Link to={`/residents/${f.residentId}`} className="font-medium hover:underline">
@@ -1224,15 +1224,22 @@ const ReservationFeesSection = () => {
                       )}
                     </td>
                     <td className="px-4 py-3">
-                      <Link
-                        to={`/finance/contracts/${f.contractId}`}
-                        className="inline-flex items-center gap-1 hover:underline"
-                      >
-                        {fmtDate(f.startDate)} – {fmtDate(f.endDate)}
-                        <ExternalLink className="h-3 w-3" strokeWidth={1.5} />
-                      </Link>
+                      {f.source === "contract" ? (
+                        <Link
+                          to={`/finance/contracts/${f.contractId}`}
+                          className="inline-flex items-center gap-1 hover:underline"
+                        >
+                          {fmtDate(f.startDate)} – {fmtDate(f.endDate)}
+                          <ExternalLink className="h-3 w-3" strokeWidth={1.5} />
+                        </Link>
+                      ) : (
+                        <Link to="/leads" className="inline-flex items-center gap-1 hover:underline">
+                          {f.plannedCheckIn ? `${fmtDate(f.startDate)} – ${fmtDate(f.endDate)}` : "Datas a definir"}
+                          <ExternalLink className="h-3 w-3" strokeWidth={1.5} />
+                        </Link>
+                      )}
                       <Badge variant="secondary" className="ml-2 rounded-full text-[11px]">
-                        {statusLabels[f.status] ?? f.status}
+                        {f.source === "lead" ? "Candidatura" : statusLabels[f.status] ?? f.status}
                       </Badge>
                     </td>
                     <td className="px-4 py-3 text-muted-foreground">{fmtDate(f.deadline)}</td>
@@ -1249,13 +1256,14 @@ const ReservationFeesSection = () => {
                       {eur(missing)}
                     </td>
                     <td className="px-4 py-3 text-right">
-                      <Button size="sm" variant="outline" className="rounded-full" onClick={() => setSelectedId(f.contractId)}>
+                      <Button size="sm" variant="outline" className="rounded-full" onClick={() => setSelectedId(f.key)}>
                         {missing > 0.005 ? "Registar recebimento" : "Ver"}
                       </Button>
                     </td>
                   </tr>
                 );
               })}
+
             </tbody>
           </table>
         </Card>
