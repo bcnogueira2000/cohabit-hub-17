@@ -962,6 +962,84 @@ const Leads = () => {
   );
 };
 
+const CandidateFormData = ({ lead }: { lead: Lead | null }) => {
+  if (!lead) return null;
+  const isStudent = lead.profile === "student";
+  const fullAddress = [lead.address, [lead.postalCode, lead.city].filter(Boolean).join(" ")]
+    .filter((v) => v && String(v).trim() !== "")
+    .join(", ");
+  const values = [
+    lead.dateOfBirth,
+    lead.documentType,
+    lead.documentNumber,
+    lead.documentValidity,
+    fullAddress,
+    lead.employerOrSchool,
+    lead.course,
+    lead.courseDuration,
+    lead.jobTitle,
+    lead.emergencyContactName,
+    lead.emergencyContactRelation,
+    lead.emergencyContactPhone,
+    lead.emergencyContactEmail,
+    lead.candidateComments,
+  ];
+  if (!values.some((v) => v && String(v).trim() !== "")) return null;
+
+  return (
+    <Section title="Dados da candidatura">
+      <div className="grid grid-cols-2 gap-3">
+        <Field label="Data de nascimento" value={lead.dateOfBirth ? fmtDate(lead.dateOfBirth) : null} />
+        <Field label="Tipo de documento" value={lead.documentType} />
+        <Field label="Nº do documento" value={lead.documentNumber} />
+        <Field label="Validade do documento" value={lead.documentValidity ? fmtDate(lead.documentValidity) : null} />
+      </div>
+
+      {fullAddress && (
+        <div className="grid grid-cols-1 gap-3">
+          <Field label="Morada" value={fullAddress} />
+        </div>
+      )}
+
+      <div className="grid grid-cols-2 gap-3">
+        <Field
+          label={isStudent ? "Instituição de ensino" : "Local de trabalho"}
+          value={lead.employerOrSchool}
+        />
+        {isStudent ? (
+          <>
+            <Field label="Curso" value={lead.course} />
+            <Field label="Duração do curso" value={lead.courseDuration} />
+          </>
+        ) : (
+          <Field label="Função" value={lead.jobTitle} />
+        )}
+      </div>
+
+      {(lead.emergencyContactName ||
+        lead.emergencyContactRelation ||
+        lead.emergencyContactPhone ||
+        lead.emergencyContactEmail) && (
+        <div className="rounded-xl bg-muted/50 p-3 grid grid-cols-2 gap-3">
+          <Field label="Contacto de emergência" value={lead.emergencyContactName} />
+          <Field label="Relação" value={lead.emergencyContactRelation} />
+          <Field label="Telefone" value={lead.emergencyContactPhone} />
+          <Field label="Email" value={lead.emergencyContactEmail} />
+        </div>
+      )}
+
+      {lead.candidateComments && (
+        <div className="rounded-xl bg-muted/50 p-3 text-sm">
+          <div className="text-[11px] uppercase tracking-wide text-muted-foreground mb-1">
+            Comentários do candidato
+          </div>
+          {lead.candidateComments}
+        </div>
+      )}
+    </Section>
+  );
+};
+
 const LeadDocuments = ({ leadId }: { leadId: string }) => {
   const { data: docs } = useLeadDocuments(leadId);
   const fmt = (iso: string) =>
