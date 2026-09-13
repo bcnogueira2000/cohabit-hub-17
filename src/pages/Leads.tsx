@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Search, Clock, User as UserIcon, X, ChevronDown, Trash2, LayoutList, Columns3, AlertTriangle, UserCheck, Mail, CheckCircle2, ArrowRight, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -124,7 +124,13 @@ const Leads = () => {
   const [query, setQuery] = useState("");
   const [source, setSource] = useState("all");
   const [owner, setOwner] = useState("all");
-  const [selected, setSelected] = useState<Lead | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  /** Derivado da lista (fonte única de verdade) — reflete sempre os dados frescos. */
+  const selected = useMemo(
+    () => leads.find((l) => l.id === selectedId) ?? null,
+    [leads, selectedId]
+  );
+  const setSelected = useCallback((lead: Lead | null) => setSelectedId(lead?.id ?? null), []);
   const [reservationOpen, setReservationOpen] = useState(false);
   const [bypassFormLeadId, setBypassFormLeadId] = useState<string | null>(null);
   const [giveUpBusy, setGiveUpBusy] = useState(false);
@@ -624,7 +630,6 @@ const Leads = () => {
                         { id: selected.id, patch },
                         {
                           onSuccess: () => {
-                            setSelected((prev) => (prev ? { ...prev, ...patch } : null));
                             toast.success("Dados pessoais atualizados");
                           },
                           onError: (error) =>
@@ -752,15 +757,6 @@ const Leads = () => {
                         { id: selected.id, patch },
                         {
                           onSuccess: () => {
-                            setSelected((prev) =>
-                              prev
-                                ? {
-                                    ...prev,
-                                    ...patch,
-                                    assignedTo: patch.assignedTo ?? null,
-                                  }
-                                : null
-                            );
                             toast.success("Lead atualizado");
                           },
                         }
@@ -951,7 +947,7 @@ const Leads = () => {
               payload: { stay_id: stayId, contract_id: contractId },
             } as any);
             qc.invalidateQueries({ queryKey: ["lead_activity", leadId] });
-            setSelected((prev) => (prev ? { ...prev, stayId, contractId } : null));
+            
             toast.success("Lead convertida — contrato criado");
             navigate(`/finance/contracts/${contractId}`);
           }}
