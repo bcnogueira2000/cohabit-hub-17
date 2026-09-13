@@ -630,7 +630,6 @@ const Leads = () => {
                         { id: selected.id, patch },
                         {
                           onSuccess: () => {
-                            setSelected((prev) => (prev ? { ...prev, ...patch } : null));
                             toast.success("Dados pessoais atualizados");
                           },
                           onError: (error) =>
