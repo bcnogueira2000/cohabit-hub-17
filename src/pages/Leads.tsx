@@ -124,7 +124,13 @@ const Leads = () => {
   const [query, setQuery] = useState("");
   const [source, setSource] = useState("all");
   const [owner, setOwner] = useState("all");
-  const [selected, setSelected] = useState<Lead | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  /** Derivado da lista (fonte única de verdade) — reflete sempre os dados frescos. */
+  const selected = useMemo(
+    () => leads.find((l) => l.id === selectedId) ?? null,
+    [leads, selectedId]
+  );
+  const setSelected = useCallback((lead: Lead | null) => setSelectedId(lead?.id ?? null), []);
   const [reservationOpen, setReservationOpen] = useState(false);
   const [bypassFormLeadId, setBypassFormLeadId] = useState<string | null>(null);
   const [giveUpBusy, setGiveUpBusy] = useState(false);
