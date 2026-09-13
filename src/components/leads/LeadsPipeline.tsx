@@ -41,6 +41,7 @@ export const AwaitingSignatureBadge = () => (
 export const today = () => new Date().toISOString().slice(0, 10);
 
 const rank = (l: Lead) => {
+  if (l.status === "new") return -1;
   const t = today();
   if (!l.nextActionDate) return 3;
   const d = l.nextActionDate.slice(0, 10);
@@ -53,7 +54,7 @@ export const sortByUrgency = (a: Lead, b: Lead) => {
   const ra = rank(a);
   const rb = rank(b);
   if (ra !== rb) return ra - rb;
-  if (ra === 3) return b.createdAt.localeCompare(a.createdAt);
+  if (ra === 3 || ra === -1) return b.createdAt.localeCompare(a.createdAt);
   return (a.nextActionDate || "").localeCompare(b.nextActionDate || "");
 };
 
