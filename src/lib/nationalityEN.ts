@@ -69,7 +69,6 @@ const MAP: Record<string, string> = {
   iraniana: "Iranian",
   libanesa: "Lebanese",
   timorense: "Timorese",
-  "guineense": "Guinean",
 };
 
 const normalize = (s: string): string =>
