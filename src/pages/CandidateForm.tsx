@@ -51,6 +51,7 @@ const I18N: Record<Lang, Record<string, string>> = {
     dzHint:
       "Anexa obrigatoriamente uma cópia do teu cartão de cidadão ou passaporte. Se tiveres, podes também anexar comprovativo de matrícula ou de vínculo laboral, e comprovativo de NIF.",
     dzError: "Precisamos de pelo menos um documento.",
+    dzTooLarge: "O ficheiro {name} ultrapassa o limite de 10 MB.",
     removeLabel: "Remover",
     commentsPlaceholder: "Há alguma coisa que devêssemos saber?",
     gdprText:
@@ -109,6 +110,7 @@ const I18N: Record<Lang, Record<string, string>> = {
     dzHint:
       "Please attach a copy of your ID card or passport (required). If available, you can also attach proof of enrollment or employment, and proof of tax number.",
     dzError: "We need at least one document.",
+    dzTooLarge: "The file {name} exceeds the 10 MB limit.",
     removeLabel: "Remove",
     commentsPlaceholder: "Anything else we should know?",
     gdprText:
@@ -203,13 +205,18 @@ const formatSize = (bytes: number) => {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 };
 
-const fileToBase64 = (file: File) =>
-  new Promise<string>((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(String(reader.result).split(",").pop() ?? "");
-    reader.onerror = () => reject(new Error("Não foi possível ler o ficheiro"));
-    reader.readAsDataURL(file);
-  });
+const MAX_FILE_BYTES = 10 * 1024 * 1024;
+
+const functionErrorMessage = async (error: unknown) => {
+  if (error && typeof error === "object" && "context" in error) {
+    const response = (error as { context?: Response }).context;
+    if (response) {
+      const body = await response.clone().json().catch(() => null) as { error?: string } | null;
+      if (body?.error) return body.error;
+    }
+  }
+  return error instanceof Error ? error.message : "Erro inesperado";
+};
 
 const CandidateForm = () => {
   const { token = "" } = useParams();
@@ -221,6 +228,7 @@ const CandidateForm = () => {
   const [noTax, setNoTax] = useState(false);
   const [files, setFiles] = useState<File[]>([]);
   const [fileError, setFileError] = useState(false);
+  const [fileSizeError, setFileSizeError] = useState<string | null>(null);
   const [dob, setDob] = useState("");
   const [docValidity, setDocValidity] = useState("");
   const [dateError, setDateError] = useState(false);
@@ -277,13 +285,21 @@ const CandidateForm = () => {
     if (!list) return;
     const accepted = ["pdf", "jpg", "jpeg"];
     const next = [...files];
+    let oversizedName: string | null = null;
     Array.from(list).forEach((f) => {
       const ext = f.name.split(".").pop()?.toLowerCase() ?? "";
       if (!accepted.includes(ext)) return;
+      if (f.size > MAX_FILE_BYTES) {
+        oversizedName ??= f.name;
+        return;
+      }
       if (next.some((x) => x.name === f.name && x.size === f.size)) return;
       next.push(f);
     });
     setFiles(next);
+    setFileSizeError(
+      oversizedName ? t.dzTooLarge.replace("{name}", oversizedName) : null,
+    );
     if (next.length) setFileError(false);
   };
 
@@ -340,16 +356,41 @@ const CandidateForm = () => {
 
     try {
       for (const file of files) {
-        const base64 = await fileToBase64(file);
-        const { error: upErr } = await supabase.functions.invoke("upload-lead-document", {
+        const fileType = file.type || (file.name.toLowerCase().endsWith(".pdf") ? "application/pdf" : "image/jpeg");
+        const { data: signedUpload, error: prepareError } = await supabase.functions.invoke(
+          "create-lead-document-upload",
+          {
           body: {
             token,
             file_name: file.name,
-            file_type: file.type || "application/octet-stream",
-            file_content_base64: base64,
+              file_type: fileType,
+            },
           },
-        });
-        if (upErr) throw new Error(upErr.message);
+        );
+        if (prepareError) throw new Error(await functionErrorMessage(prepareError));
+        if (!signedUpload?.path || !signedUpload?.upload_token) {
+          throw new Error(lang === "pt" ? "Não foi possível preparar o envio." : "Could not prepare the upload.");
+        }
+
+        const { error: uploadError } = await supabase.storage
+          .from("lead-documents")
+          .uploadToSignedUrl(signedUpload.path, signedUpload.upload_token, file, {
+            contentType: fileType,
+          });
+        if (uploadError) throw new Error(uploadError.message);
+
+        const { error: registerError } = await supabase.functions.invoke(
+          "register-lead-document-upload",
+          {
+            body: {
+              token,
+              file_name: file.name,
+              file_type: fileType,
+              storage_path: signedUpload.path,
+            },
+          },
+        );
+        if (registerError) throw new Error(await functionErrorMessage(registerError));
       }
 
       const { error: subErr } = await supabase.rpc("submit_lead_form", {
@@ -869,6 +910,7 @@ const CandidateForm = () => {
               />
             </div>
             <p className={`field-error${fileError ? " show" : ""}`}>{t.dzError}</p>
+            <p className={`field-error${fileSizeError ? " show" : ""}`}>{fileSizeError}</p>
 
             <ul className="file-list">
               {files.map((f, i) => (
