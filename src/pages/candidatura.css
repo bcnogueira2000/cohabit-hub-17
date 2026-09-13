@@ -179,33 +179,7 @@
     transition: border-color .15s ease, background-color .15s ease;
   }
 .lc-form textarea { resize: vertical; min-height: 90px; font-family: inherit; }
-.lc-form .lc-date-trigger {
-    font-family: 'General Sans', Arial, Helvetica, sans-serif;
-    font-size: 15px;
-    line-height: 1.5;
-    color: var(--charcoal);
-    background: var(--cream);
-    border: 1.5px solid transparent;
-    border-radius: 9px;
-    padding: 11px 13px;
-    width: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-    text-align: left;
-    cursor: pointer;
-    -webkit-appearance: none;
-    appearance: none;
-    transition: border-color .15s ease, background-color .15s ease;
-  }
-.lc-form .lc-date-trigger[data-empty="true"] { color: #A6A196; }
-.lc-form .lc-date-trigger[data-invalid="true"] { border-color: var(--error); }
-.lc-form .lc-date-trigger:focus-visible {
-    outline: none;
-    border-color: var(--sage);
-    background: var(--white);
-  }
+.lc-form .lc-date-input[data-invalid="true"] { border-color: var(--error); }
 
 .lc-form input::placeholder, .lc-form textarea::placeholder { color: #A6A196; }
 .lc-form input:focus, .lc-form select:focus, .lc-form textarea:focus {
