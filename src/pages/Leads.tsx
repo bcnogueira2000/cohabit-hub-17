@@ -757,15 +757,6 @@ const Leads = () => {
                         { id: selected.id, patch },
                         {
                           onSuccess: () => {
-                            setSelected((prev) =>
-                              prev
-                                ? {
-                                    ...prev,
-                                    ...patch,
-                                    assignedTo: patch.assignedTo ?? null,
-                                  }
-                                : null
-                            );
                             toast.success("Lead atualizado");
                           },
                         }
