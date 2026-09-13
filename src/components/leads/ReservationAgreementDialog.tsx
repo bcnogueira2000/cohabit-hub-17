@@ -10,6 +10,16 @@ import { generateReservationDocx } from "@/lib/generateReservationDocx";
 import { RoomCombobox } from "@/components/rooms/RoomCombobox";
 import { useRooms } from "@/hooks/useData";
 import { supabase } from "@/integrations/supabase/client";
+import { useAppSettings } from "@/hooks/useAppSettings";
+
+/** Meses completos entre duas datas ISO (yyyy-mm-dd). */
+const monthsBetween = (from: string, to: string) => {
+  const a = new Date(from);
+  const b = new Date(to);
+  let m = (b.getFullYear() - a.getFullYear()) * 12 + (b.getMonth() - a.getMonth());
+  if (b.getDate() < a.getDate()) m -= 1;
+  return m;
+};
 
 
 interface Props {
@@ -31,6 +41,8 @@ const Field = ({
 export const ReservationAgreementDialog = ({ lead, open, onOpenChange }: Props) => {
   const updateLead = useUpdateLead();
   const { data: rooms = [] } = useRooms();
+  const { settings } = useAppSettings();
+  const minMonths = Math.max(0, Number(settings.reservation_min_months ?? 3) || 3);
   const [roomId, setRoomId] = useState("");
   const [checkIn, setCheckIn] = useState("");
   const [checkOut, setCheckOut] = useState("");
@@ -110,6 +122,12 @@ export const ReservationAgreementDialog = ({ lead, open, onOpenChange }: Props) 
       toast.error("Indica datas de entrada e saída válidas.");
       return;
     }
+    if (monthsBetween(checkIn, checkOut) < minMonths) {
+      toast.error(
+        `A estadia tem de durar pelo menos ${minMonths} ${minMonths === 1 ? "mês" : "meses"} entre a entrada e a saída.`
+      );
+      return;
+    }
     setBusy(true);
     try {
       await updateLead.mutateAsync({
@@ -160,6 +178,11 @@ export const ReservationAgreementDialog = ({ lead, open, onOpenChange }: Props) 
               onChange={setRoomId}
               placeholder={checkIn && checkOut ? "Escolher quarto disponível" : "Escolher quarto"}
             />
+            {checkIn && checkOut && checkIn < checkOut && monthsBetween(checkIn, checkOut) < minMonths && (
+              <p className="text-[11px] text-destructive">
+                Duração mínima: {minMonths} {minMonths === 1 ? "mês" : "meses"}.
+              </p>
+            )}
             {checkIn && checkOut && checkIn < checkOut && (
               <p className="text-[11px] text-muted-foreground">
                 {availableRooms.length} quarto(s) livre(s) neste período.
