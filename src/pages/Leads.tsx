@@ -126,7 +126,9 @@ const Leads = () => {
   const sendCandidateForm = useSendCandidateForm();
   const deleteLead = useDeleteLead();
   const { data: staff = [] } = useStaffUsers();
-  const [filter, setFilter] = useState<Filter>("new");
+  const [filter, setFilter] = useState<Filter>(() =>
+    (localStorage.getItem("leads-view") || "pipeline") === "list" ? "new" : "all"
+  );
   const [query, setQuery] = useState("");
   const [source, setSource] = useState("all");
   const [owner, setOwner] = useState("all");
