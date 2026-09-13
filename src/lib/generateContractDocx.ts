@@ -3,7 +3,7 @@ import Docxtemplater from "docxtemplater";
 import { supabase } from "@/integrations/supabase/client";
 import { amountToWords } from "@/lib/amountToWords";
 import { compensacaoDenuncia, duracaoContrato } from "@/lib/contractDuration";
-import { isPortuguese, nationalityToEN } from "@/lib/nationalityEN";
+import { isLusophone, nationalityToEN } from "@/lib/nationalityEN";
 import { parseRoomNumber, shortName } from "@/lib/utils";
 
 export const TEMPLATE_BUCKET = "contract-templates";
@@ -13,7 +13,7 @@ export const OUTPUT_BUCKET = "resident-documents";
 
 /** Escolhe o modelo Word conforme a nacionalidade do residente. */
 export function getTemplateForContract(resident: { nationality?: string | null }): string {
-  return isPortuguese(resident?.nationality) ? TEMPLATE_PT : TEMPLATE_BILINGUE;
+  return isLusophone(resident?.nationality) ? TEMPLATE_PT : TEMPLATE_BILINGUE;
 }
 
 export const MESES_PT = [

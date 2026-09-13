@@ -7,6 +7,9 @@ import "./candidatura.css";
 
 type Lang = "pt" | "en";
 
+/** Valores guardados (PT) para a relação do contacto de emergência. */
+const EMERGENCY_RELATIONS = ["Mãe", "Pai", "Cônjuge/Companheiro(a)", "Irmão/Irmã", "Amigo(a)", "Outro"];
+
 const I18N: Record<Lang, Record<string, string>> = {
   pt: {
     heroTitle: "Vamos preparar tudo para a tua chegada",
@@ -44,7 +47,13 @@ const I18N: Record<Lang, Record<string, string>> = {
     lblWorkplace: "Local de trabalho",
     lblJobTitle: "Função",
     lblEcName: "Nome",
-    lblEcRelation: "Relação (opcional)",
+    lblEcRelation: "Relação",
+    optRelMother: "Mãe",
+    optRelFather: "Pai",
+    optRelSpouse: "Cônjuge/Companheiro(a)",
+    optRelSibling: "Irmão/Irmã",
+    optRelFriend: "Amigo(a)",
+    optRelOther: "Outro",
     lblEcPhone: "Telefone",
     lblEcEmail: "Email (opcional)",
     dzText: "Arrasta os ficheiros para aqui, ou clica para escolher",
@@ -103,7 +112,13 @@ const I18N: Record<Lang, Record<string, string>> = {
     lblWorkplace: "Workplace",
     lblJobTitle: "Job title",
     lblEcName: "Name",
-    lblEcRelation: "Relationship (optional)",
+    lblEcRelation: "Relationship",
+    optRelMother: "Mother",
+    optRelFather: "Father",
+    optRelSpouse: "Spouse/Partner",
+    optRelSibling: "Brother/Sister",
+    optRelFriend: "Friend",
+    optRelOther: "Other",
     lblEcPhone: "Phone",
     lblEcEmail: "Email (optional)",
     dzText: "Drag your files here, or click to browse",
@@ -807,13 +822,28 @@ const CandidateForm = () => {
                 <div className="field">
                   <label htmlFor="emergency_contact_relation">
                     <span>{t.lblEcRelation}</span>
+                    <span className="req">*</span>
                   </label>
-                  <input
-                    type="text"
+                  <select
                     id="emergency_contact_relation"
                     name="emergency_contact_relation"
-                    defaultValue={lead.emergency_contact_relation ?? ""}
-                  />
+                    required
+                    defaultValue={
+                      EMERGENCY_RELATIONS.includes(lead.emergency_contact_relation ?? "")
+                        ? (lead.emergency_contact_relation as string)
+                        : ""
+                    }
+                  >
+                    <option value="" disabled>
+                      {t.optChoose}
+                    </option>
+                    <option value="Mãe">{t.optRelMother}</option>
+                    <option value="Pai">{t.optRelFather}</option>
+                    <option value="Cônjuge/Companheiro(a)">{t.optRelSpouse}</option>
+                    <option value="Irmão/Irmã">{t.optRelSibling}</option>
+                    <option value="Amigo(a)">{t.optRelFriend}</option>
+                    <option value="Outro">{t.optRelOther}</option>
+                  </select>
                 </div>
               </div>
               <div className="field-grid cols-2">

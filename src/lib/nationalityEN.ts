@@ -68,6 +68,7 @@ const MAP: Record<string, string> = {
   israelita: "Israeli",
   iraniana: "Iranian",
   libanesa: "Lebanese",
+  timorense: "Timorese",
 };
 
 const normalize = (s: string): string =>
@@ -88,4 +89,25 @@ export function nationalityToEN(nationality: string | null | undefined): string 
 export function isPortuguese(nationality: string | null | undefined): boolean {
   const n = normalize(String(nationality ?? ""));
   return n === "portuguesa" || n === "portugues" || n === "portugal" || n === "portuguese";
+}
+
+const LUSOPHONE_PREFIXES = [
+  "portugu", "portugal",
+  "brasil", "brazil",
+  "angola",
+  "mocambi", "mozambi",
+  "cabo verd", "cabo-verd", "caboverd", "cape verd",
+  "guine", "guinea",
+  "sao tom", "sao-tom", "saotom", "santom",
+  "timor",
+];
+
+/**
+ * true se a nacionalidade for lusófona (PT, BR, AO, MZ, CV, GW, ST, TL) —
+ * nesses casos usa-se o modelo de contrato só em português.
+ */
+export function isLusophone(nationality: string | null | undefined): boolean {
+  const n = normalize(String(nationality ?? "")).replace(/\s+/g, " ");
+  if (!n) return false;
+  return LUSOPHONE_PREFIXES.some((p) => n.startsWith(p) || n.includes(p));
 }

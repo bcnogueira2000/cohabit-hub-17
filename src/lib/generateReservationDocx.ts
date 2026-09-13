@@ -2,7 +2,7 @@ import PizZip from "pizzip";
 import Docxtemplater from "docxtemplater";
 import { supabase } from "@/integrations/supabase/client";
 import { amountToWords } from "@/lib/amountToWords";
-import { isPortuguese, nationalityToEN } from "@/lib/nationalityEN";
+import { isLusophone, nationalityToEN } from "@/lib/nationalityEN";
 import { parseRoomNumber, shortName } from "@/lib/utils";
 
 const TEMPLATE_BUCKET = "contract-templates";
@@ -12,7 +12,7 @@ const OUTPUT_BUCKET = "resident-documents";
 
 /** Escolhe o modelo do acordo de reserva conforme a nacionalidade. */
 export function getTemplateForReservation(person: { nationality?: string | null }): string {
-  return isPortuguese(person?.nationality) ? TEMPLATE_PT : TEMPLATE_BILINGUE;
+  return isLusophone(person?.nationality) ? TEMPLATE_PT : TEMPLATE_BILINGUE;
 }
 
 const MESES_PT = [

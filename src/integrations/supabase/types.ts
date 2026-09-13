@@ -460,6 +460,8 @@ export type Database = {
           emergency_contact_relation: string | null
           employer_or_school: string | null
           external_ref: string | null
+          form_review_email_sent_at: string | null
+          form_sent_at: string | null
           form_submitted_at: string | null
           full_name: string
           gdpr_consent: boolean
@@ -522,6 +524,8 @@ export type Database = {
           emergency_contact_relation?: string | null
           employer_or_school?: string | null
           external_ref?: string | null
+          form_review_email_sent_at?: string | null
+          form_sent_at?: string | null
           form_submitted_at?: string | null
           full_name: string
           gdpr_consent?: boolean
@@ -584,6 +588,8 @@ export type Database = {
           emergency_contact_relation?: string | null
           employer_or_school?: string | null
           external_ref?: string | null
+          form_review_email_sent_at?: string | null
+          form_sent_at?: string | null
           form_submitted_at?: string | null
           full_name?: string
           gdpr_consent?: boolean
@@ -1884,7 +1890,6 @@ export type Database = {
         | "reserved"
         | "won"
         | "lost"
-        | "archived"
       location_kind:
         | "room"
         | "shared_bathroom"
@@ -2142,7 +2147,6 @@ export const Constants = {
         "reserved",
         "won",
         "lost",
-        "archived",
       ],
       location_kind: [
         "room",

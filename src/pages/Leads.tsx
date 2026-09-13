@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Search, Clock, User as UserIcon, X, ChevronDown, Trash2, LayoutList, Columns3, AlertTriangle, UserCheck, Mail, CheckCircle2, ArrowRight, FileText } from "lucide-react";
+import { Search, Clock, User as UserIcon, X, ChevronDown, Trash2, LayoutList, Columns3, AlertTriangle, UserCheck, Mail, CheckCircle2, ArrowRight, FileText, Inbox } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -42,6 +42,9 @@ import {
   sortByUrgency,
   urgencyBorder,
   isOverdue,
+  manualStatusOptions,
+  isAwaitingSignature,
+  AwaitingSignatureBadge,
 } from "@/components/leads/LeadsPipeline";
 import { leadStatusLabels, leadSourceLabels, leadProfileLabels } from "@/lib/labels";
 import { NewContractDialog } from "@/components/contracts/NewContractDialog";
@@ -59,7 +62,7 @@ const groups: Record<Exclude<Filter, "all">, LeadStatus[]> = {
   contact: ["contacted", "visit_scheduled", "visited"],
   negotiation: ["proposal_sent", "negotiating", "reserved"],
   won: ["won"],
-  lost: ["lost", "archived"],
+  lost: ["lost"],
 };
 
 const pipelineColumns: { key: string; label: string; statuses: LeadStatus[] }[] = [
@@ -68,7 +71,7 @@ const pipelineColumns: { key: string; label: string; statuses: LeadStatus[] }[] 
   { key: "negotiation", label: "Em negociação", statuses: ["proposal_sent", "negotiating"] },
   { key: "reserved", label: "Reservado", statuses: ["reserved"] },
   { key: "won", label: "Contratados", statuses: ["won"] },
-  { key: "lost", label: "Perdidos", statuses: ["lost", "archived"] },
+  { key: "lost", label: "Perdidos", statuses: ["lost"] },
 ];
 
 const groupLabels: Record<Exclude<Filter, "all">, string> = {
@@ -97,6 +100,9 @@ const relativeDate = (iso: string) => {
 const fmtDate = (v: string) =>
   new Date(v).toLocaleDateString("pt-PT", { day: "numeric", month: "short", year: "numeric" });
 
+const fmtDateTime = (v: string) =>
+  new Date(v).toLocaleString("pt-PT", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
+
 const Field = ({ label, value }: { label: string; value?: string | null }) =>
   value ? (
     <div>
@@ -120,7 +126,9 @@ const Leads = () => {
   const sendCandidateForm = useSendCandidateForm();
   const deleteLead = useDeleteLead();
   const { data: staff = [] } = useStaffUsers();
-  const [filter, setFilter] = useState<Filter>("new");
+  const [filter, setFilter] = useState<Filter>(() =>
+    (localStorage.getItem("leads-view") || "pipeline") === "list" ? "new" : "all"
+  );
   const [query, setQuery] = useState("");
   const [source, setSource] = useState("all");
   const [owner, setOwner] = useState("all");
@@ -133,6 +141,7 @@ const Leads = () => {
   const setSelected = useCallback((lead: Lead | null) => setSelectedId(lead?.id ?? null), []);
   const [reservationOpen, setReservationOpen] = useState(false);
   const [bypassFormLeadId, setBypassFormLeadId] = useState<string | null>(null);
+  const [confirmResendOpen, setConfirmResendOpen] = useState(false);
   const [giveUpBusy, setGiveUpBusy] = useState(false);
   const [leadContractOpen, setLeadContractOpen] = useState(false);
   const [signBusy, setSignBusy] = useState(false);
@@ -193,10 +202,9 @@ const Leads = () => {
   }, [leads, source, owner, query]);
 
   const filtered = useMemo(() => {
-    const list =
-      viewMode === "pipeline"
-        ? baseFiltered
-        : baseFiltered.filter((l) => filter === "all" || groups[filter as Exclude<Filter, "all">].includes(l.status));
+    const list = baseFiltered.filter(
+      (l) => filter === "all" || groups[filter as Exclude<Filter, "all">].includes(l.status)
+    );
     return [...list].sort(sortByUrgency);
   }, [baseFiltered, filter, viewMode]);
 
@@ -230,7 +238,7 @@ const Leads = () => {
         const isOverdue =
           !!l.nextActionDate &&
           l.nextActionDate.slice(0, 10) <= todayStr &&
-          !["won", "lost", "archived"].includes(l.status);
+          !["won", "lost"].includes(l.status);
         const isAbandoned =
           (!l.assignedToUserId || l.assignedToUserId === "") &&
           l.status === "new" &&
@@ -245,12 +253,29 @@ const Leads = () => {
       });
   }, [leads, todayStr]);
 
+  /** Candidaturas com formulário preenchido mas ainda sem quarto definido (acordo de reserva). */
+  const reviewLeads = useMemo(
+    () =>
+      leads
+        .filter((l) => !!l.formSubmittedAt && !l.roomId && !["won", "lost"].includes(l.status))
+        .sort((a, b) => (a.formSubmittedAt || "").localeCompare(b.formSubmittedAt || "")),
+    [leads]
+  );
+
+  const sendForm = (lead: Lead) => {
+    sendCandidateForm.mutate(lead.id, {
+      onSuccess: (res) => toast.success(`Formulário enviado para ${res.email}`),
+      onError: (e) =>
+        toast.error(e instanceof Error ? e.message : "Não foi possível enviar o formulário."),
+    });
+  };
+
   const urgentReason = (l: Lead) => {
     const datePart = l.nextActionDate ? l.nextActionDate.slice(0, 10) : null;
     const isOverdue =
       !!datePart &&
       datePart <= todayStr &&
-      !["won", "lost", "archived"].includes(l.status);
+      !["won", "lost"].includes(l.status);
 
     if (isOverdue) {
       if (datePart && datePart < todayStr) {
@@ -358,6 +383,39 @@ const Leads = () => {
         </Card>
       )}
 
+      {reviewLeads.length > 0 && (
+        <Card className="bg-info/5 border-info/20 p-4 mb-5">
+          <div className="flex items-center gap-2 mb-3">
+            <Inbox className="h-4 w-4 text-info" strokeWidth={1.5} />
+            <span className="font-display font-semibold text-sm">
+              {reviewLeads.length} {reviewLeads.length === 1 ? "candidatura" : "candidaturas"} por rever
+            </span>
+          </div>
+          <div>
+            {reviewLeads.slice(0, 5).map((l) => (
+              <div
+                key={l.id}
+                onClick={() => setSelected(l)}
+                className="flex items-center justify-between cursor-pointer hover:bg-muted/40 rounded-lg p-2 -mx-1 transition-smooth"
+              >
+                <div className="min-w-0 flex-1 mr-3">
+                  <div className="text-sm font-medium truncate">{l.fullName}</div>
+                  <div className="text-xs text-muted-foreground truncate">
+                    Formulário preenchido {l.formSubmittedAt ? `a ${fmtDate(l.formSubmittedAt)}` : ""} · sem acordo de reserva
+                  </div>
+                </div>
+                <Badge variant="outline" className={`${statusTone[l.status]} text-xs shrink-0`}>
+                  {leadStatusLabels[l.status]}
+                </Badge>
+              </div>
+            ))}
+            {reviewLeads.length > 5 && (
+              <div className="text-xs text-muted-foreground mt-2">+ {reviewLeads.length - 5} mais...</div>
+            )}
+          </div>
+        </Card>
+      )}
+
       {viewMode === "list" && (
         <Tabs value={filter} onValueChange={(v) => setFilter(v as Filter)} className="mb-4">
           <TabsList>
@@ -371,6 +429,20 @@ const Leads = () => {
         </Tabs>
       )}
 
+
+      {viewMode === "pipeline" && (
+        <div className="lg:hidden mb-3">
+          <Select value={filter} onValueChange={(v) => setFilter(v as Filter)}>
+            <SelectTrigger aria-label="Filtrar por estado"><SelectValue placeholder="Estado" /></SelectTrigger>
+            <SelectContent>
+              {(Object.keys(groupLabels) as Exclude<Filter, "all">[]).map((k) => (
+                <SelectItem key={k} value={k}>{groupLabels[k]} · {counts[k]}</SelectItem>
+              ))}
+              <SelectItem value="all">Todos os estados</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      )}
 
       <div className="flex flex-col sm:flex-row gap-3 mb-5">
         <div className="relative flex-1">
@@ -443,7 +515,7 @@ const Leads = () => {
                         </Badge>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="start" onClick={(e) => e.stopPropagation()}>
-                        {(Object.keys(leadStatusLabels) as LeadStatus[]).map((s) => (
+                        {manualStatusOptions.map((s) => (
                           <DropdownMenuItem
                             key={s}
                             onClick={(e) => {
@@ -476,6 +548,7 @@ const Leads = () => {
                         <CheckCircle2 className="h-3 w-3" strokeWidth={1.5} /> Formulário
                       </Badge>
                     )}
+                    {isAwaitingSignature(l) && <AwaitingSignatureBadge />}
                   </div>
                   <div className="font-display text-lg font-semibold truncate">{l.fullName}</div>
                   <div className="text-xs text-muted-foreground truncate">{l.email}</div>
@@ -682,7 +755,10 @@ const Leads = () => {
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          {(Object.keys(leadStatusLabels) as LeadStatus[]).map((s) => (
+                          {!manualStatusOptions.includes(editStatus) && (
+                            <SelectItem value={editStatus} disabled>{leadStatusLabels[editStatus]}</SelectItem>
+                          )}
+                          {manualStatusOptions.map((s) => (
                             <SelectItem key={s} value={s}>{leadStatusLabels[s]}</SelectItem>
                           ))}
                         </SelectContent>
@@ -728,7 +804,7 @@ const Leads = () => {
                       placeholder="Notas internas sobre o lead"
                     />
                   </div>
-                  {(editStatus === "lost" || editStatus === "archived") && (
+                  {editStatus === "lost" && (
                     <div className="space-y-1">
                       <label className="text-[11px] uppercase tracking-wide text-muted-foreground">Motivo de perda</label>
                       <Input
@@ -744,14 +820,23 @@ const Leads = () => {
                       if (!selected) return;
                       const ownerId = editOwnerId === "__none__" ? "" : editOwnerId;
                       const assignedStaff = staff.find((s) => s.user_id === ownerId);
+                      const profile = editProfile === "__none__" ? null : editProfile;
                       const patch = {
+                        fullName: editName.trim() || selected.fullName,
+                        email: editEmail.trim() || selected.email,
+                        phone: editPhone.trim() || null,
+                        nationality: editNationality.trim() || null,
+                        age: editAge.trim() || null,
+                        gender: editGender.trim() || null,
+                        profile,
+                        profileOther: profile === "other" ? (editProfileOther.trim() || null) : null,
                         status: editStatus,
                         assignedToUserId: ownerId || null,
                         assignedTo: assignedStaff?.full_name || assignedStaff?.email || null,
                         nextAction: editNextAction || null,
                         nextActionDate: editNextActionDate || null,
                         notes: editNotes || null,
-                        lostReason: (editStatus === "lost" || editStatus === "archived") ? (editLostReason || null) : null,
+                        lostReason: editStatus === "lost" ? (editLostReason || null) : null,
                       };
                       updateLead.mutate(
                         { id: selected.id, patch },
@@ -759,6 +844,10 @@ const Leads = () => {
                           onSuccess: () => {
                             toast.success("Lead atualizado");
                           },
+                          onError: (error) =>
+                            toast.error(
+                              error instanceof Error ? error.message : "Não foi possível guardar as alterações."
+                            ),
                         }
                       );
                     }}
@@ -774,25 +863,55 @@ const Leads = () => {
                       <UserCheck className="h-4 w-4 mr-1.5" strokeWidth={1.5} /> Criar contrato
                     </Button>
                   )}
+                  {selected.formSentAt && (
+                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-2">
+                      <Mail className="h-3.5 w-3.5" strokeWidth={1.5} />
+                      Formulário enviado em {fmtDateTime(selected.formSentAt)}
+                      {selected.formSubmittedAt && (
+                        <span className="text-success"> · preenchido em {fmtDateTime(selected.formSubmittedAt)}</span>
+                      )}
+                    </div>
+                  )}
                   {selected.status === "negotiating" && selected.email && !selected.formSubmittedAt && (
                     <>
                       <Button
                         className="w-full rounded-full gradient-warm text-white mt-2"
                         disabled={sendCandidateForm.isPending}
                         onClick={() => {
-                          sendCandidateForm.mutate(selected.id, {
-                            onSuccess: (res) =>
-                              toast.success(`Formulário enviado para ${res.email}`),
-                            onError: (e) =>
-                              toast.error(
-                                e instanceof Error ? e.message : "Não foi possível enviar o formulário."
-                              ),
-                          });
+                          if (selected.formSentAt) setConfirmResendOpen(true);
+                          else sendForm(selected);
                         }}
                       >
                         <Mail className="h-4 w-4 mr-1.5" strokeWidth={1.5} />
-                        {sendCandidateForm.isPending ? "A enviar..." : "Enviar formulário de candidatura"}
+                        {sendCandidateForm.isPending
+                          ? "A enviar..."
+                          : selected.formSentAt
+                            ? "Enviar formulário novamente"
+                            : "Enviar formulário de candidatura"}
                       </Button>
+                      <AlertDialog open={confirmResendOpen} onOpenChange={setConfirmResendOpen}>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Voltar a enviar o formulário?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              O formulário de candidatura já foi enviado em{" "}
+                              {selected.formSentAt ? fmtDateTime(selected.formSentAt) : "—"}. Tem a certeza que pretende
+                              voltar a enviar? O link anterior deixa de funcionar.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={() => {
+                                setConfirmResendOpen(false);
+                                sendForm(selected);
+                              }}
+                            >
+                              Voltar a enviar
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
                       {bypassFormLeadId !== selected.id && (
                         <button
                           type="button"
