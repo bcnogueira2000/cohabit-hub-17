@@ -25,7 +25,7 @@ export const statusTone: Record<LeadStatus, string> = {
 };
 
 /** Estados que a equipa pode escolher manualmente (reserved/won só por fluxo). */
-export const manualStatusOptions = (Object.keys(leadStatusLabels) as LeadStatus[]).filter(
+export const manualStatusOptions: LeadStatus[] = (Object.keys(leadStatusLabels) as LeadStatus[]).filter(
   (s) => s !== "reserved" && s !== "won"
 );
 
