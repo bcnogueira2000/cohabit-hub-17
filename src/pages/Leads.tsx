@@ -947,7 +947,7 @@ const Leads = () => {
               payload: { stay_id: stayId, contract_id: contractId },
             } as any);
             qc.invalidateQueries({ queryKey: ["lead_activity", leadId] });
-            setSelected((prev) => (prev ? { ...prev, stayId, contractId } : null));
+            
             toast.success("Lead convertida — contrato criado");
             navigate(`/finance/contracts/${contractId}`);
           }}
