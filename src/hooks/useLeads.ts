@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 export type LeadStatus =
   | "new" | "contacted" | "visit_scheduled" | "visited"
-  | "proposal_sent" | "negotiating" | "reserved" | "won" | "lost" | "archived";
+  | "proposal_sent" | "negotiating" | "reserved" | "won" | "lost";
 
 export type LeadSource =
   | "website_form" | "idealista" | "instagram" | "linkedin"
@@ -51,6 +51,7 @@ export interface Lead {
   plannedCheckOut: string | null;
   contractGeneratedAt: string | null;
   formSubmittedAt: string | null;
+  formSentAt: string | null;
   dateOfBirth: string | null;
   postalCode: string | null;
   city: string | null;
@@ -109,6 +110,7 @@ export const mapLead = (r: any): Lead => ({
   plannedCheckOut: r.planned_check_out ?? null,
   contractGeneratedAt: r.contract_generated_at ?? null,
   formSubmittedAt: r.form_submitted_at ?? null,
+  formSentAt: r.form_sent_at ?? null,
   dateOfBirth: r.date_of_birth ?? null,
   postalCode: r.postal_code ?? null,
   city: r.city ?? null,

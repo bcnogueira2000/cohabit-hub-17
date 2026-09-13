@@ -3,7 +3,7 @@ import Docxtemplater from "docxtemplater";
 import { supabase } from "@/integrations/supabase/client";
 import { amountToWords } from "@/lib/amountToWords";
 import { compensacaoDenuncia, duracaoContrato } from "@/lib/contractDuration";
-import { isPortuguese, nationalityToEN } from "@/lib/nationalityEN";
+import { nationalityToEN } from "@/lib/nationalityEN";
 import { parseRoomNumber, shortName } from "@/lib/utils";
 import {
   MESES_EN,

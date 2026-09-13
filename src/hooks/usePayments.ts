@@ -421,7 +421,7 @@ export const useReservationFees = () =>
           Number(l.reservation_fee_amount ?? 0) > 0.005 &&
           l.room_id &&
           !l.contract_id &&
-          !["won", "lost", "archived"].includes(l.status)
+          !["won", "lost"].includes(l.status)
       );
       if (contracts.length === 0 && leads.length === 0) return [];
 

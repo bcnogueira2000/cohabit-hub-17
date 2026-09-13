@@ -127,7 +127,6 @@ export const leadStatusLabels: Record<string, string> = {
   reserved: "Reservado",
   won: "Contratado",
   lost: "Perdido",
-  archived: "Arquivado",
 };
 
 export const leadSourceLabels: Record<string, string> = {

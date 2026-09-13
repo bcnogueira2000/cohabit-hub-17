@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { Clock, ChevronDown, Phone, User as UserIcon, CheckCircle2 } from "lucide-react";
+import { Clock, ChevronDown, Phone, User as UserIcon, CheckCircle2, PenLine } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -22,8 +22,21 @@ export const statusTone: Record<LeadStatus, string> = {
   reserved: "bg-primary/10 text-primary",
   won: "bg-success/10 text-success",
   lost: "bg-destructive/10 text-destructive",
-  archived: "bg-secondary text-secondary-foreground",
 };
+
+/** Estados que a equipa pode escolher manualmente (reserved/won só por fluxo). */
+export const manualStatusOptions = (Object.keys(leadStatusLabels) as LeadStatus[]).filter(
+  (s) => s !== "reserved" && s !== "won"
+);
+
+/** Reservada e já com contrato gerado à espera de assinatura. */
+export const isAwaitingSignature = (l: Lead) => l.status === "reserved" && !!l.contractGeneratedAt;
+
+export const AwaitingSignatureBadge = () => (
+  <Badge variant="outline" className="bg-warning/15 text-warning border-warning/40 gap-1">
+    <PenLine className="h-3 w-3" strokeWidth={1.5} /> Em assinatura
+  </Badge>
+);
 
 export const today = () => new Date().toISOString().slice(0, 10);
 
@@ -44,7 +57,7 @@ export const sortByUrgency = (a: Lead, b: Lead) => {
   return (a.nextActionDate || "").localeCompare(b.nextActionDate || "");
 };
 
-const isClosed = (l: Lead) => ["won", "lost", "archived"].includes(l.status);
+const isClosed = (l: Lead) => ["won", "lost"].includes(l.status);
 
 export const urgencyBorder = (l: Lead) => {
   if (l.status === "negotiating" && l.formSubmittedAt) return "border-l-[3px] border-success";
@@ -78,7 +91,7 @@ export const LeadStatusBadge = ({
       </Badge>
     </DropdownMenuTrigger>
     <DropdownMenuContent align="start" onClick={(e) => e.stopPropagation()}>
-      {(Object.keys(leadStatusLabels) as LeadStatus[]).map((s) => (
+      {manualStatusOptions.map((s) => (
         <DropdownMenuItem
           key={s}
           onClick={(e) => {
@@ -247,6 +260,7 @@ export const LeadsPipeline = ({
                       <CheckCircle2 className="h-3 w-3" strokeWidth={1.5} /> Formulário
                     </Badge>
                   )}
+                  {isAwaitingSignature(l) && <AwaitingSignatureBadge />}
 
                 </div>
                 <div className="font-display text-sm font-semibold truncate">{l.fullName}</div>
