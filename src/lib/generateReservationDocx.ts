@@ -102,11 +102,20 @@ export async function generateReservationDocx(leadId: string): Promise<Generated
   if (roomId) {
     const { data: room } = await supabase
       .from("rooms" as any)
-      .select("number, typology, typology_id, room_typologies:typology_id(name)")
+      .select("number, typology, typology_id")
       .eq("id", roomId)
       .maybeSingle();
     roomNumber = (room as any)?.number ?? "";
-    typology = (room as any)?.room_typologies?.name ?? (room as any)?.typology ?? "";
+    typology = (room as any)?.typology ?? "";
+    const typologyId = (room as any)?.typology_id;
+    if (typologyId) {
+      const { data: typ } = await supabase
+        .from("room_typologies" as any)
+        .select("name")
+        .eq("id", typologyId)
+        .maybeSingle();
+      typology = (typ as any)?.name ?? typology;
+    }
   }
   // Só sem quarto atribuído usamos a preferência inicial da lead
   if (!typology) typology = l.preferred_room_type ?? "";
