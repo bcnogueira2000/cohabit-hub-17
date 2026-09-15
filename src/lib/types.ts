@@ -40,10 +40,14 @@ export interface Resident {
   gender: string | null;
   age: string | null;
   expectedArrivalDate: string | null;
+  internalNotes: string | null;
+  emergencyContactInvoiceCopy: boolean;
 }
 
 
 export interface ResidentLegalFields {
+  phone: string | null;
+  email: string | null;
   nationality: string | null;
   documentType: string | null;
   documentNumber: string | null;
@@ -58,6 +62,8 @@ export interface ResidentLegalFields {
   postalCode: string | null;
   city: string | null;
   expectedArrivalDate: string | null;
+  internalNotes: string | null;
+  emergencyContactInvoiceCopy: boolean;
 }
 
 export interface ChecklistItem {
