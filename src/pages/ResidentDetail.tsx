@@ -377,7 +377,7 @@ const ResidentDetail = () => {
 
             <div>
               <div className="text-xs text-muted-foreground flex items-center gap-1 mb-0.5">
-                <AlertTriangle className="h-3 w-3" /> Necessidades especiais
+                <AlertTriangle className="h-3 w-3" /> Notas e comentários do residente
                 {specialNeedsFromProfile && <ByResidentTag />}
               </div>
               <div className="text-sm whitespace-pre-wrap">
@@ -469,6 +469,13 @@ const ResidentDetail = () => {
                       onChange={(e) => setLegal((s) => ({ ...s, emergencyContactEmail: e.target.value }))}
                     />
                   </div>
+                  <label className="sm:col-span-2 flex items-center gap-2.5 text-sm cursor-pointer">
+                    <Checkbox
+                      checked={legal.emergencyContactInvoiceCopy}
+                      onCheckedChange={(c) => setLegal((s) => ({ ...s, emergencyContactInvoiceCopy: !!c }))}
+                    />
+                    <span>Copiar nas faturas — este contacto recebe cópia das faturas emitidas</span>
+                  </label>
                   <div>
                     <Label htmlFor="legal-address">Morada de residência</Label>
                     <Input
