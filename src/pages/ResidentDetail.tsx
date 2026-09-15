@@ -91,6 +91,10 @@ const ResidentDetail = () => {
   useEffect(() => {
     if (!resident) return;
     setLegal({
+      phone: resident.phone || null,
+      email: resident.email || null,
+      internalNotes: resident.internalNotes,
+      emergencyContactInvoiceCopy: resident.emergencyContactInvoiceCopy,
       nationality: resident.nationality,
       documentType: resident.documentType,
       documentNumber: resident.documentNumber,
