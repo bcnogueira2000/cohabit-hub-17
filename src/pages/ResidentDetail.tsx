@@ -546,13 +546,24 @@ const ResidentDetail = () => {
                     />
                   </div>
                   <div className="sm:col-span-2">
-                    <Label htmlFor="legal-special">Necessidades especiais</Label>
+                    <Label htmlFor="legal-special">Notas e comentários do residente</Label>
                     <Textarea
                       id="legal-special"
                       className="mt-1.5"
                       rows={3}
                       value={legal.specialNeeds ?? ""}
                       onChange={(e) => setLegal((s) => ({ ...s, specialNeeds: e.target.value }))}
+                    />
+                  </div>
+                  <div className="sm:col-span-2">
+                    <Label htmlFor="legal-internal-notes">Notas internas (só equipa)</Label>
+                    <Textarea
+                      id="legal-internal-notes"
+                      className="mt-1.5"
+                      rows={4}
+                      placeholder="Contexto sobre o residente para a equipa de operações."
+                      value={legal.internalNotes ?? ""}
+                      onChange={(e) => setLegal((s) => ({ ...s, internalNotes: e.target.value }))}
                     />
                   </div>
                   {syncMoloni.error instanceof MoloniDuplicateError && syncMoloni.error.kind !== "already_linked" && (
