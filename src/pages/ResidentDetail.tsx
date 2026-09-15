@@ -620,7 +620,13 @@ const ResidentDetail = () => {
 
           <Card className="p-4 border-border/60 shadow-card">
             <h3 className="font-display text-lg font-semibold mb-2">Notas internas</h3>
-            <p className="text-sm text-muted-foreground">Sem notas. Adicionar contexto sobre o residente para a equipa de operações.</p>
+            {resident.internalNotes ? (
+              <p className="text-sm whitespace-pre-wrap">{resident.internalNotes}</p>
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                Sem notas. Escreve em “Notas internas (só equipa)”, nos dados pessoais, e guarda.
+              </p>
+            )}
           </Card>
         </TabsContent>
 
