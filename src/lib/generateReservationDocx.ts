@@ -86,24 +86,30 @@ export async function generateReservationDocx(leadId: string): Promise<Generated
     resident = (contract as any)?.residents ?? null;
   }
 
-  // 3. Quarto: estadia ligada, senão preferência da lead
-  let roomNumber = "";
-  if (l.stay_id) {
+  // 3. Quarto: quarto atribuído à lead ou à estadia ligada
+  let roomId: string | null = l.room_id ?? null;
+  if (!roomId && l.stay_id) {
     const { data: stay } = await supabase
       .from("stays" as any)
       .select("room_id")
       .eq("id", l.stay_id)
       .maybeSingle();
-    const roomId = (stay as any)?.room_id;
-    if (roomId) {
-      const { data: room } = await supabase
-        .from("rooms" as any)
-        .select("number")
-        .eq("id", roomId)
-        .maybeSingle();
-      roomNumber = (room as any)?.number ?? "";
-    }
+    roomId = (stay as any)?.room_id ?? null;
   }
+
+  let roomNumber = "";
+  let typology = "";
+  if (roomId) {
+    const { data: room } = await supabase
+      .from("rooms" as any)
+      .select("number, typology, typology_id, room_typologies:typology_id(name)")
+      .eq("id", roomId)
+      .maybeSingle();
+    roomNumber = (room as any)?.number ?? "";
+    typology = (room as any)?.room_typologies?.name ?? (room as any)?.typology ?? "";
+  }
+  // Só sem quarto atribuído usamos a preferência inicial da lead
+  if (!typology) typology = l.preferred_room_type ?? "";
   if (!roomNumber) roomNumber = l.preferred_room_type ?? "";
 
   const fullName = l.full_name || resident?.full_name || "";
