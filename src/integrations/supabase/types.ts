@@ -1324,6 +1324,7 @@ export type Database = {
           document_validity: string | null
           email: string
           emergency_contact_email: string | null
+          emergency_contact_invoice_copy: boolean
           emergency_contact_name: string | null
           emergency_contact_phone: string | null
           emergency_contact_relation: string | null
@@ -1332,6 +1333,7 @@ export type Database = {
           full_name: string
           gender: string | null
           id: string
+          internal_notes: string | null
           job_title: string | null
           moloni_customer_id: number | null
           moloni_synced_at: string | null
@@ -1365,6 +1367,7 @@ export type Database = {
           document_validity?: string | null
           email: string
           emergency_contact_email?: string | null
+          emergency_contact_invoice_copy?: boolean
           emergency_contact_name?: string | null
           emergency_contact_phone?: string | null
           emergency_contact_relation?: string | null
@@ -1373,6 +1376,7 @@ export type Database = {
           full_name: string
           gender?: string | null
           id?: string
+          internal_notes?: string | null
           job_title?: string | null
           moloni_customer_id?: number | null
           moloni_synced_at?: string | null
@@ -1406,6 +1410,7 @@ export type Database = {
           document_validity?: string | null
           email?: string
           emergency_contact_email?: string | null
+          emergency_contact_invoice_copy?: boolean
           emergency_contact_name?: string | null
           emergency_contact_phone?: string | null
           emergency_contact_relation?: string | null
@@ -1414,6 +1419,7 @@ export type Database = {
           full_name?: string
           gender?: string | null
           id?: string
+          internal_notes?: string | null
           job_title?: string | null
           moloni_customer_id?: number | null
           moloni_synced_at?: string | null

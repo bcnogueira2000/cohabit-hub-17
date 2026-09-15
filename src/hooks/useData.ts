@@ -59,6 +59,8 @@ export const useUpdateResidentLegal = () => {
       const { error } = await supabase
         .from("residents")
         .update({
+          phone: values.phone,
+          email: values.email,
           nationality: values.nationality,
           document_type: values.documentType,
           document_number: values.documentNumber,
@@ -73,6 +75,8 @@ export const useUpdateResidentLegal = () => {
           postal_code: values.postalCode,
           city: values.city,
           expected_arrival_date: values.expectedArrivalDate,
+          internal_notes: values.internalNotes,
+          emergency_contact_invoice_copy: values.emergencyContactInvoiceCopy,
         } as any)
         .eq("id", id);
       if (error) throw error;

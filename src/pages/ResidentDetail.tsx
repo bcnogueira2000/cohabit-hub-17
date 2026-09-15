@@ -68,6 +68,10 @@ const ResidentDetail = () => {
   const isStaff = roles.some((r) => r === "staff" || r === "manager" || r === "admin");
 
   const [legal, setLegal] = useState<ResidentLegalFields>({
+    phone: null,
+    email: null,
+    internalNotes: null,
+    emergencyContactInvoiceCopy: false,
     nationality: null,
     documentType: null,
     documentNumber: null,
@@ -87,6 +91,10 @@ const ResidentDetail = () => {
   useEffect(() => {
     if (!resident) return;
     setLegal({
+      phone: resident.phone || null,
+      email: resident.email || null,
+      internalNotes: resident.internalNotes,
+      emergencyContactInvoiceCopy: resident.emergencyContactInvoiceCopy,
       nationality: resident.nationality,
       documentType: resident.documentType,
       documentNumber: resident.documentNumber,
@@ -102,7 +110,7 @@ const ResidentDetail = () => {
       city: resident.city,
       expectedArrivalDate: resident.expectedArrivalDate ? resident.expectedArrivalDate.slice(0, 10) : null,
     });
-  }, [resident?.id, resident?.nationality, resident?.documentType, resident?.documentNumber, resident?.taxNumber, resident?.employerOrSchool, resident?.dateOfBirth, resident?.emergencyContactName, resident?.emergencyContactPhone, resident?.emergencyContactEmail, resident?.specialNeeds, resident?.address, resident?.postalCode, resident?.city, resident?.expectedArrivalDate]);
+  }, [resident?.id, resident?.phone, resident?.email, resident?.internalNotes, resident?.emergencyContactInvoiceCopy, resident?.nationality, resident?.documentType, resident?.documentNumber, resident?.taxNumber, resident?.employerOrSchool, resident?.dateOfBirth, resident?.emergencyContactName, resident?.emergencyContactPhone, resident?.emergencyContactEmail, resident?.specialNeeds, resident?.address, resident?.postalCode, resident?.city, resident?.expectedArrivalDate]);
 
   useEffect(() => {
     if (syncMoloni.error instanceof MoloniDuplicateError && syncMoloni.error.kind === "already_linked") {
@@ -120,6 +128,10 @@ const ResidentDetail = () => {
       {
         id: resident.id,
         values: {
+          phone: clean(legal.phone) ?? "",
+          email: clean(legal.email) ?? resident.email,
+          internalNotes: clean(legal.internalNotes),
+          emergencyContactInvoiceCopy: legal.emergencyContactInvoiceCopy,
           nationality: clean(legal.nationality),
           documentType: clean(legal.documentType),
           documentNumber: clean(legal.documentNumber),
@@ -365,7 +377,7 @@ const ResidentDetail = () => {
 
             <div>
               <div className="text-xs text-muted-foreground flex items-center gap-1 mb-0.5">
-                <AlertTriangle className="h-3 w-3" /> Necessidades especiais
+                <AlertTriangle className="h-3 w-3" /> Notas e comentários do residente
                 {specialNeedsFromProfile && <ByResidentTag />}
               </div>
               <div className="text-sm whitespace-pre-wrap">
@@ -380,6 +392,26 @@ const ResidentDetail = () => {
                   aparecem acima marcados como “preenchido pelo residente” e não são alterados aqui.
                 </p>
                 <form onSubmit={saveLegal} className="grid sm:grid-cols-2 gap-3">
+                  <div>
+                    <Label htmlFor="legal-phone">Telefone</Label>
+                    <Input
+                      id="legal-phone"
+                      className="mt-1.5"
+                      placeholder="+351 ..."
+                      value={legal.phone ?? ""}
+                      onChange={(e) => setLegal((s) => ({ ...s, phone: e.target.value }))}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="legal-email">Email</Label>
+                    <Input
+                      id="legal-email"
+                      type="email"
+                      className="mt-1.5"
+                      value={legal.email ?? ""}
+                      onChange={(e) => setLegal((s) => ({ ...s, email: e.target.value }))}
+                    />
+                  </div>
                   <div>
                     <Label htmlFor="legal-nationality">Nacionalidade</Label>
                     <Input
@@ -437,6 +469,13 @@ const ResidentDetail = () => {
                       onChange={(e) => setLegal((s) => ({ ...s, emergencyContactEmail: e.target.value }))}
                     />
                   </div>
+                  <label className="sm:col-span-2 flex items-center gap-2.5 text-sm cursor-pointer">
+                    <Checkbox
+                      checked={legal.emergencyContactInvoiceCopy}
+                      onCheckedChange={(c) => setLegal((s) => ({ ...s, emergencyContactInvoiceCopy: !!c }))}
+                    />
+                    <span>Copiar nas faturas — este contacto recebe cópia das faturas emitidas</span>
+                  </label>
                   <div>
                     <Label htmlFor="legal-address">Morada de residência</Label>
                     <Input
@@ -507,13 +546,24 @@ const ResidentDetail = () => {
                     />
                   </div>
                   <div className="sm:col-span-2">
-                    <Label htmlFor="legal-special">Necessidades especiais</Label>
+                    <Label htmlFor="legal-special">Notas e comentários do residente</Label>
                     <Textarea
                       id="legal-special"
                       className="mt-1.5"
                       rows={3}
                       value={legal.specialNeeds ?? ""}
                       onChange={(e) => setLegal((s) => ({ ...s, specialNeeds: e.target.value }))}
+                    />
+                  </div>
+                  <div className="sm:col-span-2">
+                    <Label htmlFor="legal-internal-notes">Notas internas (só equipa)</Label>
+                    <Textarea
+                      id="legal-internal-notes"
+                      className="mt-1.5"
+                      rows={4}
+                      placeholder="Contexto sobre o residente para a equipa de operações."
+                      value={legal.internalNotes ?? ""}
+                      onChange={(e) => setLegal((s) => ({ ...s, internalNotes: e.target.value }))}
                     />
                   </div>
                   {syncMoloni.error instanceof MoloniDuplicateError && syncMoloni.error.kind !== "already_linked" && (
@@ -570,7 +620,13 @@ const ResidentDetail = () => {
 
           <Card className="p-4 border-border/60 shadow-card">
             <h3 className="font-display text-lg font-semibold mb-2">Notas internas</h3>
-            <p className="text-sm text-muted-foreground">Sem notas. Adicionar contexto sobre o residente para a equipa de operações.</p>
+            {resident.internalNotes ? (
+              <p className="text-sm whitespace-pre-wrap">{resident.internalNotes}</p>
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                Sem notas. Escreve em “Notas internas (só equipa)”, nos dados pessoais, e guarda.
+              </p>
+            )}
           </Card>
         </TabsContent>
 

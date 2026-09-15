@@ -86,24 +86,39 @@ export async function generateReservationDocx(leadId: string): Promise<Generated
     resident = (contract as any)?.residents ?? null;
   }
 
-  // 3. Quarto: estadia ligada, senão preferência da lead
-  let roomNumber = "";
-  if (l.stay_id) {
+  // 3. Quarto: quarto atribuído à lead ou à estadia ligada
+  let roomId: string | null = l.room_id ?? null;
+  if (!roomId && l.stay_id) {
     const { data: stay } = await supabase
       .from("stays" as any)
       .select("room_id")
       .eq("id", l.stay_id)
       .maybeSingle();
-    const roomId = (stay as any)?.room_id;
-    if (roomId) {
-      const { data: room } = await supabase
-        .from("rooms" as any)
-        .select("number")
-        .eq("id", roomId)
+    roomId = (stay as any)?.room_id ?? null;
+  }
+
+  let roomNumber = "";
+  let typology = "";
+  if (roomId) {
+    const { data: room } = await supabase
+      .from("rooms" as any)
+      .select("number, typology, typology_id")
+      .eq("id", roomId)
+      .maybeSingle();
+    roomNumber = (room as any)?.number ?? "";
+    typology = (room as any)?.typology ?? "";
+    const typologyId = (room as any)?.typology_id;
+    if (typologyId) {
+      const { data: typ } = await supabase
+        .from("room_typologies" as any)
+        .select("name")
+        .eq("id", typologyId)
         .maybeSingle();
-      roomNumber = (room as any)?.number ?? "";
+      typology = (typ as any)?.name ?? typology;
     }
   }
+  // Só sem quarto atribuído usamos a preferência inicial da lead
+  if (!typology) typology = l.preferred_room_type ?? "";
   if (!roomNumber) roomNumber = l.preferred_room_type ?? "";
 
   const fullName = l.full_name || resident?.full_name || "";
@@ -122,6 +137,8 @@ export async function generateReservationDocx(leadId: string): Promise<Generated
     Validade_Doc_Identificacao: fmtDate(l.document_validity || resident?.document_validity),
     NIF: l.tax_number || resident?.tax_number || "___ ___ ___",
     "Nº_Quarto": String(roomNumber ?? ""),
+    Tipologia: typology,
+    Tipologia_Quarto: typology,
     Piso: parsedRoom?.floor != null ? String(parsedRoom.floor) : "",
     Lado: parsedRoom?.side ?? "",
     // O modelo já escreve "EUR" antes do marcador
