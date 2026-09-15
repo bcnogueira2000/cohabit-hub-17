@@ -110,7 +110,7 @@ const ResidentDetail = () => {
       city: resident.city,
       expectedArrivalDate: resident.expectedArrivalDate ? resident.expectedArrivalDate.slice(0, 10) : null,
     });
-  }, [resident?.id, resident?.nationality, resident?.documentType, resident?.documentNumber, resident?.taxNumber, resident?.employerOrSchool, resident?.dateOfBirth, resident?.emergencyContactName, resident?.emergencyContactPhone, resident?.emergencyContactEmail, resident?.specialNeeds, resident?.address, resident?.postalCode, resident?.city, resident?.expectedArrivalDate]);
+  }, [resident?.id, resident?.phone, resident?.email, resident?.internalNotes, resident?.emergencyContactInvoiceCopy, resident?.nationality, resident?.documentType, resident?.documentNumber, resident?.taxNumber, resident?.employerOrSchool, resident?.dateOfBirth, resident?.emergencyContactName, resident?.emergencyContactPhone, resident?.emergencyContactEmail, resident?.specialNeeds, resident?.address, resident?.postalCode, resident?.city, resident?.expectedArrivalDate]);
 
   useEffect(() => {
     if (syncMoloni.error instanceof MoloniDuplicateError && syncMoloni.error.kind === "already_linked") {
@@ -128,6 +128,10 @@ const ResidentDetail = () => {
       {
         id: resident.id,
         values: {
+          phone: clean(legal.phone) ?? "",
+          email: clean(legal.email) ?? resident.email,
+          internalNotes: clean(legal.internalNotes),
+          emergencyContactInvoiceCopy: legal.emergencyContactInvoiceCopy,
           nationality: clean(legal.nationality),
           documentType: clean(legal.documentType),
           documentNumber: clean(legal.documentNumber),
