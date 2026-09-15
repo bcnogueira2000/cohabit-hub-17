@@ -393,6 +393,26 @@ const ResidentDetail = () => {
                 </p>
                 <form onSubmit={saveLegal} className="grid sm:grid-cols-2 gap-3">
                   <div>
+                    <Label htmlFor="legal-phone">Telefone</Label>
+                    <Input
+                      id="legal-phone"
+                      className="mt-1.5"
+                      placeholder="+351 ..."
+                      value={legal.phone ?? ""}
+                      onChange={(e) => setLegal((s) => ({ ...s, phone: e.target.value }))}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="legal-email">Email</Label>
+                    <Input
+                      id="legal-email"
+                      type="email"
+                      className="mt-1.5"
+                      value={legal.email ?? ""}
+                      onChange={(e) => setLegal((s) => ({ ...s, email: e.target.value }))}
+                    />
+                  </div>
+                  <div>
                     <Label htmlFor="legal-nationality">Nacionalidade</Label>
                     <Input
                       id="legal-nationality"
