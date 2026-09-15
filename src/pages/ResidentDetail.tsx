@@ -68,6 +68,10 @@ const ResidentDetail = () => {
   const isStaff = roles.some((r) => r === "staff" || r === "manager" || r === "admin");
 
   const [legal, setLegal] = useState<ResidentLegalFields>({
+    phone: null,
+    email: null,
+    internalNotes: null,
+    emergencyContactInvoiceCopy: false,
     nationality: null,
     documentType: null,
     documentNumber: null,
