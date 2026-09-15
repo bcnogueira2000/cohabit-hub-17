@@ -128,6 +128,8 @@ export async function generateReservationDocx(leadId: string): Promise<Generated
     Validade_Doc_Identificacao: fmtDate(l.document_validity || resident?.document_validity),
     NIF: l.tax_number || resident?.tax_number || "___ ___ ___",
     "Nº_Quarto": String(roomNumber ?? ""),
+    Tipologia: typology,
+    Tipologia_Quarto: typology,
     Piso: parsedRoom?.floor != null ? String(parsedRoom.floor) : "",
     Lado: parsedRoom?.side ?? "",
     // O modelo já escreve "EUR" antes do marcador
