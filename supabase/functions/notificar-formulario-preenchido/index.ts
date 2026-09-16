@@ -4,7 +4,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.4";
 // o formulário de candidatura. Envia um email à equipa de reservas.
 // Idempotente: só envia uma vez por lead (form_review_email_sent_at).
 
-const TEAM_EMAIL = "reservas@livingcolours.pt";
+const FALLBACK_TEAM_EMAIL = "info@livingcolours.pt";
 const FROM_EMAIL = "Living Colours <reservas@livingcolours.pt>";
 const APP_URL = Deno.env.get("CANDIDATE_FORM_BASE_URL") ?? "https://cohabit-hub-17.lovable.app";
 
@@ -32,6 +32,13 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
       { auth: { persistSession: false } }
     );
+
+    const { data: setting } = await admin
+      .from("app_settings")
+      .select("value")
+      .eq("key", "team_notification_email")
+      .maybeSingle();
+    const teamEmail = (setting?.value ?? "").trim() || FALLBACK_TEAM_EMAIL;
 
     const body = await req.json().catch(() => ({}));
     const leadId = String(body?.lead_id ?? "").trim();
@@ -72,7 +79,7 @@ Deno.serve(async (req) => {
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${RESEND_API_KEY}` },
       body: JSON.stringify({
         from: FROM_EMAIL,
-        to: [TEAM_EMAIL],
+        to: [teamEmail],
         subject: `Formulário preenchido: ${lead.full_name}`,
         html,
       }),
