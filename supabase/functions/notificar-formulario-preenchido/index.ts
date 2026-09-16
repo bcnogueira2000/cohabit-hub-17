@@ -33,6 +33,13 @@ Deno.serve(async (req) => {
       { auth: { persistSession: false } }
     );
 
+    const { data: setting } = await admin
+      .from("app_settings")
+      .select("value")
+      .eq("key", "team_notification_email")
+      .maybeSingle();
+    const teamEmail = (setting?.value ?? "").trim() || FALLBACK_TEAM_EMAIL;
+
     const body = await req.json().catch(() => ({}));
     const leadId = String(body?.lead_id ?? "").trim();
     if (!/^[0-9a-f-]{36}$/i.test(leadId)) return json({ error: "lead_id inválido" }, 400);
