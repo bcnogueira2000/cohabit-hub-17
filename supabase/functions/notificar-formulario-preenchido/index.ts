@@ -4,7 +4,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.4";
 // o formulário de candidatura. Envia um email à equipa de reservas.
 // Idempotente: só envia uma vez por lead (form_review_email_sent_at).
 
-const TEAM_EMAIL = "reservas@livingcolours.pt";
+const FALLBACK_TEAM_EMAIL = "info@livingcolours.pt";
 const FROM_EMAIL = "Living Colours <reservas@livingcolours.pt>";
 const APP_URL = Deno.env.get("CANDIDATE_FORM_BASE_URL") ?? "https://cohabit-hub-17.lovable.app";
 
