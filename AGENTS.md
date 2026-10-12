@@ -1,2 +1,3 @@
 - Lead reservation/contract state changes ("Assinou", "Desistiu", fee waiver) go through SECURITY DEFINER RPCs (sign_lead_contract, give_up_lead, reserve_room_without_fee) so room blocking and lead updates are atomic.
 - Pending-agreement and contract personal-data rules live in src/lib/leadContractRules.ts (pure, unit-tested) and are reused by all lead dialogs.
+- Nationality and phone inputs for people (leads, residents, candidate form) use the shared country list in src/lib/countries.ts (NationalitySelect/PhoneInput in src/components/CountryFields.tsx); nationality is stored in its Portuguese form and phones as "+<dial> <number>", so contracts and lusophone detection keep working from one source.
