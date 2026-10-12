@@ -1,3 +1,4 @@
+import { shortName } from "@/lib/shortName";
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import {
@@ -290,10 +291,10 @@ const Payments = () => {
                         onClick={(e) => e.stopPropagation()}
                         className="font-medium hover:underline"
                       >
-                        {r.residentName}
+                        {shortName(r.residentName)}
                       </Link>
                     ) : (
-                      <span className="font-medium">{r.residentName}</span>
+                      <span className="font-medium">{shortName(r.residentName)}</span>
                     )}
                     {r.prorated && (
                       <span className="ml-2 text-[11px] text-muted-foreground">proporcional</span>
@@ -647,10 +648,10 @@ const DepositsSection = () => {
                   <td className="px-4 py-3">
                     {d.residentId ? (
                       <Link to={`/residents/${d.residentId}`} className="font-medium hover:underline">
-                        {d.residentName}
+                        {shortName(d.residentName)}
                       </Link>
                     ) : (
-                      <span className="font-medium">{d.residentName}</span>
+                      <span className="font-medium">{shortName(d.residentName)}</span>
                     )}
                   </td>
                   <td className="px-4 py-3">
@@ -907,10 +908,10 @@ const DepositsToReceiveSection = () => {
                   <td className="px-4 py-3">
                     {d.residentId ? (
                       <Link to={`/residents/${d.residentId}`} className="font-medium hover:underline">
-                        {d.residentName}
+                        {shortName(d.residentName)}
                       </Link>
                     ) : (
-                      <span className="font-medium">{d.residentName}</span>
+                      <span className="font-medium">{shortName(d.residentName)}</span>
                     )}
                   </td>
                   <td className="px-4 py-3">
@@ -1180,10 +1181,10 @@ const ReservationFeesSection = () => {
                     <td className="px-4 py-3">
                       {f.residentId ? (
                         <Link to={`/residents/${f.residentId}`} className="font-medium hover:underline">
-                          {f.residentName}
+                          {shortName(f.residentName)}
                         </Link>
                       ) : (
-                        <span className="font-medium">{f.residentName}</span>
+                        <span className="font-medium">{shortName(f.residentName)}</span>
                       )}
                     </td>
                     <td className="px-4 py-3">

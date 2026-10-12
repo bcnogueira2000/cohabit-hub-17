@@ -1,3 +1,4 @@
+import { shortName } from "@/lib/shortName";
 import { Link } from "react-router-dom";
 import { Plus, ArrowRight, Inbox, Sparkles, DoorClosed, AlertTriangle, ListChecks, Sun, LogIn, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -178,7 +179,7 @@ const Dashboard = () => {
                       </div>
                       <div className="font-medium text-sm truncate">{r.title}</div>
                       <div className="text-xs text-muted-foreground truncate">
-                        {resident?.fullName || "—"} · {r.location}
+                        {shortName(resident?.fullName) || "—"} · {r.location}
                       </div>
                     </div>
                     <StatusBadge status={r.status} />
@@ -252,7 +253,7 @@ const Dashboard = () => {
                       {new Date(s.checkIn).getDate()}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="font-medium text-sm truncate">{s.fullName}</div>
+                      <div className="font-medium text-sm truncate">{shortName(s.fullName)}</div>
                       <div className="text-xs text-muted-foreground truncate">
                         {room ? `Quarto ${room.number}` : "Sem quarto"} · {formatDate(s.checkIn, "weekday")}
                       </div>
@@ -298,7 +299,7 @@ const Dashboard = () => {
                       {new Date(s.checkOut).getDate()}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="font-medium text-sm truncate">{s.fullName}</div>
+                      <div className="font-medium text-sm truncate">{shortName(s.fullName)}</div>
                       <div className="text-xs text-muted-foreground truncate">
                         {room ? `Quarto ${room.number}` : "—"} · {formatDate(s.checkOut, "weekday")}
                       </div>

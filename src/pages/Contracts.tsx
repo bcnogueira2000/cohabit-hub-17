@@ -1,3 +1,4 @@
+import { shortName } from "@/lib/shortName";
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
@@ -249,7 +250,7 @@ const Contracts = () => {
                         onClick={(e) => e.stopPropagation()}
                         className="font-medium hover:underline"
                       >
-                        {c.residentName}
+                        {shortName(c.residentName)}
                       </Link>
                     </td>
                     <td className="px-4 py-3">

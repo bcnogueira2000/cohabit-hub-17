@@ -1,3 +1,4 @@
+import { shortName } from "@/lib/shortName";
 import { useState, useMemo, useEffect, useCallback } from "react";
 import { NationalitySelect, PhoneInput, NationalityFormField, PhoneFormField } from "@/components/CountryFields";
 import { Link, useNavigate } from "react-router-dom";
@@ -384,7 +385,7 @@ const Leads = () => {
                 className="flex items-center justify-between cursor-pointer hover:bg-muted/40 rounded-lg p-2 -mx-1 transition-smooth"
               >
                 <div className="min-w-0 flex-1 mr-3">
-                  <div className="text-sm font-medium truncate">{l.fullName}</div>
+                  <div className="text-sm font-medium truncate">{shortName(l.fullName)}</div>
                   <div className="text-xs text-muted-foreground truncate">{urgentReason(l)}</div>
                 </div>
                 <Badge variant="outline" className={`${statusTone[l.status]} text-xs shrink-0`}>
@@ -417,7 +418,7 @@ const Leads = () => {
                 className="flex items-center justify-between cursor-pointer hover:bg-muted/40 rounded-lg p-2 -mx-1 transition-smooth"
               >
                 <div className="min-w-0 flex-1 mr-3">
-                  <div className="text-sm font-medium truncate">{l.fullName}</div>
+                  <div className="text-sm font-medium truncate">{shortName(l.fullName)}</div>
                   <div className="text-xs text-muted-foreground truncate">
                     Formulário preenchido {l.formSubmittedAt ? `a ${fmtDate(l.formSubmittedAt)}` : ""} · sem acordo de reserva
                   </div>
