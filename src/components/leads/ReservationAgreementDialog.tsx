@@ -150,7 +150,7 @@ export const ReservationAgreementDialog = ({ lead, open, onOpenChange }: Props) 
           plannedCheckIn: checkIn,
           plannedCheckOut: checkOut,
           reservationDeadline: deadline,
-          reservationFeeAmount: feeNumber,
+          ...(feePaid ? {} : { reservationFeeAmount: feeNumber }),
           address: address.trim(),
           documentNumber: documentNumber.trim(),
           documentValidity,
