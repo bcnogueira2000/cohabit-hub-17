@@ -17,7 +17,7 @@ export const LeadPendingProvider = ({ leads, children }: { leads: Lead[]; childr
   const signedContracts = useMemo(
     () =>
       leads
-        .filter((l) => !["won", "lost"].includes(l.status) && l.contractSignedAt && l.contractId)
+        .filter((l) => l.status !== "lost" && l.contractSignedAt && l.contractId)
         .map((l) => l.contractId as string)
         .sort(),
     [leads]
@@ -37,7 +37,7 @@ export const LeadPendingProvider = ({ leads, children }: { leads: Lead[]; childr
     queryFn: async () => {
       const [{ data: cs }, { data: deps }, { data: rcs }] = await Promise.all([
         supabase.from("contracts" as any).select("id, deposit_due").in("id", signedContracts),
-        supabase.from("payments" as any).select("contract_id, amount").in("contract_id", signedContracts).eq("kind", "deposit"),
+        supabase.from("payments" as any).select("contract_id, amount").in("contract_id", signedContracts).eq("kind", "deposit").eq("status", "active"),
         supabase
           .from("rent_charge_balance" as any)
           .select("contract_id, year, month, outstanding")

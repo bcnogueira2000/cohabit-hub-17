@@ -116,7 +116,8 @@ export const ReservationAgreementDialog = ({ lead, open, onOpenChange }: Props) 
         .from("payments" as any)
         .select("id", { count: "exact", head: true })
         .eq("lead_id", lead.id)
-        .eq("kind", "booking_fee");
+        .eq("kind", "booking_fee")
+        .eq("status", "active");
       if (error) throw error;
       return (count ?? 0) > 0;
     },

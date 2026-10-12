@@ -32,6 +32,7 @@ import {
   type ResidentLegalData,
 } from "@/components/contracts/ResidentLegalDataDialog";
 import { supabase } from "@/integrations/supabase/client";
+import { ContractActivity, ContractWonAlert } from "@/components/contracts/ContractPaymentNotices";
 
 
 
@@ -241,6 +242,7 @@ const ContractDetail = () => {
       />
 
 
+      <ContractWonAlert contractId={contract.id} />
       <Card className="p-5 border-border/60 shadow-card mb-3">
         <h3 className="font-display text-lg font-semibold mb-3">Dados do contrato</h3>
         <div className="grid sm:grid-cols-3 gap-4">
@@ -329,6 +331,7 @@ const ContractDetail = () => {
           </div>
         )}
       </Card>
+      <ContractActivity contractId={contract.id} />
     </div>
   );
 };

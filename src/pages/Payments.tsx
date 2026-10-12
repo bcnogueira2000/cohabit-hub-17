@@ -21,6 +21,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { toast } from "@/hooks/use-toast";
 import { PaymentStateBadge } from "@/components/payments/PaymentStateBadge";
+import { PaymentEntry } from "@/components/payments/PaymentEntry";
 import {
   paymentMethodLabels,
   paymentStateLabels,
@@ -499,19 +500,7 @@ const PaymentSheet = ({ charge, onClose }: { charge: RentChargeRow | null; onClo
               ) : (
                 <div className="space-y-2">
                   {payments.map((p) => (
-                    <div
-                      key={p.id}
-                      className="flex items-center justify-between rounded-lg border border-border/60 px-3 py-2 text-sm"
-                    >
-                      <div>
-                        <div className="font-medium">{eur(Number(p.amount))}</div>
-                        <div className="text-xs text-muted-foreground">
-                          {fmtDate(p.paid_at)}
-                          {p.method ? ` · ${paymentMethodLabels[p.method as PaymentMethod]}` : ""}
-                          {p.reference ? ` · ${p.reference}` : ""}
-                        </div>
-                      </div>
-                    </div>
+                    <PaymentEntry key={p.id} payment={p} />
                   ))}
                 </div>
               )}
@@ -842,25 +831,12 @@ const DepositReturnSheet = ({ deposit, onClose }: { deposit: DepositRow | null; 
               ) : (
                 <div className="space-y-2">
                   {movements.map((p) => (
-                    <div
+                    <PaymentEntry
                       key={p.id}
-                      className="flex items-center justify-between rounded-lg border border-border/60 px-3 py-2 text-sm"
-                    >
-                      <div>
-                        <div className="font-medium">
-                          {p.kind === "deposit_return" ? "− " : "+ "}
-                          {eur(Number(p.amount))}
-                        </div>
-                        <div className="text-xs text-muted-foreground">
-                          {fmtDate(p.paid_at)}
-                          {p.method ? ` · ${paymentMethodLabels[p.method as PaymentMethod]}` : ""}
-                          {p.reference ? ` · ${p.reference}` : ""}
-                        </div>
-                      </div>
-                      <span className="text-xs text-muted-foreground">
-                        {p.kind === "deposit_return" ? "Devolução" : "Caução"}
-                      </span>
-                    </div>
+                      payment={p}
+                      sign={p.kind === "deposit_return" ? "−" : "+"}
+                      tag={p.kind === "deposit_return" ? "Devolução" : "Caução"}
+                    />
                   ))}
                 </div>
               )}
@@ -1107,25 +1083,12 @@ const DepositReceiptSheet = ({ deposit, onClose }: { deposit: DepositRow | null;
               ) : (
                 <div className="space-y-2">
                   {movements.map((p) => (
-                    <div
+                    <PaymentEntry
                       key={p.id}
-                      className="flex items-center justify-between rounded-lg border border-border/60 px-3 py-2 text-sm"
-                    >
-                      <div>
-                        <div className="font-medium">
-                          {p.kind === "deposit_return" ? "− " : "+ "}
-                          {eur(Number(p.amount))}
-                        </div>
-                        <div className="text-xs text-muted-foreground">
-                          {fmtDate(p.paid_at)}
-                          {p.method ? ` · ${paymentMethodLabels[p.method as PaymentMethod]}` : ""}
-                          {p.reference ? ` · ${p.reference}` : ""}
-                        </div>
-                      </div>
-                      <span className="text-xs text-muted-foreground">
-                        {p.kind === "deposit_return" ? "Devolução" : "Caução"}
-                      </span>
-                    </div>
+                      payment={p}
+                      sign={p.kind === "deposit_return" ? "−" : "+"}
+                      tag={p.kind === "deposit_return" ? "Devolução" : "Caução"}
+                    />
                   ))}
                 </div>
               )}
@@ -1241,6 +1204,11 @@ const ReservationFeesSection = () => {
                       <Badge variant="secondary" className="ml-2 rounded-full text-[11px]">
                         {f.source === "lead" ? "Candidatura" : statusLabels[f.status] ?? f.status}
                       </Badge>
+                      {f.roomStillBlocked && (
+                        <div className="text-[11px] text-warning mt-1 flex items-center gap-1">
+                          <AlertTriangle className="h-3 w-3" strokeWidth={1.5} /> O quarto continua bloqueado
+                        </div>
+                      )}
                     </td>
                     <td className="px-4 py-3 text-muted-foreground">{fmtDate(f.deadline)}</td>
                     <td className="px-4 py-3 text-right">{eur(f.feeAmount)}</td>
@@ -1308,6 +1276,7 @@ const ReservationFeeSheet = ({ fee, onClose }: { fee: ReservationFeeRow | null; 
         roomId: fee.roomId,
         checkIn: fee.plannedCheckIn,
         checkOut: fee.plannedCheckOut,
+        alreadyReserved: fee.roomStillBlocked,
         amount: value,
         paidAt,
         method,
@@ -1371,6 +1340,11 @@ const ReservationFeeSheet = ({ fee, onClose }: { fee: ReservationFeeRow | null; 
             )}
 
 
+            {fee.roomStillBlocked && (
+              <p className="mt-4 text-xs text-warning rounded-lg border border-warning/30 bg-warning/10 p-2">
+                Taxa por pagar (um pagamento foi anulado) — o quarto continua bloqueado para esta candidatura.
+              </p>
+            )}
             {missing > 0.005 && (
               <div className="mt-6 space-y-3">
                 <h3 className="font-display text-lg font-semibold">Registar recebimento</h3>
@@ -1428,20 +1402,7 @@ const ReservationFeeSheet = ({ fee, onClose }: { fee: ReservationFeeRow | null; 
               ) : (
                 <div className="space-y-2">
                   {payments.map((p) => (
-                    <div
-                      key={p.id}
-                      className="flex items-center justify-between rounded-lg border border-border/60 px-3 py-2 text-sm"
-                    >
-                      <div>
-                        <div className="font-medium">{eur(Number(p.amount))}</div>
-                        <div className="text-xs text-muted-foreground">
-                          {fmtDate(p.paid_at)}
-                          {p.method ? ` · ${paymentMethodLabels[p.method as PaymentMethod]}` : ""}
-                          {p.reference ? ` · ${p.reference}` : ""}
-                        </div>
-                      </div>
-                      <span className="text-xs text-muted-foreground">Taxa de reserva</span>
-                    </div>
+                    <PaymentEntry key={p.id} payment={p} tag="Taxa de reserva" />
                   ))}
                 </div>
               )}

@@ -33,6 +33,38 @@ export const paymentStateLabels: Record<PaymentState, string> = {
   due: "Por pagar",
 };
 
+export const paymentKindLabels: Record<string, string> = {
+  rent: "Renda",
+  deposit: "Caução",
+  deposit_return: "Devolução de caução",
+  booking_fee: "Taxa de reserva",
+  extra: "Extra",
+  other: "Outro",
+};
+export const paymentKindLabel = (k: string | null | undefined) => (k ? paymentKindLabels[k] ?? k : "Pagamento");
+
+/** Pagamento anulado (fica no histórico, nunca entra nas somas). */
+export const isVoided = (p: { status?: string | null }) => p.status === "voided";
+/** Importado do Moloni: não se anula na app. */
+export const isFromMoloni = (p: { source?: string | null; notes?: string | null }) =>
+  p.source === "moloni" || p.notes === "Importado do Moloni";
+
+/** Anula um pagamento (admin/gestor), com motivo obrigatório; recalcula totais na base de dados. */
+export const useVoidPayment = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: { paymentId: string; reason: string }) => {
+      const { error } = await supabase.rpc("void_payment" as any, { p_payment_id: input.paymentId, p_reason: input.reason });
+      if (error) throw new Error(error.message);
+    },
+    onSuccess: () => {
+      for (const k of ["leads", "rent-month", "charge-payments", "contract", "contracts", "rent-current-month", "deposits",
+        "deposits-to-receive", "deposit-payments", "reservation-fees", "booking-fee-payments", "contract-activity", "lead_activity"])
+        qc.invalidateQueries({ queryKey: [k] });
+    },
+  });
+};
+
 export const paymentMethodLabels: Record<PaymentMethod, string> = {
   transfer: "Transferência",
   mbway: "MB Way",
@@ -271,21 +303,16 @@ export const useCreateDepositReturn = () => {
       reference?: string | null;
       currentReturned: number;
     }) => {
-      const { error } = await supabase.from("payments" as any).insert({
-        contract_id: input.contractId,
-        kind: "deposit_return",
-        amount: input.amount,
-        paid_at: input.paidAt,
-        method: input.method,
-        reference: input.reference?.trim() || null,
-      } as any);
-      if (error) throw error;
-
-      const { error: updErr } = await supabase
-        .from("contracts" as any)
-        .update({ deposit_returned: input.currentReturned + input.amount } as any)
-        .eq("id", input.contractId);
-      if (updErr) throw updErr;
+      // Atómico: cria o pagamento e recalcula os totais do contrato na mesma operação
+      const { error } = await supabase.rpc("register_deposit_payment" as any, {
+        p_contract_id: input.contractId,
+        p_kind: "deposit_return",
+        p_amount: input.amount,
+        p_paid_at: input.paidAt,
+        p_method: input.method,
+        p_reference: input.reference?.trim() || null,
+      });
+      if (error) throw new Error(error.message);
     },
     onSuccess: (_d, input) => {
       qc.invalidateQueries({ queryKey: ["leads"] });
@@ -343,21 +370,16 @@ export const useCreateDepositReceipt = () => {
       reference?: string | null;
       currentReceived: number;
     }) => {
-      const { error } = await supabase.from("payments" as any).insert({
-        contract_id: input.contractId,
-        kind: "deposit",
-        amount: input.amount,
-        paid_at: input.paidAt,
-        method: input.method,
-        reference: input.reference?.trim() || null,
-      } as any);
-      if (error) throw error;
-
-      const { error: updErr } = await supabase
-        .from("contracts" as any)
-        .update({ deposit_received: input.currentReceived + input.amount } as any)
-        .eq("id", input.contractId);
-      if (updErr) throw updErr;
+      // Atómico: cria o pagamento e recalcula os totais do contrato na mesma operação
+      const { error } = await supabase.rpc("register_deposit_payment" as any, {
+        p_contract_id: input.contractId,
+        p_kind: "deposit",
+        p_amount: input.amount,
+        p_paid_at: input.paidAt,
+        p_method: input.method,
+        p_reference: input.reference?.trim() || null,
+      });
+      if (error) throw new Error(error.message);
     },
     onSuccess: (_d, input) => {
       qc.invalidateQueries({ queryKey: ["leads"] });
@@ -390,6 +412,8 @@ export interface ReservationFeeRow {
   roomId: string | null;
   plannedCheckIn: string | null;
   plannedCheckOut: string | null;
+  /** Lead já reservada com a taxa por pagar (ex.: pagamento anulado): o quarto continua bloqueado. */
+  roomStillBlocked: boolean;
 }
 
 /** Contratos e leads com taxa de reserva definida, com o total já recebido (payments kind=booking_fee). */
@@ -435,7 +459,8 @@ export const useReservationFees = () =>
       const { data: pays, error: payErr } = await supabase
         .from("payments" as any)
         .select("contract_id, lead_id, amount")
-        .eq("kind", "booking_fee");
+        .eq("kind", "booking_fee")
+        .eq("status", "active");
       if (payErr) throw payErr;
 
       const paidByContract: Record<string, number> = {};
@@ -465,6 +490,7 @@ export const useReservationFees = () =>
           roomId: null,
           plannedCheckIn: null,
           plannedCheckOut: null,
+          roomStillBlocked: false,
         };
       });
 
@@ -494,6 +520,7 @@ export const useReservationFees = () =>
           roomId: l.room_id ?? null,
           plannedCheckIn: l.planned_check_in ?? null,
           plannedCheckOut: l.planned_check_out ?? null,
+          roomStillBlocked: l.status === "reserved" && feeAmount - received > 0.005,
         };
       });
 
@@ -525,6 +552,8 @@ export const useCreateBookingFeePayment = () => {
       roomId?: string | null;
       checkIn?: string | null;
       checkOut?: string | null;
+      /** Lead já reservada (ex.: taxa anulada e registada de novo): não volta a reservar o quarto. */
+      alreadyReserved?: boolean;
       amount: number;
       paidAt: string;
       method: PaymentMethod;
@@ -532,7 +561,7 @@ export const useCreateBookingFeePayment = () => {
       notes?: string | null;
     }) => {
       let reserved = false;
-      if (input.leadId) {
+      if (input.leadId && !input.alreadyReserved) {
         if (!input.roomId || !input.checkIn || !input.checkOut) {
           throw new Error(
             "Falta o quarto ou as datas previstas nesta lead. Gera primeiro o acordo de reserva com quarto e datas."

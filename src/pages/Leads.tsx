@@ -48,11 +48,13 @@ import {
   AwaitingSignatureBadge,
   LeadSubStateBadge,
   LeadStatusBadge,
+  WonAtRiskBadge,
   FLOW_LOCK_NOTE,
 } from "@/components/leads/LeadsPipeline";
 import { LostReasonDialog } from "@/components/leads/LostReasonDialog";
 import { LeadPendingProvider } from "@/components/leads/LeadPendingContext";
 import { isFlowLockedStatus } from "@/lib/leadContractRules";
+import { paymentKindLabel } from "@/hooks/usePayments";
 import { leadStatusLabels, leadSourceLabels, leadProfileLabels } from "@/lib/labels";
 import { NewContractDialog } from "@/components/contracts/NewContractDialog";
 import { ReservationAgreementDialog } from "@/components/leads/ReservationAgreementDialog";
@@ -535,6 +537,7 @@ const Leads = () => {
                       )
                     )}
                     <LeadSubStateBadge lead={l} />
+                    <WonAtRiskBadge lead={l} />
                   </div>
                   <div className="font-display text-lg font-semibold truncate">{l.fullName}</div>
                   <div className="text-xs text-muted-foreground truncate">{l.email}</div>
@@ -1363,6 +1366,12 @@ const LeadHistory = ({ leadId }: { leadId: string }) => {
                     {entry.payload?.reason && (
                       <span className="text-muted-foreground"> — motivo: {entry.payload.reason}</span>
                     )}
+                  </>
+                ) : entry.kind === "payment_voided" ? (
+                  <>
+                    Pagamento anulado — {paymentKindLabel(entry.payload?.kind)} de{" "}
+                    {Number(entry.payload?.amount ?? 0).toLocaleString("pt-PT", { style: "currency", currency: "EUR" })}
+                    {entry.payload?.reason && <span className="text-muted-foreground"> — motivo: {entry.payload.reason}</span>}
                   </>
                 ) : entry.kind === "duplicate_submission" ? (
                   <>

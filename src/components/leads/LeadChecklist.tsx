@@ -22,14 +22,15 @@ export const LeadChecklist = ({ lead }: { lead: Lead }) => {
         .from("payments" as any)
         .select("amount")
         .eq("lead_id", lead.id)
-        .eq("kind", "booking_fee");
+        .eq("kind", "booking_fee")
+        .eq("status", "active");
       const feePaid = ((fees ?? []) as any[]).reduce((a, r) => a + Number(r.amount ?? 0), 0);
       let depositPaid = false;
       let firstRentPaid = false;
       if (lead.contractId) {
         const [{ data: c }, { data: deps }, { data: rc }] = await Promise.all([
           supabase.from("contracts" as any).select("deposit_due").eq("id", lead.contractId).maybeSingle(),
-          supabase.from("payments" as any).select("amount").eq("contract_id", lead.contractId).eq("kind", "deposit"),
+          supabase.from("payments" as any).select("amount").eq("contract_id", lead.contractId).eq("kind", "deposit").eq("status", "active"),
           supabase
             .from("rent_charge_balance" as any)
             .select("outstanding")
