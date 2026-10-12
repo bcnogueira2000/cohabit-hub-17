@@ -49,6 +49,7 @@ import {
 import { leadStatusLabels, leadSourceLabels, leadProfileLabels } from "@/lib/labels";
 import { NewContractDialog } from "@/components/contracts/NewContractDialog";
 import { ReservationAgreementDialog } from "@/components/leads/ReservationAgreementDialog";
+import { ReservationWaiverDialog } from "@/components/leads/ReservationWaiverDialog";
 import { LeadContractDialog } from "@/components/leads/LeadContractDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
@@ -140,6 +141,7 @@ const Leads = () => {
   );
   const setSelected = useCallback((lead: Lead | null) => setSelectedId(lead?.id ?? null), []);
   const [reservationOpen, setReservationOpen] = useState(false);
+  const [waiverOpen, setWaiverOpen] = useState(false);
   const [bypassFormLeadId, setBypassFormLeadId] = useState<string | null>(null);
   const [confirmResendOpen, setConfirmResendOpen] = useState(false);
   const [giveUpBusy, setGiveUpBusy] = useState(false);
@@ -925,16 +927,35 @@ const Leads = () => {
                   )}
                   {selected.fullName &&
                     selected.email &&
+                    selected.status !== "reserved" &&
+                    !selected.reservationNotApplicable &&
                     (["proposal_sent", "won"].includes(selected.status) ||
                       (selected.status === "negotiating" &&
                         (!!selected.formSubmittedAt || bypassFormLeadId === selected.id))) && (
-                    <Button
-                      variant="outline"
-                      className="w-full rounded-full mt-2"
-                      onClick={() => setReservationOpen(true)}
-                    >
-                      <FileText className="h-4 w-4 mr-1.5" strokeWidth={1.5} /> Gerar acordo de reserva
-                    </Button>
+                    <>
+                      <Button
+                        variant="outline"
+                        className="w-full rounded-full mt-2"
+                        onClick={() => setReservationOpen(true)}
+                      >
+                        <FileText className="h-4 w-4 mr-1.5" strokeWidth={1.5} /> Gerar acordo de reserva
+                      </Button>
+                      {selected.status !== "won" && (
+                        <Button
+                          variant="ghost"
+                          className="w-full rounded-full mt-1 text-muted-foreground"
+                          onClick={() => setWaiverOpen(true)}
+                        >
+                          Acordo de reserva não aplicável
+                        </Button>
+                      )}
+                    </>
+                  )}
+                  {selected.reservationNotApplicable && (
+                    <p className="text-xs text-muted-foreground mt-2 rounded-lg border border-border p-2">
+                      Reservado sem taxa (acordo não aplicável)
+                      {selected.reservationWaiverReason ? ` — ${selected.reservationWaiverReason}` : ""}
+                    </p>
                   )}
                   {selected.status === "reserved" && (
                     <div className="grid grid-cols-2 gap-2 mt-2">
@@ -1032,6 +1053,14 @@ const Leads = () => {
           lead={selected}
           open={reservationOpen}
           onOpenChange={setReservationOpen}
+        />
+      )}
+
+      {selected && (
+        <ReservationWaiverDialog
+          lead={selected}
+          open={waiverOpen}
+          onOpenChange={setWaiverOpen}
         />
       )}
 
@@ -1249,6 +1278,13 @@ const LeadHistory = ({ leadId }: { leadId: string }) => {
                   </>
                 ) : entry.kind === "form_submitted" ? (
                   <>Formulário de candidatura preenchido pelo candidato</>
+                ) : entry.kind === "reservation_waived" ? (
+                  <>
+                    Acordo de reserva não aplicável — quarto {entry.payload?.room_number ?? "—"} reservado sem taxa
+                    {entry.payload?.reason && (
+                      <span className="text-muted-foreground"> — motivo: {entry.payload.reason}</span>
+                    )}
+                  </>
                 ) : entry.kind === "duplicate_submission" ? (
                   <>
                     Nova submissão do site para esta lead
