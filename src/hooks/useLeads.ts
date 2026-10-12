@@ -70,6 +70,11 @@ export interface Lead {
   emergencyContactEmail: string | null;
   candidateComments: string | null;
   shortName: string | null;
+  docsRequestedAt: string | null;
+  docsRequestMessage: string | null;
+  docsRequestItems: string[];
+  docsReceivedAt: string | null;
+  docsValidatedAt: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -134,6 +139,11 @@ export const mapLead = (r: any): Lead => ({
   emergencyContactEmail: r.emergency_contact_email ?? null,
   candidateComments: r.candidate_comments ?? null,
   shortName: r.short_name ?? null,
+  docsRequestedAt: r.docs_requested_at ?? null,
+  docsRequestMessage: r.docs_request_message ?? null,
+  docsRequestItems: r.docs_request_items ?? [],
+  docsReceivedAt: r.docs_received_at ?? null,
+  docsValidatedAt: r.docs_validated_at ?? null,
   createdAt: r.created_at,
   updatedAt: r.updated_at,
 });
@@ -475,6 +485,7 @@ export interface LeadDocument {
   fileName: string;
   storagePath: string;
   fileType: string | null;
+  kind: string | null;
   uploadedAt: string;
 }
 
@@ -496,6 +507,7 @@ export const useLeadDocuments = (leadId: string | null) =>
         fileName: r.file_name,
         storagePath: r.storage_path,
         fileType: r.file_type ?? null,
+        kind: r.kind ?? null,
         uploadedAt: r.uploaded_at,
       }));
     },
@@ -508,4 +520,46 @@ export const downloadLeadDocument = async (storagePath: string) => {
     .createSignedUrl(storagePath, 60 * 5);
   if (error) throw new Error(error.message);
   return data.signedUrl;
+};
+
+/** Pede ao candidato a substituição de documentos (email com link /candidatura/:token/documentos). */
+export const useRequestLeadDocuments = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (args: { leadId: string; items: string[]; message: string }) => {
+      const { data, error } = await supabase.functions.invoke("pedir-documentos-candidatura", {
+        body: { lead_id: args.leadId, items: args.items, message: args.message },
+      });
+      if (error) {
+        let details = error.message;
+        try {
+          const ctx = (error as any).context;
+          if (ctx?.text) details = JSON.parse(await ctx.text())?.error ?? details;
+        } catch {
+          /* mantém a mensagem original */
+        }
+        throw new Error(details);
+      }
+      return data as { ok: boolean; email: string };
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["leads"] });
+      qc.invalidateQueries({ queryKey: ["lead_activity"] });
+    },
+  });
+};
+
+/** Marca os documentos da lead como validados. */
+export const useValidateLeadDocuments = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (leadId: string) => {
+      const { error } = await supabase.rpc("validate_lead_documents" as any, { p_lead_id: leadId });
+      if (error) throw new Error(error.message);
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["leads"] });
+      qc.invalidateQueries({ queryKey: ["lead_activity"] });
+    },
+  });
 };
