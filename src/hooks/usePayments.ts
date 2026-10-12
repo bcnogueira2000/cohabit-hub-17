@@ -185,6 +185,7 @@ export const useCreatePayment = () => {
       if (error) throw error;
     },
     onSuccess: (_d, input) => {
+      qc.invalidateQueries({ queryKey: ["leads"] });
       qc.invalidateQueries({ queryKey: ["rent-month"] });
       qc.invalidateQueries({ queryKey: ["charge-payments", input.rentChargeId] });
       qc.invalidateQueries({ queryKey: ["contract", input.contractId] });
@@ -287,6 +288,7 @@ export const useCreateDepositReturn = () => {
       if (updErr) throw updErr;
     },
     onSuccess: (_d, input) => {
+      qc.invalidateQueries({ queryKey: ["leads"] });
       qc.invalidateQueries({ queryKey: ["deposits"] });
       qc.invalidateQueries({ queryKey: ["deposit-payments", input.contractId] });
       qc.invalidateQueries({ queryKey: ["contract", input.contractId] });
@@ -358,6 +360,7 @@ export const useCreateDepositReceipt = () => {
       if (updErr) throw updErr;
     },
     onSuccess: (_d, input) => {
+      qc.invalidateQueries({ queryKey: ["leads"] });
       qc.invalidateQueries({ queryKey: ["deposits"] });
       qc.invalidateQueries({ queryKey: ["deposits-to-receive"] });
       qc.invalidateQueries({ queryKey: ["deposit-payments", input.contractId] });
@@ -417,15 +420,17 @@ export const useReservationFees = () =>
       const contracts = ((contractData ?? []) as any[]).filter(
         (c) => Number(c.reservation_fee_amount ?? 0) > 0.005
       );
-      const leads = ((leadData ?? []) as any[]).filter(
+      const contractIdsWithFee = new Set(contracts.map((c) => c.id as string));
+      const leadsAll = ((leadData ?? []) as any[]).filter(
         (l) =>
           Number(l.reservation_fee_amount ?? 0) > 0.005 &&
           l.room_id &&
-          !l.contract_id &&
           !l.reservation_not_applicable &&
-          !["won", "lost"].includes(l.status)
+          l.status !== "lost" &&
+          // contratos com taxa própria já aparecem na linha do contrato
+          !(l.contract_id && contractIdsWithFee.has(l.contract_id))
       );
-      if (contracts.length === 0 && leads.length === 0) return [];
+      if (contracts.length === 0 && leadsAll.length === 0) return [];
 
       const { data: pays, error: payErr } = await supabase
         .from("payments" as any)
@@ -437,7 +442,7 @@ export const useReservationFees = () =>
       const paidByLead: Record<string, number> = {};
       for (const p of ((pays ?? []) as any[])) {
         if (p.contract_id) paidByContract[p.contract_id] = (paidByContract[p.contract_id] ?? 0) + Number(p.amount ?? 0);
-        else if (p.lead_id) paidByLead[p.lead_id] = (paidByLead[p.lead_id] ?? 0) + Number(p.amount ?? 0);
+        if (p.lead_id) paidByLead[p.lead_id] = (paidByLead[p.lead_id] ?? 0) + Number(p.amount ?? 0);
       }
 
       const contractRows = contracts.map((c): ReservationFeeRow => {
@@ -463,6 +468,12 @@ export const useReservationFees = () =>
         };
       });
 
+      // Depois de assinar (ou ganha), a lead só aparece enquanto a taxa estiver por pagar
+      const leads = leadsAll.filter(
+        (l) =>
+          (!l.contract_id && l.status !== "won") ||
+          Number(l.reservation_fee_amount ?? 0) - (paidByLead[l.id] ?? 0) > 0.005
+      );
       const leadRows = leads.map((l): ReservationFeeRow => {
         const feeAmount = Number(l.reservation_fee_amount ?? 0);
         const received = paidByLead[l.id] ?? 0;
@@ -555,6 +566,7 @@ export const useCreateBookingFeePayment = () => {
       }
     },
     onSuccess: (_d, input) => {
+      qc.invalidateQueries({ queryKey: ["leads"] });
       qc.invalidateQueries({ queryKey: ["reservation-fees"] });
       qc.invalidateQueries({ queryKey: ["booking-fee-payments"] });
       qc.invalidateQueries({ queryKey: ["contracts"] });

@@ -73,11 +73,13 @@ export type SubStateInput = {
   reservationAgreementGeneratedAt: string | null;
   contractGeneratedAt: string | null;
   contractId: string | null;
+  contractSignedAt?: string | null;
 };
 
-export type LeadSubState = "awaiting_signature" | "awaiting_fee" | "form_received" | "awaiting_form";
+export type LeadSubState = "signed_awaiting_payment" | "awaiting_signature" | "awaiting_fee" | "form_received" | "awaiting_form";
 
 export const leadSubStateLabels: Record<LeadSubState, string> = {
+  signed_awaiting_payment: "Assinado, aguarda pagamento",
   awaiting_signature: "Em assinatura",
   awaiting_fee: "Aguarda pagamento da taxa",
   form_received: "Formulário recebido",
@@ -87,10 +89,25 @@ export const leadSubStateLabels: Record<LeadSubState, string> = {
 /** Sub-estado derivado (só etiqueta, nunca selecionável). Prioridade: assinatura > taxa > formulário. */
 export const leadSubState = (l: SubStateInput): LeadSubState | null => {
   if (["won", "lost"].includes(l.status)) return null;
+  if (l.contractSignedAt) return "signed_awaiting_payment";
   if (l.contractGeneratedAt && !l.contractId) return "awaiting_signature";
   if (l.status === "reserved") return null;
   if (l.reservationAgreementGeneratedAt) return "awaiting_fee";
   if (l.formSubmittedAt) return "form_received";
   if (l.formSentAt) return "awaiting_form";
   return null;
+};
+
+/** Caução paga: soma dos pagamentos de caução cobre a devida (caução 0 conta como paga). */
+export const isDepositPaid = (due: number, paid: number) => due <= 0.005 || paid + 0.005 >= due;
+
+/** Condição para 'won' (espelha evaluate_lead_won na BD). A taxa de reserva não entra. */
+export const meetsWonCondition = (x: { signed: boolean; depositPaid: boolean; firstRentPaid: boolean }) =>
+  x.signed && x.depositPaid && x.firstRentPaid;
+
+/** Alerta: entrada a menos de 7 dias e a lead ainda não está 'won'. */
+export const isCheckInSoonNotWon = (status: string, checkIn: string | null, today: string) => {
+  if (!checkIn || ["won", "lost"].includes(status)) return false;
+  const days = (new Date(checkIn).getTime() - new Date(today).getTime()) / 86400000;
+  return days < 7;
 };

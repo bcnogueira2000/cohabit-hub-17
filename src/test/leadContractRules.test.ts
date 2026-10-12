@@ -70,3 +70,26 @@ describe("sub-estados derivados", () => {
     expect(leadSubState({ ...l, status: "lost", formSentAt: "x" })).toBeNull();
   });
 });
+
+import { isDepositPaid, meetsWonCondition, isCheckInSoonNotWon } from "@/lib/leadContractRules";
+describe("assinado ≠ contratado", () => {
+  const base = { status: "reserved", formSentAt: null, formSubmittedAt: "y", reservationAgreementGeneratedAt: "z", contractGeneratedAt: "c", contractId: "k" };
+  it("assinado tem prioridade sobre em assinatura", () => {
+    expect(leadSubState({ ...base, contractSignedAt: "s" })).toBe("signed_awaiting_payment");
+  });
+  it("caução 0 conta como paga", () => {
+    expect(isDepositPaid(0, 0)).toBe(true);
+  });
+  it("caução parcial não conta como paga", () => {
+    expect(isDepositPaid(500, 200)).toBe(false);
+  });
+  it("won exige assinatura, caução e 1.ª renda", () => {
+    expect(meetsWonCondition({ signed: true, depositPaid: true, firstRentPaid: false })).toBe(false);
+    expect(meetsWonCondition({ signed: true, depositPaid: true, firstRentPaid: true })).toBe(true);
+  });
+  it("entrada a menos de 7 dias e não won → alerta", () => {
+    expect(isCheckInSoonNotWon("reserved", "2026-10-15", "2026-10-12")).toBe(true);
+    expect(isCheckInSoonNotWon("won", "2026-10-15", "2026-10-12")).toBe(false);
+    expect(isCheckInSoonNotWon("reserved", "2026-10-30", "2026-10-12")).toBe(false);
+  });
+});
