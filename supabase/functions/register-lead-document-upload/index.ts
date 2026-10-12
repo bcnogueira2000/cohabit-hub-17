@@ -17,6 +17,9 @@ Deno.serve(async (req) => {
     const fileName = String(body?.file_name ?? "").trim();
     const fileType = String(body?.file_type ?? "application/octet-stream").trim();
     const path = String(body?.storage_path ?? "").trim();
+    const rawKind = body?.kind == null ? null : String(body.kind).trim();
+    const KINDS = ["id_document", "iban_proof", "enrollment_or_work_proof", "other"];
+    if (rawKind && !KINDS.includes(rawKind)) return json({ error: "Tipo de documento inválido" }, 400);
     if (!token || !fileName || !path) return json({ error: "Dados incompletos" }, 400);
 
     const admin = createClient(
@@ -50,6 +53,7 @@ Deno.serve(async (req) => {
       p_file_name: fileName,
       p_storage_path: path,
       p_file_type: fileType,
+      p_kind: rawKind || null,
     });
     if (registerError) return json({ error: registerError.message }, 500);
 

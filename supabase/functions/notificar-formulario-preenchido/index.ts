@@ -44,6 +44,33 @@ Deno.serve(async (req) => {
     const leadId = String(body?.lead_id ?? "").trim();
     if (!/^[0-9a-f-]{36}$/i.test(leadId)) return json({ error: "lead_id inválido" }, 400);
 
+    // Documentos pedidos depois da submissão (submit_lead_documents).
+    if (body?.kind === "documents") {
+      const { data: l } = await admin
+        .from("leads")
+        .select("full_name, email, docs_received_at, docs_request_items")
+        .eq("id", leadId)
+        .maybeSingle();
+      if (!l?.docs_received_at) return json({ ok: true, skipped: true });
+      const html = `
+        <div style="font-family: Arial, Helvetica, sans-serif; font-size: 15px; color: #1f2937; line-height: 1.6;">
+          <p><strong>${esc(l.full_name)}</strong> enviou os documentos pedidos.</p>
+          <p><a href="${APP_URL}/leads" style="display:inline-block;padding:12px 20px;background:#1f6f6b;color:#ffffff;border-radius:9999px;text-decoration:none;">Validar documentos</a></p>
+          <p style="font-size:13px;color:#6b7280;">Os documentos estão na ficha da lead, secção "Documentos do candidato".</p>
+        </div>`;
+      const r = await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${RESEND_API_KEY}` },
+        body: JSON.stringify({ from: FROM_EMAIL, to: [teamEmail], subject: `Documentos recebidos: ${l.full_name}`, html }),
+      });
+      if (!r.ok) {
+        const details = await r.text();
+        console.error(`Resend failed [${r.status}]: ${details}`);
+        return json({ error: "Falha no envio do email", details }, 502);
+      }
+      return json({ ok: true });
+    }
+
     // Marca como enviado de forma atómica — só a primeira chamada passa.
     const { data: lead, error } = await admin
       .from("leads")
