@@ -1,17 +1,35 @@
 import { useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 import { FileText, Loader2 } from "lucide-react";
 import { toast } from "sonner";
-import { useUpdateLead, type Lead } from "@/hooks/useLeads";
+import { useReserveRoomWithoutFee, type Lead } from "@/hooks/useLeads";
 import { generateReservationDocx } from "@/lib/generateReservationDocx";
 import { RoomCombobox } from "@/components/rooms/RoomCombobox";
 import { useRooms } from "@/hooks/useData";
 import { supabase } from "@/integrations/supabase/client";
 import { useAppSettings } from "@/hooks/useAppSettings";
 import { PendingAgreementWarning } from "@/components/leads/PendingAgreementWarning";
+import {
+  CandidateDataSection,
+  candidateDataFromLead,
+  candidateDataPatch,
+  type CandidateData,
+} from "@/components/leads/CandidateDataSection";
 
 /** Meses completos entre duas datas ISO (yyyy-mm-dd). */
 export const monthsBetween = (from: string, to: string) => {
@@ -22,26 +40,24 @@ export const monthsBetween = (from: string, to: string) => {
   return m;
 };
 
-
 interface Props {
   lead: Lead;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
-const Field = ({
-  label,
-  ...props
-}: { label: string } & React.ComponentProps<typeof Input>) => (
+const Field = ({ label, ...props }: { label: string } & React.ComponentProps<typeof Input>) => (
   <div className="space-y-1">
     <label className="text-[11px] uppercase tracking-wide text-muted-foreground">{label}</label>
     <Input {...props} />
   </div>
 );
 
+const fmt = (iso: string) => (iso ? iso.split("-").reverse().join("/") : "");
+
 export const ReservationAgreementDialog = ({ lead, open, onOpenChange }: Props) => {
-  const updateLead = useUpdateLead();
   const qc = useQueryClient();
+  const reserveWithoutFee = useReserveRoomWithoutFee();
   const { data: rooms = [] } = useRooms();
   const { settings } = useAppSettings();
   const minMonths = Math.max(0, Number(settings.reservation_min_months ?? 3) || 3);
@@ -50,57 +66,48 @@ export const ReservationAgreementDialog = ({ lead, open, onOpenChange }: Props) 
   const [checkOut, setCheckOut] = useState("");
   const [deadline, setDeadline] = useState("");
   const [fee, setFee] = useState("200");
-  const [address, setAddress] = useState("");
-  const [documentNumber, setDocumentNumber] = useState("");
-  const [documentValidity, setDocumentValidity] = useState("");
-  const [taxNumber, setTaxNumber] = useState("");
+  const [candidate, setCandidate] = useState<CandidateData>(candidateDataFromLead(lead));
+  const [noFee, setNoFee] = useState(false);
+  const [reason, setReason] = useState("");
+  const [confirmOpen, setConfirmOpen] = useState(false);
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
     if (!open) return;
     setDeadline(lead.reservationDeadline ?? "");
     setFee(String(lead.reservationFeeAmount ?? 200));
-    setAddress(lead.address ?? "");
-    setDocumentNumber(lead.documentNumber ?? "");
-    setDocumentValidity(lead.documentValidity ?? "");
-    setTaxNumber(lead.taxNumber ?? "");
+    setCandidate(candidateDataFromLead(lead));
     setRoomId(lead.roomId ?? "");
     setCheckIn(lead.plannedCheckIn ?? "");
     setCheckOut(lead.plannedCheckOut ?? "");
-  }, [open, lead]);
+    setNoFee(false);
+    setReason("");
+  }, [open, lead.id]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const validPeriod = !!checkIn && !!checkOut && checkIn < checkOut;
 
   // Estadias que ocupam quartos no período escolhido (confirmadas ou em curso)
   const { data: busyRoomIds = [] } = useQuery({
     queryKey: ["room-availability", checkIn, checkOut],
-    enabled: open && !!checkIn && !!checkOut && checkIn < checkOut,
+    enabled: open && validPeriod,
     queryFn: async (): Promise<string[]> => {
       const { data, error } = await supabase
         .from("stays")
-        .select("room_id, lead_id, check_in, check_out, status")
+        .select("room_id, lead_id")
         .in("status", ["confirmed", "checked_in"])
         .lt("check_in", checkOut)
         .gt("check_out", checkIn);
       if (error) throw error;
-      return ((data ?? []) as any[])
-        .filter((s) => s.room_id && s.lead_id !== lead.id)
-        .map((s) => s.room_id as string);
+      return ((data ?? []) as any[]).filter((s) => s.room_id && s.lead_id !== lead.id).map((s) => s.room_id as string);
     },
   });
 
   const availableRooms = useMemo(() => {
-    const busy = new Set(busyRoomIds);
-    return rooms.filter(
-      (r) => !busy.has(r.id) && r.status !== "out_of_service" && r.status !== "maintenance",
-    );
+    const b = new Set(busyRoomIds);
+    return rooms.filter((r) => !b.has(r.id) && r.status !== "out_of_service" && r.status !== "maintenance");
   }, [rooms, busyRoomIds]);
 
-  // Só mostramos os campos que ainda faltam na lead
-  const needAddress = !lead.address;
-  const needDocument = !lead.documentNumber;
-  const needValidity = !lead.documentValidity;
-  const needTax = !lead.taxNumber;
-  const needDeadline = !lead.reservationDeadline;
-  // Taxa sempre editável, exceto quando já existe pagamento registado
+  // Taxa editável, exceto quando já existe pagamento registado
   const { data: feePaid = false } = useQuery({
     queryKey: ["booking-fee-payments", null, lead.id, "exists"],
     enabled: open,
@@ -115,49 +122,58 @@ export const ReservationAgreementDialog = ({ lead, open, onOpenChange }: Props) 
     },
   });
 
-  const handleGenerate = async () => {
-    const feeNumber = Number(fee);
-    if (!deadline) {
-      toast.error("Indica o prazo limite da reserva.");
-      return;
+  const roomNumber = rooms.find((r) => r.id === roomId)?.number ?? "";
+  const tooShort = validPeriod && monthsBetween(checkIn, checkOut) < minMonths;
+  const feeIsZero = !noFee && fee.trim() !== "" && Number(fee) === 0;
+
+  const validateCommon = () => {
+    if (!validPeriod) {
+      toast.error("Indica datas de entrada e saída válidas.");
+      return false;
     }
-    if (!Number.isFinite(feeNumber) || feeNumber <= 0) {
-      toast.error("Indica um valor de taxa de reserva válido.");
-      return;
-    }
-    if (!address.trim() || !documentNumber.trim() || !documentValidity || !taxNumber.trim()) {
-      toast.error("Preenche morada, documento de identificação, validade e NIF.");
-      return;
+    if (tooShort) {
+      toast.error(`A estadia tem de durar pelo menos ${minMonths} ${minMonths === 1 ? "mês" : "meses"} entre a entrada e a saída.`);
+      return false;
     }
     if (!roomId) {
       toast.error("Escolhe o quarto a reservar.");
+      return false;
+    }
+    return true;
+  };
+
+  const saveLead = async (extra: Record<string, unknown>) => {
+    const { error } = await supabase
+      .from("leads" as any)
+      .update({
+        room_id: roomId,
+        planned_check_in: checkIn,
+        planned_check_out: checkOut,
+        ...candidateDataPatch(candidate),
+        ...extra,
+      } as any)
+      .eq("id", lead.id);
+    if (error) throw error;
+  };
+
+  const handleGenerate = async () => {
+    if (!validateCommon()) return;
+    if (noFee) {
+      if (!reason.trim()) return toast.error("Indica o motivo para não cobrar taxa.");
+      setConfirmOpen(true);
       return;
     }
-    if (!checkIn || !checkOut || checkIn >= checkOut) {
-      toast.error("Indica datas de entrada e saída válidas.");
-      return;
-    }
-    if (monthsBetween(checkIn, checkOut) < minMonths) {
-      toast.error(
-        `A estadia tem de durar pelo menos ${minMonths} ${minMonths === 1 ? "mês" : "meses"} entre a entrada e a saída.`
-      );
-      return;
-    }
+    const feeNumber = Number(fee);
+    if (!deadline) return toast.error("Indica o prazo limite da reserva.");
+    if (!Number.isFinite(feeNumber) || feeNumber <= 0)
+      return toast.error("Indica um valor de taxa de reserva válido (ou marca 'Sem taxa de reserva').");
+    if (!candidate.address.trim() || !candidate.documentNumber.trim() || !candidate.documentValidity || !candidate.taxNumber.trim())
+      return toast.error("Preenche morada, documento de identificação, validade e NIF.");
     setBusy(true);
     try {
-      await updateLead.mutateAsync({
-        id: lead.id,
-        patch: {
-          roomId,
-          plannedCheckIn: checkIn,
-          plannedCheckOut: checkOut,
-          reservationDeadline: deadline,
-          ...(feePaid ? {} : { reservationFeeAmount: feeNumber }),
-          address: address.trim(),
-          documentNumber: documentNumber.trim(),
-          documentValidity,
-          taxNumber: taxNumber.trim(),
-        },
+      await saveLead({
+        reservation_deadline: deadline,
+        ...(feePaid ? {} : { reservation_fee_amount: feeNumber }),
       });
       const doc = await generateReservationDocx(lead.id);
       qc.invalidateQueries({ queryKey: ["leads"] });
@@ -171,107 +187,148 @@ export const ReservationAgreementDialog = ({ lead, open, onOpenChange }: Props) 
     }
   };
 
+  const handleReserveWithoutFee = async () => {
+    setBusy(true);
+    try {
+      await saveLead({});
+      await reserveWithoutFee.mutateAsync({ leadId: lead.id, reason: reason.trim() });
+      toast.success(`Quarto ${roomNumber} reservado sem taxa.`);
+      setConfirmOpen(false);
+      onOpenChange(false);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Não foi possível reservar o quarto.");
+      setConfirmOpen(false);
+      qc.invalidateQueries({ queryKey: ["leads"] });
+    } finally {
+      setBusy(false);
+    }
+  };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
-        <DialogHeader>
-          <DialogTitle className="font-display">Acordo de reserva</DialogTitle>
-          <DialogDescription>
-            Escolhe o quarto e as datas previstas. O quarto só fica reservado quando a taxa for paga.
-          </DialogDescription>
-        </DialogHeader>
-        <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-1">
-          <div className="grid grid-cols-2 gap-3">
-            <Field label="Entrada" type="date" value={checkIn} onChange={(e) => setCheckIn(e.target.value)} />
-            <Field label="Saída" type="date" value={checkOut} onChange={(e) => setCheckOut(e.target.value)} />
-          </div>
-          <div className="space-y-1">
-            <label className="text-[11px] uppercase tracking-wide text-muted-foreground">Quarto a reservar</label>
-            <RoomCombobox
-              rooms={availableRooms}
-              value={roomId}
-              onChange={setRoomId}
-              placeholder={checkIn && checkOut ? "Escolher quarto disponível" : "Escolher quarto"}
-            />
-            {checkIn && checkOut && checkIn < checkOut && monthsBetween(checkIn, checkOut) < minMonths && (
-              <p className="text-[11px] text-destructive">
-                Duração mínima: {minMonths} {minMonths === 1 ? "mês" : "meses"}.
-              </p>
+    <>
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="font-display">Acordo de reserva</DialogTitle>
+            <DialogDescription>
+              Escolhe o quarto e as datas previstas. O quarto só fica reservado quando a taxa for paga.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-1">
+            <div className="grid grid-cols-2 gap-3">
+              <Field label="Entrada" type="date" value={checkIn} onChange={(e) => setCheckIn(e.target.value)} />
+              <Field label="Saída" type="date" value={checkOut} onChange={(e) => setCheckOut(e.target.value)} />
+            </div>
+            <div className="space-y-1">
+              <label className="text-[11px] uppercase tracking-wide text-muted-foreground">Quarto a reservar</label>
+              <RoomCombobox
+                rooms={availableRooms}
+                value={roomId}
+                onChange={setRoomId}
+                placeholder={validPeriod ? "Escolher quarto disponível" : "Escolher quarto"}
+              />
+              {tooShort && (
+                <p className="text-[11px] text-destructive">
+                  Duração mínima: {minMonths} {minMonths === 1 ? "mês" : "meses"}.
+                </p>
+              )}
+              {validPeriod && (
+                <p className="text-[11px] text-muted-foreground">{availableRooms.length} quarto(s) livre(s) neste período.</p>
+              )}
+              <PendingAgreementWarning
+                leadId={lead.id}
+                roomId={roomId}
+                roomNumber={roomNumber}
+                checkIn={checkIn}
+                checkOut={checkOut}
+              />
+            </div>
+
+            {!feePaid && (
+              <label className="flex items-start gap-2 rounded-lg border border-border p-2.5 cursor-pointer">
+                <Checkbox checked={noFee} onCheckedChange={(v) => setNoFee(v === true)} className="mt-0.5" />
+                <span className="text-sm">
+                  Sem taxa de reserva (não gera acordo)
+                  <span className="block text-[11px] text-muted-foreground">
+                    O quarto fica logo reservado para este candidato, sem pagamento.
+                  </span>
+                </span>
+              </label>
             )}
-            {checkIn && checkOut && checkIn < checkOut && (
-              <p className="text-[11px] text-muted-foreground">
-                {availableRooms.length} quarto(s) livre(s) neste período.
-              </p>
-            )}
-            <PendingAgreementWarning
-              leadId={lead.id}
-              roomId={roomId}
-              roomNumber={rooms.find((r) => r.id === roomId)?.number}
-              checkIn={checkIn}
-              checkOut={checkOut}
-            />
-          </div>
-          {needAddress && (
-            <Field label="Morada de residência" value={address} onChange={(e) => setAddress(e.target.value)} />
-          )}
-          {needDocument && (
-            <Field
-              label="Nº do documento de identificação"
-              value={documentNumber}
-              onChange={(e) => setDocumentNumber(e.target.value)}
-            />
-          )}
-          {needValidity && (
-            <Field
-              label="Validade do documento"
-              type="date"
-              value={documentValidity}
-              onChange={(e) => setDocumentValidity(e.target.value)}
-            />
-          )}
-          {needTax && <Field label="NIF" value={taxNumber} onChange={(e) => setTaxNumber(e.target.value)} />}
-          {needDeadline && (
-            <Field
-              label="Prazo limite da reserva"
-              type="date"
-              value={deadline}
-              onChange={(e) => setDeadline(e.target.value)}
-            />
-          )}
-          <Field
-            label={feePaid ? "Taxa de reserva (€) — já paga" : "Taxa de reserva (€)"}
-            type="number"
-            min="0.01"
-            step="0.01"
-            value={fee}
-            readOnly={feePaid}
-            disabled={feePaid}
-            onChange={(e) => setFee(e.target.value)}
-          />
-          <p className="text-[11px] text-muted-foreground -mt-2">
-            A taxa de reserva é a fundo perdido: não é abatida à caução nem à renda.
-          </p>
-          {!needAddress && !needDocument && !needValidity && !needTax && !needDeadline && (
-            <p className="text-sm text-muted-foreground">
-              Todos os dados necessários estão preenchidos. Podes gerar o documento.
-            </p>
-          )}
-        </div>
-        <DialogFooter>
-          <Button variant="ghost" onClick={() => onOpenChange(false)} disabled={busy}>
-            Cancelar
-          </Button>
-          <Button onClick={handleGenerate} disabled={busy} className="rounded-full">
-            {busy ? (
-              <Loader2 className="h-4 w-4 mr-1.5 animate-spin" strokeWidth={1.5} />
+
+            {noFee ? (
+              <div className="space-y-1">
+                <label className="text-[11px] uppercase tracking-wide text-muted-foreground">Motivo (obrigatório)</label>
+                <Textarea value={reason} onChange={(e) => setReason(e.target.value)} rows={3} />
+              </div>
             ) : (
-              <FileText className="h-4 w-4 mr-1.5" strokeWidth={1.5} />
+              <>
+                <div className="grid grid-cols-2 gap-3">
+                  <Field label="Prazo limite da reserva" type="date" value={deadline} onChange={(e) => setDeadline(e.target.value)} />
+                  <Field
+                    label={feePaid ? "Taxa (€) — já paga" : "Taxa de reserva (€)"}
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={fee}
+                    readOnly={feePaid}
+                    disabled={feePaid}
+                    onChange={(e) => setFee(e.target.value)}
+                  />
+                </div>
+                {feeIsZero && (
+                  <p className="text-[11px] text-warning">
+                    Para não cobrar taxa, marca "Sem taxa de reserva (não gera acordo)".
+                  </p>
+                )}
+                <p className="text-[11px] text-muted-foreground">
+                  A taxa de reserva é a fundo perdido: não é abatida à caução nem à renda.
+                </p>
+              </>
             )}
-            Gerar acordo
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+
+            <CandidateDataSection value={candidate} onChange={setCandidate} />
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => onOpenChange(false)} disabled={busy}>
+              Cancelar
+            </Button>
+            <Button onClick={handleGenerate} disabled={busy} className="rounded-full">
+              {busy ? (
+                <Loader2 className="h-4 w-4 mr-1.5 animate-spin" strokeWidth={1.5} />
+              ) : (
+                <FileText className="h-4 w-4 mr-1.5" strokeWidth={1.5} />
+              )}
+              {noFee ? "Reservar sem taxa" : "Gerar acordo"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <AlertDialog open={confirmOpen} onOpenChange={(o) => !busy && setConfirmOpen(o)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar reserva sem taxa</AlertDialogTitle>
+            <AlertDialogDescription>
+              Isto bloqueia o quarto {roomNumber} de {fmt(checkIn)} a {fmt(checkOut)} para este candidato sem pagamento
+              de taxa. Confirmas?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={busy}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={busy}
+              onClick={(e) => {
+                e.preventDefault();
+                handleReserveWithoutFee();
+              }}
+            >
+              {busy && <Loader2 className="h-4 w-4 mr-1.5 animate-spin" strokeWidth={1.5} />}
+              Confirmar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 };
