@@ -65,3 +65,32 @@ export const findPendingAgreements = (
       c.plannedCheckOut > args.checkIn &&
       (!c.reservationDeadline || c.reservationDeadline >= args.today)
   );
+
+export type SubStateInput = {
+  status: string;
+  formSentAt: string | null;
+  formSubmittedAt: string | null;
+  reservationAgreementGeneratedAt: string | null;
+  contractGeneratedAt: string | null;
+  contractId: string | null;
+};
+
+export type LeadSubState = "awaiting_signature" | "awaiting_fee" | "form_received" | "awaiting_form";
+
+export const leadSubStateLabels: Record<LeadSubState, string> = {
+  awaiting_signature: "Em assinatura",
+  awaiting_fee: "Aguarda pagamento da taxa",
+  form_received: "Formulário recebido",
+  awaiting_form: "Aguarda formulário",
+};
+
+/** Sub-estado derivado (só etiqueta, nunca selecionável). Prioridade: assinatura > taxa > formulário. */
+export const leadSubState = (l: SubStateInput): LeadSubState | null => {
+  if (["won", "lost"].includes(l.status)) return null;
+  if (l.contractGeneratedAt && !l.contractId) return "awaiting_signature";
+  if (l.status === "reserved") return null;
+  if (l.reservationAgreementGeneratedAt) return "awaiting_fee";
+  if (l.formSubmittedAt) return "form_received";
+  if (l.formSentAt) return "awaiting_form";
+  return null;
+};

@@ -15,6 +15,12 @@ import { PendingAgreementWarning } from "@/components/leads/PendingAgreementWarn
 import { generateReservationDocx } from "@/lib/generateReservationDocx";
 import { generateContractDocxFromLead } from "@/lib/generateContractDocxFromLead";
 import { missingPersonalFields } from "@/lib/leadContractRules";
+import {
+  CandidateDataSection,
+  candidateDataFromLead,
+  candidateDataPatch,
+  type CandidateData,
+} from "@/components/leads/CandidateDataSection";
 
 interface Props {
   lead: Lead;
@@ -46,21 +52,9 @@ export const ReservationAndContractDialog = ({ lead, open, onOpenChange }: Props
   const [rent, setRent] = useState("");
   const [paymentDay, setPaymentDay] = useState("5");
   const [deposit, setDeposit] = useState("");
-  const [p, setP] = useState({
-    nationality: "",
-    dateOfBirth: "",
-    address: "",
-    postalCode: "",
-    city: "",
-    documentNumber: "",
-    documentValidity: "",
-    taxNumber: "",
-  });
+  const [p, setP] = useState<CandidateData>(candidateDataFromLead(lead));
   const [busy, setBusy] = useState(false);
   const [docs, setDocs] = useState<{ agreement?: Doc; contract?: Doc }>({});
-
-  // Campos pessoais em falta na lead quando o diálogo abre (só esses são mostrados)
-  const [missingAtOpen, setMissingAtOpen] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     if (!open) return;
@@ -70,18 +64,7 @@ export const ReservationAndContractDialog = ({ lead, open, onOpenChange }: Props
     setCheckOut(lead.plannedCheckOut ?? "");
     setDeadline(lead.reservationDeadline ?? "");
     setFee(String(lead.reservationFeeAmount ?? 200));
-    const init = {
-      nationality: (lead as any).nationality ?? "",
-      dateOfBirth: lead.dateOfBirth ?? "",
-      address: lead.address ?? "",
-      postalCode: lead.postalCode ?? "",
-      city: lead.city ?? "",
-      documentNumber: lead.documentNumber ?? "",
-      documentValidity: lead.documentValidity ?? "",
-      taxNumber: lead.taxNumber ?? "",
-    };
-    setP(init);
-    setMissingAtOpen(new Set(Object.entries(init).filter(([, v]) => !String(v).trim()).map(([k]) => k)));
+    setP(candidateDataFromLead(lead));
     (async () => {
       const { data } = await supabase
         .from("leads" as any)
@@ -119,7 +102,6 @@ export const ReservationAndContractDialog = ({ lead, open, onOpenChange }: Props
 
   const roomNumber = rooms.find((r) => r.id === roomId)?.number ?? "";
   const tooShort = validPeriod && monthsBetween(checkIn, checkOut) < minMonths;
-  const set = (k: keyof typeof p) => (e: React.ChangeEvent<HTMLInputElement>) => setP({ ...p, [k]: e.target.value });
 
   const handleGenerate = async () => {
     const feeNumber = Number(fee);
@@ -148,14 +130,7 @@ export const ReservationAndContractDialog = ({ lead, open, onOpenChange }: Props
           draft_rent_amount: rentNumber,
           draft_deposit_due: Number(deposit || 0),
           draft_payment_day: Number(paymentDay || 5),
-          nationality: p.nationality.trim() || null,
-          date_of_birth: p.dateOfBirth || null,
-          address: p.address.trim() || null,
-          postal_code: p.postalCode.trim() || null,
-          city: p.city.trim() || null,
-          document_number: p.documentNumber.trim() || null,
-          document_validity: p.documentValidity || null,
-          tax_number: p.taxNumber.trim() || null,
+          ...candidateDataPatch(p),
         } as any)
         .eq("id", lead.id);
       if (upErr) throw new Error(`Não foi possível gravar os dados: ${upErr.message}`);
@@ -197,7 +172,6 @@ export const ReservationAndContractDialog = ({ lead, open, onOpenChange }: Props
     }
   };
 
-  const show = (k: string) => missingAtOpen.has(k);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -250,16 +224,7 @@ export const ReservationAndContractDialog = ({ lead, open, onOpenChange }: Props
             <Field label="Dia de vencimento" type="number" min="1" max="28" value={paymentDay} onChange={(e) => setPaymentDay(e.target.value)} />
             <Field label="Caução (€)" type="number" min="0" step="0.01" value={deposit} onChange={(e) => setDeposit(e.target.value)} />
           </div>
-          {show("nationality") && <Field label="Nacionalidade" value={p.nationality} onChange={set("nationality")} />}
-          {show("dateOfBirth") && <Field label="Data de nascimento" type="date" value={p.dateOfBirth} onChange={set("dateOfBirth")} />}
-          {show("address") && <Field label="Morada de residência" value={p.address} onChange={set("address")} />}
-          {show("postalCode") && <Field label="Código postal" value={p.postalCode} onChange={set("postalCode")} />}
-          {show("city") && <Field label="Localidade" value={p.city} onChange={set("city")} />}
-          {show("documentNumber") && <Field label="Nº do documento" value={p.documentNumber} onChange={set("documentNumber")} />}
-          {show("documentValidity") && (
-            <Field label="Validade do documento" type="date" value={p.documentValidity} onChange={set("documentValidity")} />
-          )}
-          {show("taxNumber") && <Field label="NIF (999999990 se não tiver)" value={p.taxNumber} onChange={set("taxNumber")} />}
+          <CandidateDataSection value={p} onChange={setP} />
           {(docs.agreement || docs.contract) && (
             <div className="space-y-2">
               {docs.agreement && (
