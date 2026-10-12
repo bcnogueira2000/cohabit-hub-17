@@ -266,7 +266,6 @@ const ResidentDetail = () => {
             </Card>
           </div>
 
-          <ResidentDocuments residentId={resident.id} profile={resident.profile ?? null} legacyPath={documentPath} />
 
           <Card className="p-4 border-border/60 shadow-card space-y-4">
             <div className="flex items-center gap-2">
@@ -559,6 +558,8 @@ const ResidentDetail = () => {
               </div>
             )}
           </Card>
+
+          <ResidentDocuments residentId={resident.id} profile={resident.profile ?? null} legacyPath={documentPath} />
 
           <Card className="p-4 border-border/60 shadow-card">
             <h3 className="font-display text-lg font-semibold mb-2">Notas internas</h3>
