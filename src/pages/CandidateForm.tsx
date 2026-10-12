@@ -3,6 +3,8 @@ import { useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import CandidateDateField from "./CandidateDateField";
 import "./candidatura.css";
+import { DocUploadZones, uploadDocsByKind, type FilesByKind } from "@/components/candidate/DocUploadZones";
+import { REQUIRED_DOC_KINDS, missingDocKinds, docKindLabel } from "@/lib/leadDocuments";
 
 
 type Lang = "pt" | "en";
@@ -59,7 +61,7 @@ const I18N: Record<Lang, Record<string, string>> = {
     dzText: "Arrasta os ficheiros para aqui, ou clica para escolher",
     dzHint:
       "Anexa obrigatoriamente uma cópia do teu cartão de cidadão ou passaporte. Se tiveres, podes também anexar comprovativo de matrícula ou de vínculo laboral, e comprovativo de NIF.",
-    dzError: "Precisamos de pelo menos um documento.",
+    dzError: "Faltam documentos obrigatórios: {list}.",
     dzTooLarge: "O ficheiro {name} ultrapassa o limite de 10 MB.",
     removeLabel: "Remover",
     commentsPlaceholder: "Há alguma coisa que devêssemos saber?",
@@ -124,7 +126,7 @@ const I18N: Record<Lang, Record<string, string>> = {
     dzText: "Drag your files here, or click to browse",
     dzHint:
       "Please attach a copy of your ID card or passport (required). If available, you can also attach proof of enrollment or employment, and proof of tax number.",
-    dzError: "We need at least one document.",
+    dzError: "Required documents missing: {list}.",
     dzTooLarge: "The file {name} exceeds the 10 MB limit.",
     removeLabel: "Remove",
     commentsPlaceholder: "Anything else we should know?",
@@ -265,9 +267,8 @@ const CandidateForm = () => {
   const [lead, setLead] = useState<LeadFormData | null>(null);
   const [profile, setProfile] = useState("");
   const [noTax, setNoTax] = useState(false);
-  const [files, setFiles] = useState<File[]>([]);
+  const [docs, setDocs] = useState<FilesByKind>({});
   const [fileError, setFileError] = useState(false);
-  const [fileSizeError, setFileSizeError] = useState<string | null>(null);
   const [dob, setDob] = useState("");
   const [docValidity, setDocValidity] = useState("");
   const [dateError, setDateError] = useState(false);
@@ -320,33 +321,11 @@ const CandidateForm = () => {
         : "Formulário de Candidatura — Living Colours";
   }, [lang]);
 
-  const addFiles = (list: FileList | null) => {
-    if (!list) return;
-    const accepted = ["pdf", "jpg", "jpeg"];
-    const next = [...files];
-    let oversizedName: string | null = null;
-    Array.from(list).forEach((f) => {
-      const ext = f.name.split(".").pop()?.toLowerCase() ?? "";
-      if (!accepted.includes(ext)) return;
-      if (f.size > MAX_FILE_BYTES) {
-        oversizedName ??= f.name;
-        return;
-      }
-      if (next.some((x) => x.name === f.name && x.size === f.size)) return;
-      next.push(f);
-    });
-    setFiles(next);
-    setFileSizeError(
-      oversizedName ? t.dzTooLarge.replace("{name}", oversizedName) : null,
-    );
-    if (next.length) setFileError(false);
-  };
-
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     const form = formRef.current;
     if (!form) return;
-    const okFiles = files.length > 0;
+    const okFiles = missingDocKinds(REQUIRED_DOC_KINDS, docs).length === 0;
     setFileError(!okFiles);
     const okDates = !!dob && !!docValidity;
     setDateError(!okDates);
@@ -394,43 +373,7 @@ const CandidateForm = () => {
     };
 
     try {
-      for (const file of files) {
-        const fileType = file.type || (file.name.toLowerCase().endsWith(".pdf") ? "application/pdf" : "image/jpeg");
-        const { data: signedUpload, error: prepareError } = await supabase.functions.invoke(
-          "create-lead-document-upload",
-          {
-          body: {
-            token,
-            file_name: file.name,
-              file_type: fileType,
-            },
-          },
-        );
-        if (prepareError) throw new Error(await functionErrorMessage(prepareError));
-        if (!signedUpload?.path || !signedUpload?.upload_token) {
-          throw new Error(lang === "pt" ? "Não foi possível preparar o envio." : "Could not prepare the upload.");
-        }
-
-        const { error: uploadError } = await supabase.storage
-          .from("lead-documents")
-          .uploadToSignedUrl(signedUpload.path, signedUpload.upload_token, file, {
-            contentType: fileType,
-          });
-        if (uploadError) throw new Error(uploadError.message);
-
-        const { error: registerError } = await supabase.functions.invoke(
-          "register-lead-document-upload",
-          {
-            body: {
-              token,
-              file_name: file.name,
-              file_type: fileType,
-              storage_path: signedUpload.path,
-            },
-          },
-        );
-        if (registerError) throw new Error(await functionErrorMessage(registerError));
-      }
+      await uploadDocsByKind(token, docs, lang);
 
       const { error: subErr } = await supabase.rpc("submit_lead_form", {
         p_token: token,
@@ -899,90 +842,25 @@ const CandidateForm = () => {
               <h2 className="section-title">{t.s3Title}</h2>
             </div>
 
-            <div
-              className={`dropzone${dragover ? " dragover" : ""}`}
-              ref={dropRef}
-              tabIndex={0}
-              role="button"
-              onClick={() => fileInputRef.current?.click()}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === " ") {
-                  e.preventDefault();
-                  fileInputRef.current?.click();
-                }
-              }}
-              onDragEnter={(e) => {
-                e.preventDefault();
-                setDragover(true);
-              }}
-              onDragOver={(e) => {
-                e.preventDefault();
-                setDragover(true);
-              }}
-              onDragLeave={() => setDragover(false)}
-              onDrop={(e) => {
-                e.preventDefault();
-                setDragover(false);
-                addFiles(e.dataTransfer?.files ?? null);
-              }}
-            >
-              <svg width="30" height="30" viewBox="0 0 24 24" fill="none">
-                <path
-                  d="M12 15V4M12 4L7.5 8.5M12 4l4.5 4.5"
-                  stroke="currentColor"
-                  strokeWidth="1.6"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                <path
-                  d="M4 15v3a2 2 0 002 2h12a2 2 0 002-2v-3"
-                  stroke="currentColor"
-                  strokeWidth="1.6"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-              <p className="dropzone-text">{t.dzText}</p>
-              <p className="dropzone-hint">{t.dzHint}</p>
-              <input
-                type="file"
-                ref={fileInputRef}
-                multiple
-                accept=".pdf,.jpg,.jpeg,application/pdf,image/jpeg"
-                onClick={(e) => e.stopPropagation()}
-                onChange={(e) => {
-                  addFiles(e.target.files);
-                  e.target.value = "";
+            <div ref={dropRef}>
+              <DocUploadZones
+                kinds={REQUIRED_DOC_KINDS}
+                lang={lang}
+                profile={profile}
+                value={docs}
+                onChange={(v) => {
+                  setDocs(v);
+                  if (missingDocKinds(REQUIRED_DOC_KINDS, v).length === 0) setFileError(false);
                 }}
+                showMissing={fileError}
               />
             </div>
-            <p className={`field-error${fileError ? " show" : ""}`}>{t.dzError}</p>
-            <p className={`field-error${fileSizeError ? " show" : ""}`}>{fileSizeError}</p>
-
-            <ul className="file-list">
-              {files.map((f, i) => (
-                <li className="file-item" key={`${f.name}-${i}`}>
-                  <svg className="file-icon" width="18" height="18" viewBox="0 0 24 24" fill="none">
-                    <path
-                      d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6z"
-                      stroke="currentColor"
-                      strokeWidth="1.5"
-                      strokeLinejoin="round"
-                    />
-                    <path d="M14 2v6h6" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
-                  </svg>
-                  <span className="file-name">{f.name}</span>
-                  <span className="file-size">{formatSize(f.size)}</span>
-                  <button
-                    type="button"
-                    aria-label={t.removeLabel}
-                    onClick={() => setFiles(files.filter((_, x) => x !== i))}
-                  >
-                    ×
-                  </button>
-                </li>
-              ))}
-            </ul>
+            <p className={`field-error${fileError ? " show" : ""}`}>
+              {t.dzError.replace(
+                "{list}",
+                missingDocKinds(REQUIRED_DOC_KINDS, docs).map((k) => docKindLabel(k, profile, lang)).join(", ")
+              )}
+            </p>
           </fieldset>
 
           {/* 04 — comentários */}
