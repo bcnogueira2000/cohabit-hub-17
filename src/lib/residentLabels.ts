@@ -82,7 +82,7 @@ export const residentStatusLabels: Record<ResidentStatus, Bi> = {
   upcoming: { pt: "A chegar", en: "Upcoming" },
   active: { pt: "Ativo", en: "Active" },
   checking_out: { pt: "Check-out próximo", en: "Checking out" },
-  past: { pt: "Anterior", en: "Past" },
+  past: { pt: "Ex-residente", en: "Former resident" },
 };
 
 export const residentStatusBadgeClass: Record<ResidentStatus, string> = {

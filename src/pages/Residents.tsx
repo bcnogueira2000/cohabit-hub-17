@@ -6,13 +6,15 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useResidents, useRooms, useRequests } from "@/hooks/useData";
 import { cn } from "@/lib/utils";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { contractEndsInDays } from "@/lib/residentEnd";
 
 const statusTone: Record<string, string> = {
   active: "bg-success/15 text-success", upcoming: "bg-info/15 text-info",
   checking_out: "bg-warning/15 text-warning", past: "bg-muted text-muted-foreground",
 };
 const statusLabel: Record<string, string> = {
-  active: "Ativo", upcoming: "A chegar", checking_out: "Check-out próximo", past: "Anterior",
+  active: "Ativo", upcoming: "A chegar", checking_out: "Check-out próximo", past: "Ex-residente",
 };
 
 const Residents = () => {
@@ -20,14 +22,26 @@ const Residents = () => {
   const { data: rooms = [] } = useRooms();
   const { data: requests = [] } = useRequests();
   const [search, setSearch] = useState("");
-  const filtered = residents.filter((r) => r.fullName.toLowerCase().includes(search.toLowerCase()));
+  const [tab, setTab] = useState<"current" | "former">("current");
+  const current = residents.filter((r) => r.status !== "past");
+  const former = residents.filter((r) => r.status === "past");
+  const filtered = (tab === "current" ? current : former).filter((r) =>
+    r.fullName.toLowerCase().includes(search.toLowerCase())
+  );
 
   return (
     <div className="px-4 lg:px-10 2xl:px-14 py-6 lg:py-10 max-w-[1600px] mx-auto">
       <div className="mb-6">
         <h1 className="font-display text-3xl lg:text-4xl font-semibold">Residents</h1>
-        <p className="text-muted-foreground mt-1">{residents.length} residentes na operação</p>
+        <p className="text-muted-foreground mt-1">{current.length} residentes atuais · {former.length} ex-residentes</p>
       </div>
+
+      <Tabs value={tab} onValueChange={(v) => setTab(v as "current" | "former")} className="mb-4">
+        <TabsList>
+          <TabsTrigger value="current">Atuais ({current.length})</TabsTrigger>
+          <TabsTrigger value="former">Ex-residentes ({former.length})</TabsTrigger>
+        </TabsList>
+      </Tabs>
 
       <div className="relative mb-5 max-w-md">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -47,6 +61,14 @@ const Residents = () => {
                   <div className="flex-1 min-w-0">
                     <div className="font-medium truncate">{shortName(r.fullName)}</div>
                     <div className={cn("inline-flex text-xs px-2 py-0.5 rounded-full mt-1", statusTone[r.status])}>{statusLabel[r.status]}</div>
+                    {(() => {
+                      const d = contractEndsInDays(r.status, r.moveOut);
+                      return d === null ? null : (
+                        <div className="inline-flex text-xs px-2 py-0.5 rounded-full mt-1 ml-1 bg-warning/15 text-warning">
+                          {d < 0 ? `Contrato terminou há ${-d} dia${d === -1 ? "" : "s"} · fazer check-out` : d === 0 ? "Contrato termina hoje" : `Contrato termina em ${d} dia${d === 1 ? "" : "s"}`}
+                        </div>
+                      );
+                    })()}
                   </div>
                 </div>
                 <div className="space-y-1.5 text-xs text-muted-foreground">
@@ -80,6 +102,11 @@ const Residents = () => {
             </Link>
           );
         })}
+        {filtered.length === 0 && (
+          <Card className="p-8 text-center text-muted-foreground border-dashed sm:col-span-2 lg:col-span-3">
+            {tab === "current" ? "Sem residentes atuais." : "Sem ex-residentes."}
+          </Card>
+        )}
       </div>
     </div>
   );
