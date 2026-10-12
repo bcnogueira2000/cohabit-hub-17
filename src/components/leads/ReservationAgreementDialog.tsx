@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,6 +11,7 @@ import { RoomCombobox } from "@/components/rooms/RoomCombobox";
 import { useRooms } from "@/hooks/useData";
 import { supabase } from "@/integrations/supabase/client";
 import { useAppSettings } from "@/hooks/useAppSettings";
+import { PendingAgreementWarning } from "@/components/leads/PendingAgreementWarning";
 
 /** Meses completos entre duas datas ISO (yyyy-mm-dd). */
 export const monthsBetween = (from: string, to: string) => {
@@ -40,6 +41,7 @@ const Field = ({
 
 export const ReservationAgreementDialog = ({ lead, open, onOpenChange }: Props) => {
   const updateLead = useUpdateLead();
+  const qc = useQueryClient();
   const { data: rooms = [] } = useRooms();
   const { settings } = useAppSettings();
   const minMonths = Math.max(0, Number(settings.reservation_min_months ?? 3) || 3);
@@ -158,6 +160,7 @@ export const ReservationAgreementDialog = ({ lead, open, onOpenChange }: Props) 
         },
       });
       const doc = await generateReservationDocx(lead.id);
+      qc.invalidateQueries({ queryKey: ["leads"] });
       if (doc.signedUrl) window.open(doc.signedUrl, "_blank");
       toast.success("Acordo gerado. O quarto só fica reservado após o pagamento da taxa.");
       onOpenChange(false);
@@ -201,6 +204,13 @@ export const ReservationAgreementDialog = ({ lead, open, onOpenChange }: Props) 
                 {availableRooms.length} quarto(s) livre(s) neste período.
               </p>
             )}
+            <PendingAgreementWarning
+              leadId={lead.id}
+              roomId={roomId}
+              roomNumber={rooms.find((r) => r.id === roomId)?.number}
+              checkIn={checkIn}
+              checkOut={checkOut}
+            />
           </div>
           {needAddress && (
             <Field label="Morada de residência" value={address} onChange={(e) => setAddress(e.target.value)} />

@@ -1,0 +1,2 @@
+- Lead reservation/contract state changes ("Assinou", "Desistiu", fee waiver) go through SECURITY DEFINER RPCs (sign_lead_contract, give_up_lead, reserve_room_without_fee) so room blocking and lead updates are atomic.
+- Pending-agreement and contract personal-data rules live in src/lib/leadContractRules.ts (pure, unit-tested) and are reused by all lead dialogs.

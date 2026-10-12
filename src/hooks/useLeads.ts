@@ -53,6 +53,7 @@ export interface Lead {
   plannedCheckIn: string | null;
   plannedCheckOut: string | null;
   contractGeneratedAt: string | null;
+  reservationAgreementGeneratedAt: string | null;
   formSubmittedAt: string | null;
   formSentAt: string | null;
   dateOfBirth: string | null;
@@ -115,6 +116,7 @@ export const mapLead = (r: any): Lead => ({
   plannedCheckIn: r.planned_check_in ?? null,
   plannedCheckOut: r.planned_check_out ?? null,
   contractGeneratedAt: r.contract_generated_at ?? null,
+  reservationAgreementGeneratedAt: r.reservation_agreement_generated_at ?? null,
   formSubmittedAt: r.form_submitted_at ?? null,
   formSentAt: r.form_sent_at ?? null,
   dateOfBirth: r.date_of_birth ?? null,
@@ -375,6 +377,40 @@ export const useReserveRoomWithoutFee = () => {
     onSuccess: (_d, args) => {
       ["leads", "stays", "rooms", "reservation-fees"].forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
       qc.invalidateQueries({ queryKey: ["lead_activity", args.leadId] });
+    },
+  });
+};
+
+/** "Assinou": reserva o quarto se ainda não houver reserva e cria o contrato (atómico na BD). */
+export const useSignLeadContract = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (args: { leadId: string; contractData: Record<string, unknown> }) => {
+      const { data, error } = await supabase.rpc("sign_lead_contract" as any, {
+        p_lead_id: args.leadId,
+        p_contract_data: args.contractData as any,
+      });
+      if (error) throw new Error(error.message);
+      return data as { contract_id?: string; resident_id?: string; stay_id?: string } | null;
+    },
+    onSuccess: () => {
+      ["leads", "stays", "rooms", "contracts", "residents", "payments", "reservation-fees"].forEach((k) =>
+        qc.invalidateQueries({ queryKey: [k] })
+      );
+    },
+  });
+};
+
+/** "Desistiu": cancela a reserva se existir, marca a lead como perdida e limpa os campos do acordo. */
+export const useGiveUpLead = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (leadId: string) => {
+      const { error } = await supabase.rpc("give_up_lead" as any, { p_lead_id: leadId });
+      if (error) throw new Error(error.message);
+    },
+    onSuccess: () => {
+      ["leads", "stays", "rooms", "reservation-fees"].forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
     },
   });
 };

@@ -32,7 +32,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
-import { useLeadDocuments, downloadLeadDocument, useLeads, useUpdateLead, useDeleteLead, useLeadActivity, useCancelRoomReservation, usePromoteReservationToContract, useSendCandidateForm, type Lead, type LeadStatus } from "@/hooks/useLeads";
+import { useLeadDocuments, downloadLeadDocument, useLeads, useUpdateLead, useDeleteLead, useLeadActivity, useCancelRoomReservation, usePromoteReservationToContract, useSignLeadContract, useGiveUpLead, useSendCandidateForm, type Lead, type LeadStatus } from "@/hooks/useLeads";
 import { useStaffUsers } from "@/hooks/useStaffUsers";
 import { NewLeadDialog } from "@/components/leads/NewLeadDialog";
 import {
@@ -50,6 +50,7 @@ import { leadStatusLabels, leadSourceLabels, leadProfileLabels } from "@/lib/lab
 import { NewContractDialog } from "@/components/contracts/NewContractDialog";
 import { ReservationAgreementDialog } from "@/components/leads/ReservationAgreementDialog";
 import { ReservationWaiverDialog } from "@/components/leads/ReservationWaiverDialog";
+import { ReservationAndContractDialog } from "@/components/leads/ReservationAndContractDialog";
 import { LeadContractDialog } from "@/components/leads/LeadContractDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
@@ -123,6 +124,8 @@ const Leads = () => {
   const { data: leads = [], isLoading } = useLeads();
   const updateLead = useUpdateLead();
   const cancelReservation = useCancelRoomReservation();
+  const signLeadContract = useSignLeadContract();
+  const giveUpLead = useGiveUpLead();
   const promoteReservation = usePromoteReservationToContract();
   const sendCandidateForm = useSendCandidateForm();
   const deleteLead = useDeleteLead();
@@ -142,6 +145,7 @@ const Leads = () => {
   const setSelected = useCallback((lead: Lead | null) => setSelectedId(lead?.id ?? null), []);
   const [reservationOpen, setReservationOpen] = useState(false);
   const [waiverOpen, setWaiverOpen] = useState(false);
+  const [comboOpen, setComboOpen] = useState(false);
   const [bypassFormLeadId, setBypassFormLeadId] = useState<string | null>(null);
   const [confirmResendOpen, setConfirmResendOpen] = useState(false);
   const [giveUpBusy, setGiveUpBusy] = useState(false);
@@ -303,6 +307,10 @@ const Leads = () => {
     null;
 
   const changeStatus = (leadId: string, newStatus: LeadStatus) => {
+    if (!manualStatusOptions.includes(newStatus)) {
+      toast.error("Este estado só é definido pelo fluxo de reserva/contrato.");
+      return;
+    }
     if (newStatus === "lost") {
       const reason = window.prompt("Motivo de perda:");
       if (reason === null) return;
@@ -925,108 +933,122 @@ const Leads = () => {
                       )}
                     </>
                   )}
-                  {selected.fullName &&
-                    selected.email &&
-                    selected.status !== "reserved" &&
-                    !selected.reservationNotApplicable &&
-                    (["proposal_sent", "won"].includes(selected.status) ||
-                      (selected.status === "negotiating" &&
-                        (!!selected.formSubmittedAt || bypassFormLeadId === selected.id))) && (
-                    <>
-                      <Button
-                        variant="outline"
-                        className="w-full rounded-full mt-2"
-                        onClick={() => setReservationOpen(true)}
-                      >
-                        <FileText className="h-4 w-4 mr-1.5" strokeWidth={1.5} /> Gerar acordo de reserva
-                      </Button>
-                      {selected.status !== "won" && (
-                        <Button
-                          variant="ghost"
-                          className="w-full rounded-full mt-1 text-muted-foreground"
-                          onClick={() => setWaiverOpen(true)}
-                        >
-                          Acordo de reserva não aplicável
-                        </Button>
-                      )}
-                    </>
-                  )}
-                  {selected.reservationNotApplicable && (
-                    <p className="text-xs text-muted-foreground mt-2 rounded-lg border border-border p-2">
-                      Reservado sem taxa (acordo não aplicável)
-                      {selected.reservationWaiverReason ? ` — ${selected.reservationWaiverReason}` : ""}
-                    </p>
-                  )}
-                  {selected.status === "reserved" && (
-                    <div className="grid grid-cols-2 gap-2 mt-2">
-                      <Button
-                        variant="outline"
-                        className="rounded-full"
-                        onClick={() => setLeadContractOpen(true)}
-                      >
-                        <FileText className="h-4 w-4 mr-1.5" strokeWidth={1.5} />
-                        {selected.contractGeneratedAt ? "Gerar contrato novamente" : "Gerar contrato"}
-                      </Button>
-                      {selected.contractGeneratedAt && (
-                        <Button
-                          variant="outline"
-                          className="rounded-full border-success text-success hover:bg-success/10 hover:text-success"
-                          disabled={signBusy}
-                          onClick={async () => {
-                            setSignBusy(true);
-                            try {
-                              const { data: fresh } = await supabase
-                                .from("leads" as any)
-                                .select("draft_rent_amount, draft_deposit_due, draft_payment_day")
-                                .eq("id", selected.id)
-                                .maybeSingle();
-                              const d: any = fresh ?? {};
-                              if (!d.draft_rent_amount) {
-                                toast.error("Gera primeiro o contrato para definir a renda.");
-                                return;
-                              }
-                              await promoteReservation.mutateAsync({
-                                leadId: selected.id,
-                                contractData: {
-                                  monthly_amount: Number(d.draft_rent_amount),
-                                  deposit_due: Number(d.draft_deposit_due ?? 0),
-                                  payment_day: Number(d.draft_payment_day ?? 5),
-                                },
-                              });
-                              toast.success("Contrato criado — residente e primeira renda gerados");
-                              setSelected(null);
-                            } catch (e) {
-                              toast.error(e instanceof Error ? e.message : "Não foi possível criar o contrato.");
-                            } finally {
-                              setSignBusy(false);
-                            }
-                          }}
-                        >
-                          <UserCheck className="h-4 w-4 mr-1.5" strokeWidth={1.5} /> Assinou
-                        </Button>
-                      )}
-                      <Button
-                        variant="outline"
-                        className="rounded-full border-destructive text-destructive hover:bg-destructive/10 hover:text-destructive"
-                        disabled={giveUpBusy}
-                        onClick={async () => {
-                          setGiveUpBusy(true);
-                          try {
-                            await cancelReservation.mutateAsync(selected.id);
-                            await updateLead.mutateAsync({ id: selected.id, patch: { status: "lost" } });
-                            toast.success("Reserva cancelada e quarto libertado");
-                            setSelected(null);
-                          } catch (e) {
-                            toast.error(e instanceof Error ? e.message : "Não foi possível cancelar a reserva.");
-                          } finally {
-                            setGiveUpBusy(false);
-                          }
-                        }}
-                      >
-                        Desistiu
-                      </Button>
-                    </div>
-                  )}
+                  {(() => {
+                    const eligible =
+                      !!selected.fullName &&
+                      !!selected.email &&
+                      (["proposal_sent", "won"].includes(selected.status) ||
+                        (selected.status === "negotiating" &&
+                          (!!selected.formSubmittedAt || bypassFormLeadId === selected.id)));
+                    const isReserved = selected.status === "reserved";
+                    const hasAgreement = !!selected.reservationAgreementGeneratedAt || selected.reservationNotApplicable;
+                    const closed = ["won", "lost"].includes(selected.status);
+                    const showAgreementButtons =
+                      eligible && !isReserved && !hasAgreement && !selected.contractGeneratedAt && !selected.contractId;
+                    const showContractBlock =
+                      !selected.contractId &&
+                      (isReserved || (eligible && hasAgreement) || (!closed && !!selected.contractGeneratedAt));
+                    return (
+                      <>
+                        {showAgreementButtons && (
+                          <>
+                            <Button className="w-full rounded-full mt-2" onClick={() => setReservationOpen(true)}>
+                              <FileText className="h-4 w-4 mr-1.5" strokeWidth={1.5} /> Gerar acordo de reserva
+                            </Button>
+                            <Button
+                              variant="outline"
+                              className="w-full rounded-full mt-2"
+                              onClick={() => setComboOpen(true)}
+                            >
+                              Gerar acordo + contrato
+                            </Button>
+                            {selected.status !== "won" && (
+                              <Button
+                                variant="ghost"
+                                className="w-full rounded-full mt-1 text-muted-foreground"
+                                onClick={() => setWaiverOpen(true)}
+                              >
+                                Acordo de reserva não aplicável
+                              </Button>
+                            )}
+                          </>
+                        )}
+                        {selected.reservationNotApplicable && (
+                          <p className="text-xs text-muted-foreground mt-2 rounded-lg border border-border p-2">
+                            Reservado sem taxa (acordo não aplicável)
+                            {selected.reservationWaiverReason ? ` — ${selected.reservationWaiverReason}` : ""}
+                          </p>
+                        )}
+                        {showContractBlock && (
+                          <div className="space-y-2 mt-2">
+                            <Button className="w-full rounded-full" onClick={() => setLeadContractOpen(true)}>
+                              <FileText className="h-4 w-4 mr-1.5" strokeWidth={1.5} />
+                              {selected.contractGeneratedAt ? "Gerar contrato novamente" : "Gerar contrato"}
+                            </Button>
+                            <div className="grid grid-cols-2 gap-2">
+                              {selected.contractGeneratedAt && (
+                                <Button
+                                  variant="outline"
+                                  className="rounded-full border-success text-success hover:bg-success/10 hover:text-success"
+                                  disabled={signBusy}
+                                  onClick={async () => {
+                                    setSignBusy(true);
+                                    try {
+                                      const { data: fresh } = await supabase
+                                        .from("leads" as any)
+                                        .select("draft_rent_amount, draft_deposit_due, draft_payment_day")
+                                        .eq("id", selected.id)
+                                        .maybeSingle();
+                                      const d: any = fresh ?? {};
+                                      if (!d.draft_rent_amount) {
+                                        toast.error("Gera primeiro o contrato para definir a renda.");
+                                        return;
+                                      }
+                                      await signLeadContract.mutateAsync({
+                                        leadId: selected.id,
+                                        contractData: {
+                                          monthly_amount: Number(d.draft_rent_amount),
+                                          deposit_due: Number(d.draft_deposit_due ?? 0),
+                                          payment_day: Number(d.draft_payment_day ?? 5),
+                                        },
+                                      });
+                                      toast.success("Contrato criado — residente e primeira renda gerados");
+                                      setSelected(null);
+                                    } catch (e) {
+                                      toast.error(e instanceof Error ? e.message : "Não foi possível criar o contrato.");
+                                    } finally {
+                                      setSignBusy(false);
+                                    }
+                                  }}
+                                >
+                                  <UserCheck className="h-4 w-4 mr-1.5" strokeWidth={1.5} /> Assinou
+                                </Button>
+                              )}
+                              <Button
+                                variant="outline"
+                                className={`rounded-full border-destructive text-destructive hover:bg-destructive/10 hover:text-destructive ${selected.contractGeneratedAt ? "" : "col-span-2"}`}
+                                disabled={giveUpBusy}
+                                onClick={async () => {
+                                  setGiveUpBusy(true);
+                                  try {
+                                    await giveUpLead.mutateAsync(selected.id);
+                                    toast.success(isReserved ? "Reserva cancelada e quarto libertado" : "Lead marcada como perdida");
+                                    setSelected(null);
+                                  } catch (e) {
+                                    toast.error(e instanceof Error ? e.message : "Não foi possível concluir.");
+                                  } finally {
+                                    setGiveUpBusy(false);
+                                  }
+                                }}
+                              >
+                                Desistiu
+                              </Button>
+                            </div>
+                          </div>
+                        )}
+                      </>
+                    );
+                  })()}
 
                   {selected.contractId && (
                     <Button asChild variant="outline" className="w-full rounded-full mt-2">
@@ -1054,6 +1076,10 @@ const Leads = () => {
           open={reservationOpen}
           onOpenChange={setReservationOpen}
         />
+      )}
+
+      {selected && (
+        <ReservationAndContractDialog lead={selected} open={comboOpen} onOpenChange={setComboOpen} />
       )}
 
       {selected && (
