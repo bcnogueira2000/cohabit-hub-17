@@ -405,9 +405,10 @@ export const useReservationFees = () =>
         supabase
           .from("leads" as any)
           .select(
-            "id, full_name, status, reservation_fee_amount, reservation_deadline, room_id, planned_check_in, planned_check_out, contract_id"
+            "id, full_name, status, reservation_fee_amount, reservation_deadline, room_id, planned_check_in, planned_check_out, contract_id, reservation_not_applicable"
           )
           .not("reservation_fee_amount", "is", null)
+          .eq("reservation_not_applicable", false)
           .order("created_at", { ascending: true }),
       ]);
       if (error) throw error;
@@ -421,6 +422,7 @@ export const useReservationFees = () =>
           Number(l.reservation_fee_amount ?? 0) > 0.005 &&
           l.room_id &&
           !l.contract_id &&
+          !l.reservation_not_applicable &&
           !["won", "lost"].includes(l.status)
       );
       if (contracts.length === 0 && leads.length === 0) return [];
