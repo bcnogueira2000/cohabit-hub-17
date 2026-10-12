@@ -233,6 +233,30 @@ const functionErrorMessage = async (error: unknown) => {
   return error instanceof Error ? error.message : "Erro inesperado";
 };
 
+
+import { COUNTRIES, DIAL_OPTIONS, joinPhone, matchNationality, splitPhone } from "@/lib/countries";
+import { PLACEHOLDER_NIF } from "@/lib/leadContractRules";
+
+/** Indicativo (lista) + número; o valor completo vai num campo escondido com `name`. */
+const CandidatePhoneField = ({ id, name, lang, defaultValue }: { id: string; name: string; lang: "pt" | "en"; defaultValue?: string | null }) => {
+  const init = splitPhone(defaultValue);
+  const [dial, setDial] = useState(init.dial || "+351");
+  const [num, setNum] = useState(init.number);
+  return (
+    <div style={{ display: "flex", gap: 8 }}>
+      <select aria-label={lang === "pt" ? "Indicativo" : "Country code"} value={dial} onChange={(e) => setDial(e.target.value)} required style={{ flex: "0 0 42%", minWidth: 0 }}>
+        {DIAL_OPTIONS.map((d) => (
+          <option key={d.iso} value={d.dial}>
+            {(lang === "pt" ? d.countryPt : d.countryEn) + " (" + d.dial + ")"}
+          </option>
+        ))}
+      </select>
+      <input type="tel" id={id} required autoComplete="tel-national" inputMode="tel" value={num} onChange={(e) => setNum(e.target.value.replace(/[^\d\s]/g, ""))} style={{ flex: 1, minWidth: 0 }} />
+      <input type="hidden" name={name} value={joinPhone(dial, num)} />
+    </div>
+  );
+};
+
 const CandidateForm = () => {
   const { token = "" } = useParams();
   const [lang, setLang] = useState<Lang>("pt");
@@ -274,7 +298,7 @@ const CandidateForm = () => {
       }
       setLead(row);
       setProfile(row.profile === "student" || row.profile === "professional" ? row.profile : "");
-      setNoTax((row.tax_number ?? "") === "999999999");
+      setNoTax(["999999990", "999999999"].includes(row.tax_number ?? ""));
       setConsent(!!row.gdpr_consent);
       setDob(row.date_of_birth ?? "");
       setDocValidity(row.document_validity ?? "");
@@ -527,13 +551,19 @@ const CandidateForm = () => {
                     <span>{t.lblNationality}</span>
                     <span className="req">*</span>
                   </label>
-                  <input
-                    type="text"
+                  <select
                     id="nationality"
                     name="nationality"
                     required
-                    defaultValue={lead.nationality ?? ""}
-                  />
+                    defaultValue={matchNationality(lead.nationality)?.nationalityPt ?? ""}
+                  >
+                    <option value="" disabled>{lang === "pt" ? "Escolher…" : "Choose…"}</option>
+                    {COUNTRIES.map((c) => (
+                      <option key={c.iso} value={c.nationalityPt}>
+                        {lang === "pt" ? c.nationalityPt : c.nationalityEn}
+                      </option>
+                    ))}
+                  </select>
                 </div>
                 <div className="field">
                   <label htmlFor="date_of_birth" id="date_of_birth-label">
@@ -619,7 +649,7 @@ const CandidateForm = () => {
                     required
                     readOnly={noTax}
                     key={noTax ? "notax" : "tax"}
-                    defaultValue={noTax ? "999999999" : lead.tax_number ?? ""}
+                    defaultValue={noTax ? PLACEHOLDER_NIF : lead.tax_number === "999999999" ? PLACEHOLDER_NIF : lead.tax_number ?? ""}
                   />
                   <label className="checkbox-inline" htmlFor="no_tax_number">
                     <input
@@ -639,14 +669,7 @@ const CandidateForm = () => {
                     <span>{t.lblPhone}</span>
                     <span className="req">*</span>
                   </label>
-                  <input
-                    type="tel"
-                    id="phone"
-                    name="phone"
-                    required
-                    autoComplete="tel"
-                    defaultValue={lead.phone ?? ""}
-                  />
+                  <CandidatePhoneField id="phone" name="phone" lang={lang} defaultValue={lead.phone} />
                 </div>
                 <div className="field">
                   <label htmlFor="email">
@@ -852,13 +875,7 @@ const CandidateForm = () => {
                     <span>{t.lblEcPhone}</span>
                     <span className="req">*</span>
                   </label>
-                  <input
-                    type="tel"
-                    id="emergency_contact_phone"
-                    name="emergency_contact_phone"
-                    required
-                    defaultValue={lead.emergency_contact_phone ?? ""}
-                  />
+                  <CandidatePhoneField id="emergency_contact_phone" name="emergency_contact_phone" lang={lang} defaultValue={lead.emergency_contact_phone} />
                 </div>
                 <div className="field">
                   <label htmlFor="emergency_contact_email">
