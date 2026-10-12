@@ -1406,6 +1406,53 @@ export type Database = {
           },
         ]
       }
+      resident_documents: {
+        Row: {
+          file_name: string
+          file_type: string | null
+          id: string
+          kind: string
+          notes: string | null
+          resident_id: string
+          storage_path: string
+          uploaded_at: string
+          uploaded_by: string | null
+          uploaded_by_name: string | null
+        }
+        Insert: {
+          file_name: string
+          file_type?: string | null
+          id?: string
+          kind?: string
+          notes?: string | null
+          resident_id: string
+          storage_path: string
+          uploaded_at?: string
+          uploaded_by?: string | null
+          uploaded_by_name?: string | null
+        }
+        Update: {
+          file_name?: string
+          file_type?: string | null
+          id?: string
+          kind?: string
+          notes?: string | null
+          resident_id?: string
+          storage_path?: string
+          uploaded_at?: string
+          uploaded_by?: string | null
+          uploaded_by_name?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "resident_documents_resident_id_fkey"
+            columns: ["resident_id"]
+            isOneToOne: false
+            referencedRelation: "residents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       residents: {
         Row: {
           address: string | null
