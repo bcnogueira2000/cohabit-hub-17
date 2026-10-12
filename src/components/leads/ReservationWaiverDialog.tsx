@@ -21,6 +21,7 @@ import { RoomCombobox } from "@/components/rooms/RoomCombobox";
 import { useRooms } from "@/hooks/useData";
 import { supabase } from "@/integrations/supabase/client";
 import { useAppSettings } from "@/hooks/useAppSettings";
+import { PendingAgreementWarning } from "@/components/leads/PendingAgreementWarning";
 import { monthsBetween } from "@/components/leads/ReservationAgreementDialog";
 
 interface Props {
@@ -144,6 +145,13 @@ export const ReservationWaiverDialog = ({ lead, open, onOpenChange }: Props) => 
                   {availableRooms.length} quarto(s) livre(s) neste período.
                 </p>
               )}
+            <PendingAgreementWarning
+              leadId={lead.id}
+              roomId={roomId}
+              roomNumber={rooms.find((r) => r.id === roomId)?.number}
+              checkIn={checkIn}
+              checkOut={checkOut}
+            />
             </div>
             <div className="space-y-1">
               <label className="text-[11px] uppercase tracking-wide text-muted-foreground">Motivo (obrigatório)</label>
