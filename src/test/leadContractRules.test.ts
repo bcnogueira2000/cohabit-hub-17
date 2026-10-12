@@ -47,3 +47,26 @@ describe("dados pessoais do contrato", () => {
     expect(missingPersonalFields({ ...full, taxNumber: "" })).toEqual(["NIF"]);
   });
 });
+
+import { leadSubState } from "@/lib/leadContractRules";
+describe("sub-estados derivados", () => {
+  const l = { status: "negotiating", formSentAt: null, formSubmittedAt: null, reservationAgreementGeneratedAt: null, contractGeneratedAt: null, contractId: null };
+  it("formulário enviado e não preenchido → aguarda formulário", () => {
+    expect(leadSubState({ ...l, formSentAt: "x" })).toBe("awaiting_form");
+  });
+  it("formulário preenchido → formulário recebido", () => {
+    expect(leadSubState({ ...l, formSentAt: "x", formSubmittedAt: "y" })).toBe("form_received");
+  });
+  it("acordo gerado e não reservada → aguarda taxa", () => {
+    expect(leadSubState({ ...l, formSubmittedAt: "y", reservationAgreementGeneratedAt: "z" })).toBe("awaiting_fee");
+  });
+  it("reservada com acordo → sem etiqueta de taxa", () => {
+    expect(leadSubState({ ...l, status: "reserved", reservationAgreementGeneratedAt: "z" })).toBeNull();
+  });
+  it("contrato gerado → em assinatura", () => {
+    expect(leadSubState({ ...l, reservationAgreementGeneratedAt: "z", contractGeneratedAt: "c" })).toBe("awaiting_signature");
+  });
+  it("perdida → sem etiqueta", () => {
+    expect(leadSubState({ ...l, status: "lost", formSentAt: "x" })).toBeNull();
+  });
+});
