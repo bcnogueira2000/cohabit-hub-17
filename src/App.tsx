@@ -22,6 +22,7 @@ import RequestDetail from "./pages/RequestDetail";
 import NewRequest from "./pages/NewRequest";
 import PublicRequest from "./pages/PublicRequest";
 import CandidateForm from "./pages/CandidateForm";
+import CandidateDocuments from "./pages/CandidateDocuments";
 import Cleaning from "./pages/Cleaning";
 import Tasks from "./pages/Tasks";
 import Leads from "./pages/Leads";
