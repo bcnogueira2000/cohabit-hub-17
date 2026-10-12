@@ -486,6 +486,10 @@ export type Database = {
           public_token_expires_at: string | null
           reservation_deadline: string | null
           reservation_fee_amount: number | null
+          reservation_not_applicable: boolean
+          reservation_waiver_at: string | null
+          reservation_waiver_by: string | null
+          reservation_waiver_reason: string | null
           room_id: string | null
           short_name: string | null
           source: Database["public"]["Enums"]["lead_source"]
@@ -550,6 +554,10 @@ export type Database = {
           public_token_expires_at?: string | null
           reservation_deadline?: string | null
           reservation_fee_amount?: number | null
+          reservation_not_applicable?: boolean
+          reservation_waiver_at?: string | null
+          reservation_waiver_by?: string | null
+          reservation_waiver_reason?: string | null
           room_id?: string | null
           short_name?: string | null
           source?: Database["public"]["Enums"]["lead_source"]
@@ -614,6 +622,10 @@ export type Database = {
           public_token_expires_at?: string | null
           reservation_deadline?: string | null
           reservation_fee_amount?: number | null
+          reservation_not_applicable?: boolean
+          reservation_waiver_at?: string | null
+          reservation_waiver_by?: string | null
+          reservation_waiver_reason?: string | null
           room_id?: string | null
           short_name?: string | null
           source?: Database["public"]["Enums"]["lead_source"]
@@ -1853,6 +1865,10 @@ export type Database = {
           p_lead_id: string
           p_room_id: string
         }
+        Returns: string
+      }
+      reserve_room_without_fee: {
+        Args: { p_lead_id: string; p_reason: string }
         Returns: string
       }
       stay_daterange: { Args: { _in: string; _out: string }; Returns: unknown }
