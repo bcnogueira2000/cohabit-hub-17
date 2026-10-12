@@ -46,7 +46,12 @@ import {
   isAwaitingSignature,
   AwaitingSignatureBadge,
   LeadSubStateBadge,
+  LeadStatusBadge,
+  FLOW_LOCK_NOTE,
 } from "@/components/leads/LeadsPipeline";
+import { LostReasonDialog } from "@/components/leads/LostReasonDialog";
+import { LeadPendingProvider } from "@/components/leads/LeadPendingContext";
+import { isFlowLockedStatus } from "@/lib/leadContractRules";
 import { leadStatusLabels, leadSourceLabels, leadProfileLabels } from "@/lib/labels";
 import { NewContractDialog } from "@/components/contracts/NewContractDialog";
 import { ReservationAgreementDialog } from "@/components/leads/ReservationAgreementDialog";
@@ -153,6 +158,8 @@ const Leads = () => {
   const [leadContractOpen, setLeadContractOpen] = useState(false);
   const [signBusy, setSignBusy] = useState(false);
   const [editStatus, setEditStatus] = useState<LeadStatus>("new");
+  const [lostTargetId, setLostTargetId] = useState<string | null>(null);
+  const [panelLostOpen, setPanelLostOpen] = useState(false);
   const [editOwnerId, setEditOwnerId] = useState<string>("");
   const [editNextAction, setEditNextAction] = useState<string>("");
   const [editNextActionDate, setEditNextActionDate] = useState<string>("");
@@ -308,17 +315,13 @@ const Leads = () => {
     null;
 
   const changeStatus = (leadId: string, newStatus: LeadStatus) => {
-    if (!manualStatusOptions.includes(newStatus)) {
-      toast.error("Este estado só é definido pelo fluxo de reserva/contrato.");
+    const current = leads.find((l) => l.id === leadId);
+    if (!manualStatusOptions.includes(newStatus) || (current && isFlowLockedStatus(current.status))) {
+      toast.error("Este estado só muda pelo fluxo (Desistiu, cancelar contrato).");
       return;
     }
     if (newStatus === "lost") {
-      const reason = window.prompt("Motivo de perda:");
-      if (reason === null) return;
-      updateLead.mutate(
-        { id: leadId, patch: { status: newStatus, lostReason: reason || undefined } },
-        { onSuccess: () => toast.success("Estado atualizado") }
-      );
+      setLostTargetId(leadId);
       return;
     }
     updateLead.mutate(
@@ -328,6 +331,7 @@ const Leads = () => {
   };
 
   return (
+    <LeadPendingProvider leads={leads}>
     <div className="px-4 lg:px-10 2xl:px-14 py-6 lg:py-10 max-w-[1600px] mx-auto">
       <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-6">
         <div>
@@ -514,32 +518,7 @@ const Leads = () => {
               <div className="flex flex-col sm:flex-row sm:items-center gap-3">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap mb-1.5">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Badge
-                          variant="outline"
-                          className={`${statusTone[l.status]} cursor-pointer gap-1 pr-1.5`}
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          {leadStatusLabels[l.status]}
-                          <ChevronDown className="h-3 w-3" strokeWidth={1.5} />
-                        </Badge>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="start" onClick={(e) => e.stopPropagation()}>
-                        {manualStatusOptions.map((s) => (
-                          <DropdownMenuItem
-                            key={s}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleStatusChange(s);
-                            }}
-                            className={s === l.status ? "bg-muted" : ""}
-                          >
-                            {leadStatusLabels[s]}
-                          </DropdownMenuItem>
-                        ))}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                    <LeadStatusBadge lead={l} onStatusChange={changeStatus} isPending={updateLead.isPending} />
                     <Badge variant="outline" className="text-muted-foreground">{leadSourceLabels[l.source]}</Badge>
                     {(l.contractId || l.stayId) && (
                       l.contractId ? (
@@ -553,11 +532,6 @@ const Leads = () => {
                           <CheckCircle2 className="h-3 w-3" strokeWidth={1.5} /> Convertido
                         </Badge>
                       )
-                    )}
-                    {l.formSubmittedAt && (
-                      <Badge variant="outline" className="bg-info/10 text-info border-info/30 gap-1">
-                        <CheckCircle2 className="h-3 w-3" strokeWidth={1.5} /> Formulário
-                      </Badge>
                     )}
                     <LeadSubStateBadge lead={l} />
                   </div>
@@ -761,19 +735,31 @@ const Leads = () => {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div className="space-y-1">
                       <label className="text-[11px] uppercase tracking-wide text-muted-foreground">Estado</label>
-                      <Select value={editStatus} onValueChange={(v) => setEditStatus(v as LeadStatus)}>
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {!manualStatusOptions.includes(editStatus) && (
-                            <SelectItem value={editStatus} disabled>{leadStatusLabels[editStatus]}</SelectItem>
-                          )}
-                          {manualStatusOptions.map((s) => (
-                            <SelectItem key={s} value={s}>{leadStatusLabels[s]}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      {isFlowLockedStatus(selected.status) ? (
+                        <div className="space-y-1">
+                          <Badge variant="outline" className={statusTone[selected.status]}>
+                            {leadStatusLabels[selected.status]}
+                          </Badge>
+                          <p className="text-[11px] text-muted-foreground">{FLOW_LOCK_NOTE}</p>
+                        </div>
+                      ) : (
+                        <Select
+                          value={editStatus}
+                          onValueChange={(v) => {
+                            if (v === "lost" && editStatus !== "lost") setPanelLostOpen(true);
+                            else setEditStatus(v as LeadStatus);
+                          }}
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {manualStatusOptions.map((s) => (
+                              <SelectItem key={s} value={s}>{leadStatusLabels[s]}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      )}
                     </div>
                     <div className="space-y-1">
                       <label className="text-[11px] uppercase tracking-wide text-muted-foreground">Responsável</label>
@@ -818,17 +804,23 @@ const Leads = () => {
                   {editStatus === "lost" && (
                     <div className="space-y-1">
                       <label className="text-[11px] uppercase tracking-wide text-muted-foreground">Motivo de perda</label>
-                      <Input
-                        value={editLostReason}
-                        onChange={(e) => setEditLostReason(e.target.value)}
-                        placeholder="Ex: Preço, escolheu outro projeto, não respondeu"
-                      />
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm flex-1">{editLostReason || "—"}</span>
+                        <Button size="sm" variant="outline" className="rounded-full" onClick={() => setPanelLostOpen(true)}>
+                          Alterar motivo
+                        </Button>
+                      </div>
                     </div>
                   )}
                   <Button
                     className="w-full rounded-full gradient-warm text-white"
                     onClick={() => {
                       if (!selected) return;
+                      const locked = isFlowLockedStatus(selected.status);
+                      if (!locked && editStatus === "lost" && !editLostReason.trim()) {
+                        setPanelLostOpen(true);
+                        return;
+                      }
                       const ownerId = editOwnerId === "__none__" ? "" : editOwnerId;
                       const assignedStaff = staff.find((s) => s.user_id === ownerId);
                       const profile = editProfile === "__none__" ? null : editProfile;
@@ -841,13 +833,14 @@ const Leads = () => {
                         gender: editGender.trim() || null,
                         profile,
                         profileOther: profile === "other" ? (editProfileOther.trim() || null) : null,
-                        status: editStatus,
+                        // Reservado/Contratado só mudam pelo fluxo — o painel não mexe no estado.
+                        status: locked ? undefined : editStatus,
                         assignedToUserId: ownerId || null,
                         assignedTo: assignedStaff?.full_name || assignedStaff?.email || null,
                         nextAction: editNextAction || null,
                         nextActionDate: editNextActionDate || null,
                         notes: editNotes || null,
-                        lostReason: editStatus === "lost" ? (editLostReason || null) : null,
+                        lostReason: locked ? undefined : editStatus === "lost" ? (editLostReason || null) : null,
                       };
                       updateLead.mutate(
                         { id: selected.id, patch },
@@ -965,6 +958,7 @@ const Leads = () => {
                     const showPendingFee = inNegotiation && agreementGenerated && !selected.contractGeneratedAt;
                     return (
                       <>
+                        <div className="mb-2"><LeadSubStateBadge lead={selected} /></div>
                         <LeadChecklist lead={selected} />
                         {selected.contractSignedAt && selected.status !== "won" && (
                           <p className="text-xs text-success mt-2 rounded-lg border border-success/30 bg-success/10 p-2">
@@ -1153,8 +1147,38 @@ const Leads = () => {
           }}
         />
       )}
+      <LostReasonDialog
+        open={!!lostTargetId}
+        onOpenChange={(o) => !o && setLostTargetId(null)}
+        initial={leads.find((l) => l.id === lostTargetId)?.lostReason}
+        busy={updateLead.isPending}
+        onConfirm={(reason) => {
+          const id = lostTargetId;
+          if (!id) return;
+          updateLead.mutate(
+            { id, patch: { status: "lost", lostReason: reason } },
+            {
+              onSuccess: () => {
+                toast.success("Estado atualizado");
+                setLostTargetId(null);
+              },
+              onError: (e) => toast.error(e instanceof Error ? e.message : "Não foi possível atualizar."),
+            }
+          );
+        }}
+      />
+      <LostReasonDialog
+        open={panelLostOpen}
+        onOpenChange={setPanelLostOpen}
+        initial={editLostReason}
+        onConfirm={(reason) => {
+          setEditStatus("lost");
+          setEditLostReason(reason);
+          setPanelLostOpen(false);
+        }}
+      />
     </div>
-
+    </LeadPendingProvider>
   );
 };
 
