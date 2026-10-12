@@ -34,7 +34,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
-import { useLeadDocuments, downloadLeadDocument, useLeads, useUpdateLead, useDeleteLead, useLeadActivity, useCancelRoomReservation, usePromoteReservationToContract, useSignLeadContract, useGiveUpLead, useSendCandidateForm, type Lead, type LeadStatus } from "@/hooks/useLeads";
+import { useLeadDocuments, downloadLeadDocument, useLeads, useUpdateLead, useDeleteLead, useLeadActivity, useCancelRoomReservation, usePromoteReservationToContract, useSignLeadContract, useGiveUpLead, useSendCandidateForm, useRequestLeadDocuments, useValidateLeadDocuments, type Lead, type LeadStatus } from "@/hooks/useLeads";
 import { useStaffUsers } from "@/hooks/useStaffUsers";
 import { NewLeadDialog } from "@/components/leads/NewLeadDialog";
 import {
@@ -50,6 +50,7 @@ import {
   LeadSubStateBadge,
   LeadStatusBadge,
   WonAtRiskBadge,
+  DocsBadge,
   FLOW_LOCK_NOTE,
 } from "@/components/leads/LeadsPipeline";
 import { LostReasonDialog } from "@/components/leads/LostReasonDialog";
@@ -65,6 +66,8 @@ import { LeadContractDialog } from "@/components/leads/LeadContractDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { Checkbox } from "@/components/ui/checkbox";
+import { docsBadge, docKindLabel, groupDocsByKind, REQUIRED_DOC_KINDS } from "@/lib/leadDocuments";
 
 
 type Filter = "new" | "contact" | "negotiation" | "won" | "lost" | "all";
@@ -539,6 +542,7 @@ const Leads = () => {
                     )}
                     <LeadSubStateBadge lead={l} />
                     <WonAtRiskBadge lead={l} />
+                    <DocsBadge lead={l} />
                   </div>
                   <div className="font-display text-lg font-semibold truncate">{l.fullName}</div>
                   <div className="text-xs text-muted-foreground truncate">{l.email}</div>
@@ -963,7 +967,7 @@ const Leads = () => {
                     const showPendingFee = inNegotiation && agreementGenerated && !selected.contractGeneratedAt;
                     return (
                       <>
-                        <div className="mb-2"><LeadSubStateBadge lead={selected} /></div>
+                        <div className="mb-2 flex flex-wrap gap-1.5 items-center"><LeadSubStateBadge lead={selected} /><DocsBadge lead={selected} /></div>
                         <LeadChecklist lead={selected} />
                         {selected.contractSignedAt && selected.status !== "won" && (
                           <p className="text-xs text-success mt-2 rounded-lg border border-success/30 bg-success/10 p-2">
@@ -1094,7 +1098,7 @@ const Leads = () => {
 
               <CandidateFormData lead={selected} />
 
-              {selected && <LeadDocuments leadId={selected.id} />}
+              {selected && <LeadDocuments lead={selected} />}
 
               {selected && <LeadHistory leadId={selected.id} />}
             </div>
@@ -1265,10 +1269,17 @@ const CandidateFormData = ({ lead }: { lead: Lead | null }) => {
   );
 };
 
-const LeadDocuments = ({ leadId }: { leadId: string }) => {
-  const { data: docs } = useLeadDocuments(leadId);
+const LeadDocuments = ({ lead }: { lead: Lead }) => {
+  const { data: docs } = useLeadDocuments(lead.id);
+  const requestDocs = useRequestLeadDocuments();
+  const validateDocs = useValidateLeadDocuments();
+  const [reqOpen, setReqOpen] = useState(false);
+  const [items, setItems] = useState<string[]>([]);
+  const [message, setMessage] = useState("");
   const fmt = (iso: string) =>
-    new Date(iso).toLocaleDateString("pt-PT", { day: "numeric", month: "short", year: "numeric" });
+    new Date(iso).toLocaleDateString("pt-PT", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
+  const badge = docsBadge(lead);
+  const pendingRequest = badge === "requested";
 
   const open = async (path: string) => {
     try {
@@ -1279,26 +1290,143 @@ const LeadDocuments = ({ leadId }: { leadId: string }) => {
     }
   };
 
+  const send = async () => {
+    if (!items.length) return toast.error("Escolhe pelo menos um documento.");
+    try {
+      const r = await requestDocs.mutateAsync({ leadId: lead.id, items, message });
+      toast.success(`Pedido enviado para ${r.email}`);
+      setReqOpen(false);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Não foi possível enviar o pedido");
+    }
+  };
+
+  const groups = groupDocsByKind(docs ?? []);
+
   return (
     <Section title="Documentos do candidato">
-      {!docs || docs.length === 0 ? (
+      {groups.length === 0 ? (
         <div className="text-sm text-muted-foreground">Sem documentos anexados.</div>
       ) : (
-        <div className="space-y-2">
-          {docs.map((d) => (
-            <button
-              key={d.id}
-              type="button"
-              onClick={() => open(d.storagePath)}
-              className="w-full flex items-center gap-2.5 rounded-xl border border-border/60 px-3 py-2.5 text-left hover:bg-muted/40 transition-colors"
-            >
-              <FileText className="h-4 w-4 text-primary shrink-0" strokeWidth={1.5} />
-              <span className="text-sm font-medium truncate flex-1">{d.fileName}</span>
-              <span className="text-xs text-muted-foreground shrink-0">{fmt(d.uploadedAt)}</span>
-            </button>
-          ))}
+        <div className="space-y-3">
+          {groups.map((g) => {
+            const latestAt = g.docs[0].uploadedAt;
+            return (
+              <div key={g.kind}>
+                <div className="text-[11px] uppercase tracking-wide text-muted-foreground mb-1">
+                  {docKindLabel(g.kind, lead.profile, "pt")}
+                </div>
+                <div className="space-y-1.5">
+                  {g.docs.map((d) => {
+                    const latest = d.uploadedAt.slice(0, 16) === latestAt.slice(0, 16);
+                    return (
+                      <button
+                        key={d.id}
+                        type="button"
+                        onClick={() => open(d.storagePath)}
+                        className={`w-full flex items-center gap-2.5 rounded-xl border px-3 py-2 text-left hover:bg-muted/40 transition-colors ${
+                          latest ? "border-primary/40 bg-primary/5" : "border-border/60 opacity-70"
+                        }`}
+                      >
+                        <FileText className="h-4 w-4 text-primary shrink-0" strokeWidth={1.5} />
+                        <span className={`text-sm truncate flex-1 ${latest ? "font-medium" : ""}`}>{d.fileName}</span>
+                        {latest && g.docs.length > 1 && (
+                          <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-5">Mais recente</Badge>
+                        )}
+                        <span className="text-xs text-muted-foreground shrink-0">{fmt(d.uploadedAt)}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })}
         </div>
       )}
+
+      {lead.docsRequestedAt && (
+        <p className="text-xs text-muted-foreground mt-3">
+          Último pedido: {fmt(lead.docsRequestedAt)}
+          {lead.docsReceivedAt && ` · recebidos: ${fmt(lead.docsReceivedAt)}`}
+          {lead.docsValidatedAt && ` · validados: ${fmt(lead.docsValidatedAt)}`}
+        </p>
+      )}
+
+      <div className="flex flex-wrap gap-2 mt-3">
+        {lead.email && (
+          <Button
+            size="sm"
+            variant="outline"
+            className="rounded-full"
+            onClick={() => {
+              setItems([]);
+              setMessage("");
+              setReqOpen(true);
+            }}
+          >
+            <Mail className="h-3.5 w-3.5 mr-1.5" strokeWidth={1.5} /> Pedir documentos
+          </Button>
+        )}
+        {(docs?.length ?? 0) > 0 && (
+          <Button
+            size="sm"
+            variant={badge === "to_validate" ? "default" : "outline"}
+            className="rounded-full"
+            disabled={validateDocs.isPending}
+            onClick={async () => {
+              try {
+                await validateDocs.mutateAsync(lead.id);
+                toast.success("Documentos validados");
+              } catch (e) {
+                toast.error(e instanceof Error ? e.message : "Não foi possível validar");
+              }
+            }}
+          >
+            <CheckCircle2 className="h-3.5 w-3.5 mr-1.5" strokeWidth={1.5} /> Documentos validados
+          </Button>
+        )}
+      </div>
+
+      <Dialog open={reqOpen} onOpenChange={setReqOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="font-display">Pedir documentos</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            O candidato recebe um email com um link só para carregar estes documentos (sem voltar a preencher o formulário).
+          </p>
+          <div className="space-y-2">
+            {REQUIRED_DOC_KINDS.map((k) => (
+              <label key={k} className="flex items-center gap-2 text-sm cursor-pointer">
+                <Checkbox
+                  checked={items.includes(k)}
+                  onCheckedChange={(v) => setItems((cur) => (v ? [...cur, k] : cur.filter((x) => x !== k)))}
+                />
+                {docKindLabel(k, lead.profile, "pt")}
+              </label>
+            ))}
+          </div>
+          <Textarea
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            rows={4}
+            placeholder="Mensagem para o candidato (ex.: a foto do documento está ilegível)"
+          />
+          {pendingRequest && (
+            <p className="text-xs rounded-lg border border-warning/40 bg-warning/10 text-warning p-2">
+              Já existe um pedido pendente (enviado {fmt(lead.docsRequestedAt!)}). Ao enviar, este novo pedido substitui o anterior.
+            </p>
+          )}
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" className="rounded-full" onClick={() => setReqOpen(false)}>
+              Cancelar
+            </Button>
+            <Button className="rounded-full" disabled={requestDocs.isPending || !items.length} onClick={send}>
+              {requestDocs.isPending ? "A enviar…" : pendingRequest ? "Confirmar e enviar novo pedido" : "Enviar pedido"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </Section>
   );
 };

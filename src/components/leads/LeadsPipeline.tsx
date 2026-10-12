@@ -14,6 +14,7 @@ import type { Lead, LeadStatus } from "@/hooks/useLeads";
 import type { StaffUser } from "@/hooks/useStaffUsers";
 import { leadPendingStep, daysAgoLabel, isFlowLockedStatus, type LeadSubState } from "@/lib/leadContractRules";
 import { useLeadPendingExtras } from "@/components/leads/LeadPendingContext";
+import { docsBadge, DOCS_BADGE_LABEL } from "@/lib/leadDocuments";
 
 export const statusTone: Record<LeadStatus, string> = {
   new: "bg-muted text-muted-foreground",
@@ -77,6 +78,20 @@ export const WonAtRiskBadge = ({ lead }: { lead: Lead }) => {
   return (
     <Badge variant="outline" className="bg-destructive/10 text-destructive border-destructive/30 gap-1" title="Um pagamento foi anulado depois de a lead passar a Contratado">
       <AlertTriangle className="h-3 w-3" strokeWidth={1.5} /> Atenção: {what} deixou de estar paga
+    </Badge>
+  );
+};
+
+/** Etiqueta secundária dos documentos pedidos/recebidos (independente de "Pendente: …"). */
+export const DocsBadge = ({ lead }: { lead: Lead }) => {
+  const b = docsBadge(lead);
+  if (!b) return null;
+  return (
+    <Badge
+      variant="outline"
+      className={`text-[10px] px-1.5 py-0 h-5 ${b === "to_validate" ? "bg-info/10 text-info border-info/30" : "bg-muted text-muted-foreground"}`}
+    >
+      {DOCS_BADGE_LABEL[b]}
     </Badge>
   );
 };
@@ -312,6 +327,7 @@ export const LeadsPipeline = ({
                   )}
                   <LeadSubStateBadge lead={l} />
                   <WonAtRiskBadge lead={l} />
+                  <DocsBadge lead={l} />
 
                 </div>
                 <div className="font-display text-sm font-semibold truncate">{shortName(l.fullName)}</div>
