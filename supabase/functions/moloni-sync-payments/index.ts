@@ -116,6 +116,7 @@ Deno.serve(async (req) => {
             method: mapMethod(first.payment_method_name ?? first.name),
             reference,
             notes: "Importado do Moloni",
+            source: "moloni",
           });
           if (insertError) throw new Error(insertError.message);
         }
