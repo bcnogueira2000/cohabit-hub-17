@@ -13,7 +13,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAppSettings } from "@/hooks/useAppSettings";
 
 /** Meses completos entre duas datas ISO (yyyy-mm-dd). */
-const monthsBetween = (from: string, to: string) => {
+export const monthsBetween = (from: string, to: string) => {
   const a = new Date(from);
   const b = new Date(to);
   let m = (b.getFullYear() - a.getFullYear()) * 12 + (b.getMonth() - a.getMonth());
@@ -98,7 +98,20 @@ export const ReservationAgreementDialog = ({ lead, open, onOpenChange }: Props) 
   const needValidity = !lead.documentValidity;
   const needTax = !lead.taxNumber;
   const needDeadline = !lead.reservationDeadline;
-  const needFee = lead.reservationFeeAmount == null;
+  // Taxa sempre editável, exceto quando já existe pagamento registado
+  const { data: feePaid = false } = useQuery({
+    queryKey: ["booking-fee-payments", null, lead.id, "exists"],
+    enabled: open,
+    queryFn: async () => {
+      const { count, error } = await supabase
+        .from("payments" as any)
+        .select("id", { count: "exact", head: true })
+        .eq("lead_id", lead.id)
+        .eq("kind", "booking_fee");
+      if (error) throw error;
+      return (count ?? 0) > 0;
+    },
+  });
 
   const handleGenerate = async () => {
     const feeNumber = Number(fee);
@@ -137,7 +150,7 @@ export const ReservationAgreementDialog = ({ lead, open, onOpenChange }: Props) 
           plannedCheckIn: checkIn,
           plannedCheckOut: checkOut,
           reservationDeadline: deadline,
-          reservationFeeAmount: feeNumber,
+          ...(feePaid ? {} : { reservationFeeAmount: feeNumber }),
           address: address.trim(),
           documentNumber: documentNumber.trim(),
           documentValidity,
@@ -216,17 +229,20 @@ export const ReservationAgreementDialog = ({ lead, open, onOpenChange }: Props) 
               onChange={(e) => setDeadline(e.target.value)}
             />
           )}
-          {needFee && (
-            <Field
-              label="Taxa de reserva (€)"
-              type="number"
-              min="0"
-              step="0.01"
-              value={fee}
-              onChange={(e) => setFee(e.target.value)}
-            />
-          )}
-          {!needAddress && !needDocument && !needValidity && !needTax && !needDeadline && !needFee && (
+          <Field
+            label={feePaid ? "Taxa de reserva (€) — já paga" : "Taxa de reserva (€)"}
+            type="number"
+            min="0.01"
+            step="0.01"
+            value={fee}
+            readOnly={feePaid}
+            disabled={feePaid}
+            onChange={(e) => setFee(e.target.value)}
+          />
+          <p className="text-[11px] text-muted-foreground -mt-2">
+            A taxa de reserva é a fundo perdido: não é abatida à caução nem à renda.
+          </p>
+          {!needAddress && !needDocument && !needValidity && !needTax && !needDeadline && (
             <p className="text-sm text-muted-foreground">
               Todos os dados necessários estão preenchidos. Podes gerar o documento.
             </p>
