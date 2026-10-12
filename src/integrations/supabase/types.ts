@@ -447,6 +447,7 @@ export type Database = {
           file_name: string
           file_type: string | null
           id: string
+          kind: string | null
           lead_id: string
           storage_path: string
           uploaded_at: string
@@ -455,6 +456,7 @@ export type Database = {
           file_name: string
           file_type?: string | null
           id?: string
+          kind?: string | null
           lead_id: string
           storage_path: string
           uploaded_at?: string
@@ -463,6 +465,7 @@ export type Database = {
           file_name?: string
           file_type?: string | null
           id?: string
+          kind?: string | null
           lead_id?: string
           storage_path?: string
           uploaded_at?: string
@@ -493,6 +496,11 @@ export type Database = {
           course_duration: string | null
           created_at: string
           date_of_birth: string | null
+          docs_received_at: string | null
+          docs_request_items: string[] | null
+          docs_request_message: string | null
+          docs_requested_at: string | null
+          docs_validated_at: string | null
           document_number: string | null
           document_type: string | null
           document_validity: string | null
@@ -563,6 +571,11 @@ export type Database = {
           course_duration?: string | null
           created_at?: string
           date_of_birth?: string | null
+          docs_received_at?: string | null
+          docs_request_items?: string[] | null
+          docs_request_message?: string | null
+          docs_requested_at?: string | null
+          docs_validated_at?: string | null
           document_number?: string | null
           document_type?: string | null
           document_validity?: string | null
@@ -633,6 +646,11 @@ export type Database = {
           course_duration?: string | null
           created_at?: string
           date_of_birth?: string | null
+          docs_received_at?: string | null
+          docs_request_items?: string[] | null
+          docs_request_message?: string | null
+          docs_requested_at?: string | null
+          docs_validated_at?: string | null
           document_number?: string | null
           document_type?: string | null
           document_validity?: string | null
@@ -1863,6 +1881,18 @@ export type Database = {
         Args: { p_contract_id: string }
         Returns: number
       }
+      get_lead_docs_request: {
+        Args: { p_token: string }
+        Returns: {
+          first_name: string
+          items: string[]
+          language: string
+          message: string
+          profile: string
+          received_at: string
+          requested_at: string
+        }[]
+      }
       get_lead_form_data: {
         Args: { p_token: string }
         Returns: {
@@ -1939,6 +1969,7 @@ export type Database = {
         Args: {
           p_file_name: string
           p_file_type: string
+          p_kind?: string
           p_storage_path: string
           p_token: string
         }
@@ -1962,10 +1993,12 @@ export type Database = {
         Returns: Json
       }
       stay_daterange: { Args: { _in: string; _out: string }; Returns: unknown }
+      submit_lead_documents: { Args: { p_token: string }; Returns: string }
       submit_lead_form: {
         Args: { p_data: Json; p_token: string }
         Returns: string
       }
+      validate_lead_documents: { Args: { p_lead_id: string }; Returns: string }
       void_payment: {
         Args: { p_payment_id: string; p_reason: string }
         Returns: undefined
