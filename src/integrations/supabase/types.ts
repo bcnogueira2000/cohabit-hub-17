@@ -233,6 +233,51 @@ export type Database = {
           },
         ]
       }
+      contract_activity: {
+        Row: {
+          actor_name: string | null
+          actor_user_id: string | null
+          contract_id: string
+          created_at: string
+          id: string
+          kind: string
+          payload: Json
+        }
+        Insert: {
+          actor_name?: string | null
+          actor_user_id?: string | null
+          contract_id: string
+          created_at?: string
+          id?: string
+          kind: string
+          payload?: Json
+        }
+        Update: {
+          actor_name?: string | null
+          actor_user_id?: string | null
+          contract_id?: string
+          created_at?: string
+          id?: string
+          kind?: string
+          payload?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contract_activity_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "contract_balance"
+            referencedColumns: ["contract_id"]
+          },
+          {
+            foreignKeyName: "contract_activity_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "contracts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contract_rent_periods: {
         Row: {
           contract_id: string
@@ -962,6 +1007,12 @@ export type Database = {
           paid_at: string
           reference: string | null
           rent_charge_id: string | null
+          source: string
+          status: string
+          void_reason: string | null
+          voided_at: string | null
+          voided_by: string | null
+          voided_by_name: string | null
         }
         Insert: {
           amount: number
@@ -975,6 +1026,12 @@ export type Database = {
           paid_at?: string
           reference?: string | null
           rent_charge_id?: string | null
+          source?: string
+          status?: string
+          void_reason?: string | null
+          voided_at?: string | null
+          voided_by?: string | null
+          voided_by_name?: string | null
         }
         Update: {
           amount?: number
@@ -988,6 +1045,12 @@ export type Database = {
           paid_at?: string
           reference?: string | null
           rent_charge_id?: string | null
+          source?: string
+          status?: string
+          void_reason?: string | null
+          voided_at?: string | null
+          voided_by?: string | null
+          voided_by_name?: string | null
         }
         Relationships: [
           {
@@ -1857,6 +1920,21 @@ export type Database = {
         Args: { p_contract_id: string }
         Returns: Json
       }
+      recompute_contract_deposits: {
+        Args: { p_contract_id: string }
+        Returns: undefined
+      }
+      register_deposit_payment: {
+        Args: {
+          p_amount: number
+          p_contract_id: string
+          p_kind: string
+          p_method: string
+          p_paid_at: string
+          p_reference?: string
+        }
+        Returns: string
+      }
       register_lead_document: {
         Args: {
           p_file_name: string
@@ -1887,6 +1965,10 @@ export type Database = {
       submit_lead_form: {
         Args: { p_data: Json; p_token: string }
         Returns: string
+      }
+      void_payment: {
+        Args: { p_payment_id: string; p_reason: string }
+        Returns: undefined
       }
     }
     Enums: {
