@@ -1485,6 +1485,16 @@ const LeadHistory = ({ leadId }: { leadId: string }) => {
                       <span className="text-muted-foreground"> — {entry.payload.email}</span>
                     )}
                   </>
+                ) : entry.kind === "docs_requested" ? (
+                  <>
+                    Documentos pedidos{entry.actorName ? ` por ${entry.actorName}` : ""}:{" "}
+                    {((entry.payload?.items ?? []) as string[]).map((k) => docKindLabel(k, null, "pt")).join(", ")}
+                    {entry.payload?.message ? ` — "${entry.payload.message}"` : ""}
+                  </>
+                ) : entry.kind === "docs_received" ? (
+                  <>Documentos pedidos recebidos do candidato</>
+                ) : entry.kind === "docs_validated" ? (
+                  <>Documentos validados{entry.actorName ? ` por ${entry.actorName}` : ""}</>
                 ) : entry.kind === "form_submitted" ? (
                   <>Formulário de candidatura preenchido pelo candidato</>
                 ) : entry.kind === "form_bypassed" ? (
