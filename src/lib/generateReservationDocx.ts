@@ -203,5 +203,12 @@ export async function generateReservationDocx(leadId: string): Promise<Generated
     .from(OUTPUT_BUCKET)
     .createSignedUrl(path, 60 * 60, { download: fileName });
 
+  // Só marca "acordo gerado" depois de o documento estar guardado com sucesso
+  const { error: markErr } = await supabase
+    .from("leads" as any)
+    .update({ reservation_agreement_generated_at: new Date().toISOString() } as any)
+    .eq("id", leadId);
+  if (markErr) throw markErr;
+
   return { path, fileName, signedUrl: signed?.signedUrl ?? "" };
 }
