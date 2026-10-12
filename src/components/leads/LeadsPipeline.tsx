@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { Clock, ChevronDown, Phone, User as UserIcon, CheckCircle2, PenLine } from "lucide-react";
+import { Clock, ChevronDown, Phone, User as UserIcon, CheckCircle2, PenLine, AlertTriangle } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -61,6 +61,21 @@ export const LeadSubStateBadge = ({ lead }: { lead: Lead }) => {
       {step.key === "awaiting_signature" && <PenLine className="h-3 w-3" strokeWidth={1.5} />}
       {step.label}
       {step.since && <span className="opacity-70">· {daysAgoLabel(step.since)}</span>}
+    </Badge>
+  );
+};
+
+/** Alerta: lead contratada cuja caução ou 1.ª renda deixou de estar paga (sem downgrade automático). */
+export const WonAtRiskBadge = ({ lead }: { lead: Lead }) => {
+  const { extrasFor } = useLeadPendingExtras();
+  if (lead.status !== "won" || !lead.contractSignedAt) return null;
+  const x = extrasFor(lead);
+  if (x.depositPaid === undefined || x.firstRentPaid === undefined) return null;
+  if (x.depositPaid && x.firstRentPaid) return null;
+  const what = [!x.depositPaid && "caução", !x.firstRentPaid && "1.ª renda"].filter(Boolean).join(" e ");
+  return (
+    <Badge variant="outline" className="bg-destructive/10 text-destructive border-destructive/30 gap-1" title="Um pagamento foi anulado depois de a lead passar a Contratado">
+      <AlertTriangle className="h-3 w-3" strokeWidth={1.5} /> Atenção: {what} deixou de estar paga
     </Badge>
   );
 };
@@ -295,6 +310,7 @@ export const LeadsPipeline = ({
                     </Badge>
                   )}
                   <LeadSubStateBadge lead={l} />
+                  <WonAtRiskBadge lead={l} />
 
                 </div>
                 <div className="font-display text-sm font-semibold truncate">{l.fullName}</div>

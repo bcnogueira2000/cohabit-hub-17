@@ -17,7 +17,7 @@ export const LeadPendingProvider = ({ leads, children }: { leads: Lead[]; childr
   const signedContracts = useMemo(
     () =>
       leads
-        .filter((l) => !["won", "lost"].includes(l.status) && l.contractSignedAt && l.contractId)
+        .filter((l) => l.status !== "lost" && l.contractSignedAt && l.contractId)
         .map((l) => l.contractId as string)
         .sort(),
     [leads]
