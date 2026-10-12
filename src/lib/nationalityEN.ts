@@ -1,4 +1,5 @@
 // Tradução PT → EN das nacionalidades mais comuns nos contratos.
+import { matchNationality } from "@/lib/countries";
 // Se não houver correspondência, devolve o valor original em português.
 
 const MAP: Record<string, string> = {
@@ -82,14 +83,20 @@ const normalize = (s: string): string =>
 export function nationalityToEN(nationality: string | null | undefined): string {
   const raw = String(nationality ?? "").trim();
   if (!raw) return "";
+  const c = matchNationality(raw);
+  if (c) return c.nationalityEn;
   return MAP[normalize(raw)] ?? raw;
 }
 
 /** true se a nacionalidade indicada for portuguesa. */
 export function isPortuguese(nationality: string | null | undefined): boolean {
+  const c = matchNationality(nationality);
+  if (c) return c.iso === "PT";
   const n = normalize(String(nationality ?? ""));
   return n === "portuguesa" || n === "portugues" || n === "portugal" || n === "portuguese";
 }
+
+const LUSOPHONE_ISO = new Set(["PT", "BR", "AO", "MZ", "CV", "GW", "ST", "TL"]);
 
 const LUSOPHONE_PREFIXES = [
   "portugu", "portugal",
@@ -107,6 +114,8 @@ const LUSOPHONE_PREFIXES = [
  * nesses casos usa-se o modelo de contrato só em português.
  */
 export function isLusophone(nationality: string | null | undefined): boolean {
+  const c = matchNationality(nationality);
+  if (c) return LUSOPHONE_ISO.has(c.iso);
   const n = normalize(String(nationality ?? "")).replace(/\s+/g, " ");
   if (!n) return false;
   return LUSOPHONE_PREFIXES.some((p) => n.startsWith(p) || n.includes(p));
