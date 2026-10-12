@@ -113,6 +113,39 @@ export const LeadStatusBadge = ({
   );
 };
 
+export const today = () => new Date().toISOString().slice(0, 10);
+
+const rank = (l: Lead) => {
+  if (l.status === "new") return -1;
+  const t = today();
+  if (!l.nextActionDate) return 3;
+  const d = l.nextActionDate.slice(0, 10);
+  if (d < t) return 0;
+  if (d === t) return 1;
+  return 2;
+};
+
+export const sortByUrgency = (a: Lead, b: Lead) => {
+  const ra = rank(a);
+  const rb = rank(b);
+  if (ra !== rb) return ra - rb;
+  if (ra === 3 || ra === -1) return b.createdAt.localeCompare(a.createdAt);
+  return (a.nextActionDate || "").localeCompare(b.nextActionDate || "");
+};
+
+const isClosed = (l: Lead) => ["won", "lost"].includes(l.status);
+
+export const urgencyBorder = (l: Lead) => {
+  if (l.status === "negotiating" && l.formSubmittedAt) return "border-l-[3px] border-success";
+  if (isClosed(l)) return "";
+  const r = rank(l);
+  if (r === 0) return "border-l-[3px] border-destructive";
+  if (r === 1) return "border-l-[3px] border-warning";
+  return "";
+};
+
+export const isOverdue = (l: Lead) => !isClosed(l) && rank(l) === 0;
+
 const chipClass = "text-[11px] px-1.5 py-0.5 rounded bg-accent/60 text-accent-foreground";
 
 export const LeadChips = ({ lead }: { lead: Lead }) => {
