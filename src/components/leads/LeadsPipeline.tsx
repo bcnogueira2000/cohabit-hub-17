@@ -11,6 +11,7 @@ import {
 import { leadStatusLabels, leadSourceLabels } from "@/lib/labels";
 import type { Lead, LeadStatus } from "@/hooks/useLeads";
 import type { StaffUser } from "@/hooks/useStaffUsers";
+import { leadSubState, leadSubStateLabels, type LeadSubState } from "@/lib/leadContractRules";
 
 export const statusTone: Record<LeadStatus, string> = {
   new: "bg-muted text-muted-foreground",
@@ -38,6 +39,25 @@ export const AwaitingSignatureBadge = () => (
     <PenLine className="h-3 w-3" strokeWidth={1.5} /> Em assinatura
   </Badge>
 );
+
+const subStateTone: Record<LeadSubState, string> = {
+  awaiting_signature: "bg-warning/15 text-warning border-warning/40",
+  awaiting_fee: "bg-warning/10 text-warning border-warning/30",
+  form_received: "bg-info/10 text-info border-info/30",
+  awaiting_form: "bg-muted text-muted-foreground",
+};
+
+/** Etiqueta do sub-estado derivado (informativa, nunca selecionável). */
+export const LeadSubStateBadge = ({ lead }: { lead: Lead }) => {
+  const sub = leadSubState(lead);
+  if (!sub) return null;
+  return (
+    <Badge variant="outline" className={`${subStateTone[sub]} gap-1`}>
+      {sub === "awaiting_signature" && <PenLine className="h-3 w-3" strokeWidth={1.5} />}
+      {leadSubStateLabels[sub]}
+    </Badge>
+  );
+};
 
 export const today = () => new Date().toISOString().slice(0, 10);
 
@@ -257,12 +277,7 @@ export const LeadsPipeline = ({
                       <CheckCircle2 className="h-3 w-3" strokeWidth={1.5} /> Convertido
                     </Badge>
                   )}
-                  {l.formSubmittedAt && (
-                    <Badge variant="outline" className="bg-info/10 text-info border-info/30 gap-1">
-                      <CheckCircle2 className="h-3 w-3" strokeWidth={1.5} /> Formulário
-                    </Badge>
-                  )}
-                  {isAwaitingSignature(l) && <AwaitingSignatureBadge />}
+                  <LeadSubStateBadge lead={l} />
 
                 </div>
                 <div className="font-display text-sm font-semibold truncate">{l.fullName}</div>
