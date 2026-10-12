@@ -307,6 +307,10 @@ const Leads = () => {
     null;
 
   const changeStatus = (leadId: string, newStatus: LeadStatus) => {
+    if (!manualStatusOptions.includes(newStatus)) {
+      toast.error("Este estado só é definido pelo fluxo de reserva/contrato.");
+      return;
+    }
     if (newStatus === "lost") {
       const reason = window.prompt("Motivo de perda:");
       if (reason === null) return;
