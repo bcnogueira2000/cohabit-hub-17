@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { NationalitySelect, PhoneInput, NationalityFormField, PhoneFormField } from "@/components/CountryFields";
 import { Link, useNavigate } from "react-router-dom";
 import { Plus, Calendar, LogIn, LogOut, Home, Trash2, ArrowRight, CheckCircle2, Undo2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -275,7 +276,7 @@ const Stays = () => {
                 <div><Label>Email</Label><Input name="email" type="email" required className="mt-1.5" /></div>
               </div>
               <div className="grid grid-cols-2 gap-3">
-                <div><Label>Telefone</Label><Input name="phone" className="mt-1.5" /></div>
+                <div><Label>Telefone</Label><div className="mt-1.5"><PhoneFormField name="phone" /></div></div>
                 <div>
                   <Label>Quarto</Label>
                   <div className="mt-1.5">

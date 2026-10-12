@@ -1,4 +1,5 @@
 import { Input } from "@/components/ui/input";
+import { NationalitySelect, PhoneInput, NationalityFormField, PhoneFormField } from "@/components/CountryFields";
 import type { Lead } from "@/hooks/useLeads";
 
 export type CandidateData = {
@@ -56,7 +57,10 @@ export const CandidateDataSection = ({
     <div className="rounded-xl border border-border/60 p-3 space-y-3">
       <h3 className="font-display text-sm font-semibold">Dados do candidato</h3>
       <div className="grid grid-cols-2 gap-3">
-        <F label="Nacionalidade" value={value.nationality} onChange={set("nationality")} />
+        <div className="space-y-1">
+          <label className="text-[11px] uppercase tracking-wide text-muted-foreground">Nacionalidade</label>
+          <NationalitySelect value={value.nationality} onChange={(v) => onChange({ ...value, nationality: v })} />
+        </div>
         <F label="Data de nascimento" type="date" value={value.dateOfBirth} onChange={set("dateOfBirth")} />
       </div>
       <F label="Morada de residência" value={value.address} onChange={set("address")} />

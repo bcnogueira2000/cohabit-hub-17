@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { NationalitySelect, PhoneInput, NationalityFormField, PhoneFormField } from "@/components/CountryFields";
 import { ShieldCheck } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -101,7 +102,7 @@ export const ResidentLegalDataDialog = ({
             {show("nationality") && (
               <div>
                 <Label>Nacionalidade</Label>
-                <Input value={values.nationality ?? ""} onChange={(e) => set("nationality")(e.target.value)} className="mt-1.5" />
+                <div className="mt-1.5"><NationalitySelect value={values.nationality ?? ""} onChange={(v) => set("nationality")(v)} /></div>
               </div>
             )}
             {show("date_of_birth") && (

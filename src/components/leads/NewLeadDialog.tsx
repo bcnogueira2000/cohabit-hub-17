@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { NationalitySelect, PhoneInput, NationalityFormField, PhoneFormField } from "@/components/CountryFields";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -135,8 +136,8 @@ export const NewLeadDialog = () => {
             <div className="grid grid-cols-2 gap-3">
               <div><Label>Nome completo</Label><Input name="fullName" required maxLength={120} className="mt-1.5" /></div>
               <div><Label>Email</Label><Input name="email" type="email" required maxLength={255} className="mt-1.5" /></div>
-              <div><Label>Telefone</Label><Input name="phone" maxLength={40} className="mt-1.5" /></div>
-              <div><Label>Nacionalidade</Label><Input name="nationality" maxLength={80} className="mt-1.5" /></div>
+              <div><Label>Telefone</Label><div className="mt-1.5"><PhoneFormField name="phone" /></div></div>
+              <div><Label>Nacionalidade</Label><div className="mt-1.5"><NationalityFormField name="nationality" /></div></div>
               <div><Label>Idade</Label><Input name="age" maxLength={40} placeholder="Ex: 27" className="mt-1.5" /></div>
               <div>
                 <Label>Género</Label>

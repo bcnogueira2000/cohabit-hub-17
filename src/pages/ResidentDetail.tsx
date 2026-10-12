@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { NationalitySelect, PhoneInput, NationalityFormField, PhoneFormField } from "@/components/CountryFields";
 import { Link, useParams } from "react-router-dom";
 import { ArrowLeft, Mail, Phone, DoorClosed, Calendar, Check, Globe, Heart, AlertTriangle, CheckCircle2, FileText, Trash2, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -394,13 +395,7 @@ const ResidentDetail = () => {
                 <form onSubmit={saveLegal} className="grid sm:grid-cols-2 gap-3">
                   <div>
                     <Label htmlFor="legal-phone">Telefone</Label>
-                    <Input
-                      id="legal-phone"
-                      className="mt-1.5"
-                      placeholder="+351 ..."
-                      value={legal.phone ?? ""}
-                      onChange={(e) => setLegal((s) => ({ ...s, phone: e.target.value }))}
-                    />
+                    <div className="mt-1.5"><PhoneInput id="legal-phone" value={legal.phone ?? ""} onChange={(v) => setLegal((s) => ({ ...s, phone: v }))} /></div>
                   </div>
                   <div>
                     <Label htmlFor="legal-email">Email</Label>
@@ -414,12 +409,7 @@ const ResidentDetail = () => {
                   </div>
                   <div>
                     <Label htmlFor="legal-nationality">Nacionalidade</Label>
-                    <Input
-                      id="legal-nationality"
-                      className="mt-1.5"
-                      value={legal.nationality ?? ""}
-                      onChange={(e) => setLegal((s) => ({ ...s, nationality: e.target.value }))}
-                    />
+                    <div className="mt-1.5"><NationalitySelect id="legal-nationality" value={legal.nationality ?? ""} onChange={(v) => setLegal((s) => ({ ...s, nationality: v }))} /></div>
                   </div>
                   <div>
                     <Label htmlFor="legal-dob">Data de nascimento</Label>
@@ -452,12 +442,7 @@ const ResidentDetail = () => {
                   </div>
                   <div>
                     <Label htmlFor="legal-emg-phone">Contacto de emergência (telefone)</Label>
-                    <Input
-                      id="legal-emg-phone"
-                      className="mt-1.5"
-                      value={legal.emergencyContactPhone ?? ""}
-                      onChange={(e) => setLegal((s) => ({ ...s, emergencyContactPhone: e.target.value }))}
-                    />
+                    <div className="mt-1.5"><PhoneInput id="legal-emg-phone" value={legal.emergencyContactPhone ?? ""} onChange={(v) => setLegal((s) => ({ ...s, emergencyContactPhone: v }))} /></div>
                   </div>
                   <div>
                     <Label htmlFor="legal-emg-email">Contacto de emergência (email)</Label>

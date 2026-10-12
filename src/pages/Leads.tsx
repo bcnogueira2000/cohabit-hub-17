@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect, useCallback } from "react";
+import { NationalitySelect, PhoneInput, NationalityFormField, PhoneFormField } from "@/components/CountryFields";
 import { Link, useNavigate } from "react-router-dom";
 import { Search, Clock, User as UserIcon, X, ChevronDown, Trash2, LayoutList, Columns3, AlertTriangle, UserCheck, Mail, CheckCircle2, ArrowRight, FileText, Inbox } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -628,11 +629,11 @@ const Leads = () => {
                     </div>
                     <div className="space-y-1">
                       <label className="text-[11px] uppercase tracking-wide text-muted-foreground">Telefone</label>
-                      <Input value={editPhone} onChange={(e) => setEditPhone(e.target.value)} placeholder="—" />
+                      <PhoneInput value={editPhone} onChange={setEditPhone} />
                     </div>
                     <div className="space-y-1">
                       <label className="text-[11px] uppercase tracking-wide text-muted-foreground">Nacionalidade</label>
-                      <Input value={editNationality} onChange={(e) => setEditNationality(e.target.value)} placeholder="—" />
+                      <NationalitySelect value={editNationality} onChange={setEditNationality} />
                     </div>
                     <div className="space-y-1">
                       <label className="text-[11px] uppercase tracking-wide text-muted-foreground">Idade</label>
