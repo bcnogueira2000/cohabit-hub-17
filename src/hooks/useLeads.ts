@@ -41,6 +41,9 @@ export interface Lead {
   language: string | null;
   reservationDeadline: string | null;
   reservationFeeAmount: number | null;
+  reservationNotApplicable: boolean;
+  reservationWaiverReason: string | null;
+  reservationWaiverAt: string | null;
   address: string | null;
   documentType: string | null;
   documentNumber: string | null;
@@ -100,6 +103,9 @@ export const mapLead = (r: any): Lead => ({
   language: r.language ?? null,
   reservationDeadline: r.reservation_deadline ?? null,
   reservationFeeAmount: r.reservation_fee_amount == null ? null : Number(r.reservation_fee_amount),
+  reservationNotApplicable: !!r.reservation_not_applicable,
+  reservationWaiverReason: r.reservation_waiver_reason ?? null,
+  reservationWaiverAt: r.reservation_waiver_at ?? null,
   address: r.address ?? null,
   documentType: r.document_type ?? null,
   documentNumber: r.document_number ?? null,
@@ -349,6 +355,26 @@ export const useCancelRoomReservation = () => {
       qc.invalidateQueries({ queryKey: ["leads"] });
       qc.invalidateQueries({ queryKey: ["stays"] });
       qc.invalidateQueries({ queryKey: ["rooms"] });
+      qc.invalidateQueries({ queryKey: ["reservation-fees"] });
+    },
+  });
+};
+
+/** Reserva o quarto sem taxa (acordo não aplicável). Lê quarto e datas da própria lead na BD. */
+export const useReserveRoomWithoutFee = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (args: { leadId: string; reason: string }) => {
+      const { data, error } = await supabase.rpc("reserve_room_without_fee" as any, {
+        p_lead_id: args.leadId,
+        p_reason: args.reason,
+      });
+      if (error) throw new Error(error.message);
+      return data as string;
+    },
+    onSuccess: (_d, args) => {
+      ["leads", "stays", "rooms", "reservation-fees"].forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
+      qc.invalidateQueries({ queryKey: ["lead_activity", args.leadId] });
     },
   });
 };
