@@ -1,3 +1,4 @@
+import { shortName } from "@/lib/shortName";
 import { useState, useMemo } from "react";
 import { NationalitySelect, PhoneInput, NationalityFormField, PhoneFormField } from "@/components/CountryFields";
 import { Link, useNavigate } from "react-router-dom";
@@ -366,7 +367,7 @@ const Stays = () => {
                     {room && <span className="text-xs text-muted-foreground flex items-center gap-1"><Home className="h-3 w-3" /> Quarto {room.number}</span>}
                     <span className="text-[11px] text-muted-foreground capitalize">· {s.source.replace("_", " ")}</span>
                   </div>
-                  <div className="font-display text-lg font-semibold truncate">{s.fullName}</div>
+                  <div className="font-display text-lg font-semibold truncate">{shortName(s.fullName)}</div>
                   <div className="text-xs text-muted-foreground truncate">{s.email}{s.phone && ` · ${s.phone}`}</div>
                   <div className="flex items-center gap-3 mt-2 text-sm">
                     <span className="flex items-center gap-1.5 text-success"><LogIn className="h-3.5 w-3.5" /> {ci.toLocaleDateString("pt-PT", { day: "numeric", month: "short" })}</span>

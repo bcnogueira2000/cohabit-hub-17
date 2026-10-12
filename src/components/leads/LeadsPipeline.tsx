@@ -1,3 +1,4 @@
+import { shortName } from "@/lib/shortName";
 import { useRef, useState } from "react";
 import { Clock, ChevronDown, Phone, User as UserIcon, CheckCircle2, PenLine, AlertTriangle } from "lucide-react";
 import { Card } from "@/components/ui/card";
@@ -313,7 +314,7 @@ export const LeadsPipeline = ({
                   <WonAtRiskBadge lead={l} />
 
                 </div>
-                <div className="font-display text-sm font-semibold truncate">{l.fullName}</div>
+                <div className="font-display text-sm font-semibold truncate">{shortName(l.fullName)}</div>
                 <div className="text-xs text-muted-foreground truncate">{l.email}</div>
                 <LeadChips lead={l} />
                 {l.nextAction && (

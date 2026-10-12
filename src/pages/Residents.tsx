@@ -1,3 +1,4 @@
+import { shortName } from "@/lib/shortName";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Search, Mail, Phone, DoorClosed, MapPin } from "lucide-react";
@@ -44,7 +45,7 @@ const Residents = () => {
                 <div className="flex items-start gap-3 mb-3">
                   <div className="h-12 w-12 rounded-full flex items-center justify-center text-primary-foreground font-semibold shrink-0" style={{ backgroundColor: r.avatarColor }}>{initials}</div>
                   <div className="flex-1 min-w-0">
-                    <div className="font-medium truncate">{r.fullName}</div>
+                    <div className="font-medium truncate">{shortName(r.fullName)}</div>
                     <div className={cn("inline-flex text-xs px-2 py-0.5 rounded-full mt-1", statusTone[r.status])}>{statusLabel[r.status]}</div>
                   </div>
                 </div>
