@@ -32,7 +32,7 @@ export const manualStatusOptions: LeadStatus[] = (Object.keys(leadStatusLabels) 
 
 /** Lead ativa com contrato gerado à espera de assinatura (reservada ou não). */
 export const isAwaitingSignature = (l: Lead) =>
-  !["won", "lost"].includes(l.status) && !!l.contractGeneratedAt && !l.contractId;
+  !["won", "lost"].includes(l.status) && !!l.contractGeneratedAt && !l.contractId && !l.contractSignedAt;
 
 export const AwaitingSignatureBadge = () => (
   <Badge variant="outline" className="bg-warning/15 text-warning border-warning/40 gap-1">
@@ -41,6 +41,7 @@ export const AwaitingSignatureBadge = () => (
 );
 
 const subStateTone: Record<LeadSubState, string> = {
+  signed_awaiting_payment: "bg-success/10 text-success border-success/30",
   awaiting_signature: "bg-warning/15 text-warning border-warning/40",
   awaiting_fee: "bg-warning/10 text-warning border-warning/30",
   form_received: "bg-info/10 text-info border-info/30",

@@ -15,6 +15,13 @@
       "when": 1791807561587,
       "tag": "0001_flexible_contract_flow",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1791813214308,
+      "tag": "0002_signed_vs_won",
+      "breakpoints": true
     }
   ]
 }

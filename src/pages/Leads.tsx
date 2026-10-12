@@ -50,6 +50,7 @@ import {
 import { leadStatusLabels, leadSourceLabels, leadProfileLabels } from "@/lib/labels";
 import { NewContractDialog } from "@/components/contracts/NewContractDialog";
 import { ReservationAgreementDialog } from "@/components/leads/ReservationAgreementDialog";
+import { LeadChecklist } from "@/components/leads/LeadChecklist";
 import { ReservationAndContractDialog } from "@/components/leads/ReservationAndContractDialog";
 import { LeadContractDialog } from "@/components/leads/LeadContractDialog";
 import { supabase } from "@/integrations/supabase/client";
@@ -964,6 +965,12 @@ const Leads = () => {
                     const showPendingFee = inNegotiation && agreementGenerated && !selected.contractGeneratedAt;
                     return (
                       <>
+                        <LeadChecklist lead={selected} />
+                        {selected.contractSignedAt && selected.status !== "won" && (
+                          <p className="text-xs text-success mt-2 rounded-lg border border-success/30 bg-success/10 p-2">
+                            Assinado — passa a "Contratado" quando a caução e a 1.ª renda estiverem pagas.
+                          </p>
+                        )}
                         {showNewAgreement && (
                           <>
                             <Button
@@ -1040,8 +1047,7 @@ const Leads = () => {
                                         payment_day: Number(d.draft_payment_day ?? 5),
                                       },
                                     });
-                                    toast.success("Contrato criado — residente e primeira renda gerados");
-                                    setSelected(null);
+                                    toast.success("Assinado — contrato, residente e rendas criados. Aguarda caução e 1.ª renda.");
                                   } catch (e) {
                                     toast.error(e instanceof Error ? e.message : "Não foi possível criar o contrato.");
                                   } finally {
