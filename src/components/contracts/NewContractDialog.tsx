@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { NationalitySelect, PhoneInput, NationalityFormField, PhoneFormField } from "@/components/CountryFields";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -282,7 +283,7 @@ export const NewContractDialog = ({ open, onOpenChange, defaults, leadId, onCrea
           <div className="grid grid-cols-2 gap-3">
             <div>
               <Label>Telefone</Label>
-              <Input name="phone" defaultValue={defaults?.phone ?? ""} className="mt-1.5" />
+              <div className="mt-1.5"><PhoneFormField name="phone" defaultValue={defaults?.phone ?? ""} /></div>
             </div>
             <div>
               <Label>Quarto</Label>
@@ -350,7 +351,7 @@ export const NewContractDialog = ({ open, onOpenChange, defaults, leadId, onCrea
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <Label>Nacionalidade</Label>
-                <Input value={nationality} onChange={(e) => setNationality(e.target.value)} className="mt-1.5" />
+                <div className="mt-1.5"><NationalitySelect value={nationality} onChange={setNationality} /></div>
               </div>
               <div>
                 <Label>Data de nascimento</Label>

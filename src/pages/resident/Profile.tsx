@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { NationalitySelect, PhoneInput, NationalityFormField, PhoneFormField } from "@/components/CountryFields";
 import { Link } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -220,13 +221,7 @@ const Profile = () => {
             <Label htmlFor="phone" className="flex items-center gap-2">
               <Phone className="h-3.5 w-3.5" strokeWidth={ICON_STROKE} /> {lang === "pt" ? "Telefone" : "Phone"}
             </Label>
-            <Input
-              id="phone"
-              value={form.phone}
-              onChange={(e) => set("phone", e.target.value)}
-              placeholder="+351 ..."
-              maxLength={30}
-            />
+            <PhoneInput id="phone" value={form.phone} onChange={(v) => set("phone", v)} placeholder={lang === "pt" ? "Número" : "Number"} />
           </div>
           <div className="grid sm:grid-cols-2 gap-3">
             <div>
@@ -267,12 +262,7 @@ const Profile = () => {
           <div className="grid sm:grid-cols-3 gap-3">
             <div>
               <Label htmlFor="nationality">{lang === "pt" ? "Nacionalidade" : "Nationality"}</Label>
-              <Input
-                id="nationality"
-                value={form.nationality}
-                onChange={(e) => set("nationality", e.target.value)}
-                maxLength={80}
-              />
+              <NationalitySelect id="nationality" value={form.nationality} onChange={(v) => set("nationality", v)} placeholder={lang === "pt" ? "Escolher" : "Choose"} />
             </div>
             <div>
               <Label htmlFor="dob">{lang === "pt" ? "Data de nascimento" : "Date of birth"}</Label>
@@ -317,13 +307,7 @@ const Profile = () => {
             </div>
             <div>
               <Label htmlFor="emg_phone">{lang === "pt" ? "Telefone" : "Phone"}</Label>
-              <Input
-                id="emg_phone"
-                value={form.emergency_contact_phone}
-                onChange={(e) => set("emergency_contact_phone", e.target.value)}
-                placeholder="+351 ..."
-                maxLength={30}
-              />
+              <PhoneInput id="emg_phone" value={form.emergency_contact_phone} onChange={(v) => set("emergency_contact_phone", v)} placeholder={lang === "pt" ? "Número" : "Number"} />
             </div>
           </div>
         </Card>

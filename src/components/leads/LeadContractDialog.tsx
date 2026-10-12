@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { NationalitySelect, PhoneInput, NationalityFormField, PhoneFormField } from "@/components/CountryFields";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -237,7 +238,7 @@ export const LeadContractDialog = ({ lead, open, onOpenChange }: Props) => {
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <Label>Nacionalidade</Label>
-                <Input value={nationality} onChange={(e) => setNationality(e.target.value)} className="mt-1.5" />
+                <div className="mt-1.5"><NationalitySelect value={nationality} onChange={setNationality} /></div>
               </div>
               <div>
                 <Label>Data de nascimento</Label>

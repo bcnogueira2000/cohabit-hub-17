@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { NationalitySelect, PhoneInput, NationalityFormField, PhoneFormField } from "@/components/CountryFields";
 import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
@@ -120,7 +121,7 @@ const Auth = () => {
                 <div><Label>{t("auth.fullname")}</Label><Input required value={fullName} onChange={(e) => setFullName(e.target.value)} className="mt-1.5" /></div>
                 <div><Label>{t("auth.email")}</Label><Input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} className="mt-1.5" /></div>
                 <div><Label>{t("auth.password")}</Label><Input type="password" required minLength={8} value={password} onChange={(e) => setPassword(e.target.value)} className="mt-1.5" /></div>
-                <div><Label>{t("auth.phone")}</Label><Input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} className="mt-1.5" /></div>
+                <div><Label>{t("auth.phone")}</Label><div className="mt-1.5"><PhoneInput value={phone} onChange={setPhone} /></div></div>
                 <div className="grid grid-cols-2 gap-2">
                   <div><Label>{t("auth.room")}</Label><Input value={room} onChange={(e) => setRoom(e.target.value)} className="mt-1.5" /></div>
                   <div><Label>{t("auth.move_in")}</Label><Input type="date" value={moveIn} onChange={(e) => setMoveIn(e.target.value)} className="mt-1.5" /></div>
