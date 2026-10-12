@@ -443,6 +443,7 @@ export type Database = {
           city: string | null
           contract_generated_at: string | null
           contract_id: string | null
+          contract_signed_at: string | null
           course: string | null
           course_duration: string | null
           created_at: string
@@ -512,6 +513,7 @@ export type Database = {
           city?: string | null
           contract_generated_at?: string | null
           contract_id?: string | null
+          contract_signed_at?: string | null
           course?: string | null
           course_duration?: string | null
           created_at?: string
@@ -581,6 +583,7 @@ export type Database = {
           city?: string | null
           contract_generated_at?: string | null
           contract_id?: string | null
+          contract_signed_at?: string | null
           course?: string | null
           course_duration?: string | null
           created_at?: string
@@ -1780,6 +1783,7 @@ export type Database = {
       }
       compute_short_name: { Args: { p_full_name: string }; Returns: string }
       current_resident_id: { Args: never; Returns: string }
+      evaluate_lead_won: { Args: { p_lead_id: string }; Returns: boolean }
       generate_cleaning_instances: {
         Args: { p_count?: number; p_schedule_id: string }
         Returns: number
