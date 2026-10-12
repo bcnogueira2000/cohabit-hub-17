@@ -1340,6 +1340,11 @@ const ReservationFeeSheet = ({ fee, onClose }: { fee: ReservationFeeRow | null; 
             )}
 
 
+            {fee.roomStillBlocked && (
+              <p className="mt-4 text-xs text-warning rounded-lg border border-warning/30 bg-warning/10 p-2">
+                Taxa por pagar (um pagamento foi anulado) — o quarto continua bloqueado para esta candidatura.
+              </p>
+            )}
             {missing > 0.005 && (
               <div className="mt-6 space-y-3">
                 <h3 className="font-display text-lg font-semibold">Registar recebimento</h3>
