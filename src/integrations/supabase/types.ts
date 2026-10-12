@@ -484,6 +484,7 @@ export type Database = {
           profile_other: string | null
           public_token: string | null
           public_token_expires_at: string | null
+          reservation_agreement_generated_at: string | null
           reservation_deadline: string | null
           reservation_fee_amount: number | null
           reservation_not_applicable: boolean
@@ -552,6 +553,7 @@ export type Database = {
           profile_other?: string | null
           public_token?: string | null
           public_token_expires_at?: string | null
+          reservation_agreement_generated_at?: string | null
           reservation_deadline?: string | null
           reservation_fee_amount?: number | null
           reservation_not_applicable?: boolean
@@ -620,6 +622,7 @@ export type Database = {
           profile_other?: string | null
           public_token?: string | null
           public_token_expires_at?: string | null
+          reservation_agreement_generated_at?: string | null
           reservation_deadline?: string | null
           reservation_fee_amount?: number | null
           reservation_not_applicable?: boolean
@@ -1823,6 +1826,7 @@ export type Database = {
           tax_number: string
         }[]
       }
+      give_up_lead: { Args: { p_lead_id: string }; Returns: undefined }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -1870,6 +1874,10 @@ export type Database = {
       reserve_room_without_fee: {
         Args: { p_lead_id: string; p_reason: string }
         Returns: string
+      }
+      sign_lead_contract: {
+        Args: { p_contract_data: Json; p_lead_id: string }
+        Returns: Json
       }
       stay_daterange: { Args: { _in: string; _out: string }; Returns: unknown }
       submit_lead_form: {
