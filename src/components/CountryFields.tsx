@@ -142,3 +142,24 @@ export const PhoneInput = ({
     </div>
   );
 };
+
+/** Versões para formulários lidos por FormData: guardam o valor num campo escondido com `name`. */
+export const NationalityFormField = ({ name, defaultValue }: { name: string; defaultValue?: string | null }) => {
+  const [v, setV] = useState(defaultValue ?? "");
+  return (
+    <>
+      <NationalitySelect value={v} onChange={setV} />
+      <input type="hidden" name={name} value={v} />
+    </>
+  );
+};
+
+export const PhoneFormField = ({ name, defaultValue }: { name: string; defaultValue?: string | null }) => {
+  const [v, setV] = useState(defaultValue ?? "");
+  return (
+    <>
+      <PhoneInput value={v} onChange={setV} />
+      <input type="hidden" name={name} value={v} />
+    </>
+  );
+};
