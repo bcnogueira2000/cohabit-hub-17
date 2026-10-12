@@ -76,27 +76,88 @@ export type SubStateInput = {
   contractSignedAt?: string | null;
 };
 
-export type LeadSubState = "signed_awaiting_payment" | "awaiting_signature" | "awaiting_fee" | "form_received" | "awaiting_form";
+export type LeadSubState =
+  | "awaiting_payment"
+  | "awaiting_signature"
+  | "awaiting_contract"
+  | "awaiting_fee"
+  | "awaiting_agreement"
+  | "awaiting_form"
+  | "send_form";
 
-export const leadSubStateLabels: Record<LeadSubState, string> = {
-  signed_awaiting_payment: "Assinado, aguarda pagamento",
-  awaiting_signature: "Em assinatura",
-  awaiting_fee: "Aguarda pagamento da taxa",
-  form_received: "Formulário recebido",
-  awaiting_form: "Aguarda formulário",
+export type PendingExtras = {
+  /** undefined = ainda não se sabe (mostra "caução / 1.ª renda"). */
+  depositPaid?: boolean;
+  firstRentPaid?: boolean;
+  /** "Já tenho os dados, avançar na mesma" usado. */
+  formBypassed?: boolean;
 };
 
-/** Sub-estado derivado (só etiqueta, nunca selecionável). Prioridade: assinatura > taxa > formulário. */
-export const leadSubState = (l: SubStateInput): LeadSubState | null => {
+export type PendingStep = { key: LeadSubState; label: string; since: string | null };
+
+/** Próxima ação pendente (só etiqueta, nunca selecionável). Do passo mais avançado para o menos. */
+export const leadPendingStep = (l: SubStateInput, x: PendingExtras = {}): PendingStep | null => {
   if (["won", "lost"].includes(l.status)) return null;
-  if (l.contractSignedAt) return "signed_awaiting_payment";
-  if (l.contractGeneratedAt && !l.contractId) return "awaiting_signature";
-  if (l.status === "reserved") return null;
-  if (l.reservationAgreementGeneratedAt) return "awaiting_fee";
-  if (l.formSubmittedAt) return "form_received";
-  if (l.formSentAt) return "awaiting_form";
+  if (l.contractSignedAt) {
+    const missing: string[] = [];
+    if (x.depositPaid === false) missing.push("caução");
+    if (x.firstRentPaid === false) missing.push("1.ª renda");
+    const what = missing.length ? missing.join(" e ") : "caução / 1.ª renda";
+    return { key: "awaiting_payment", label: `Pendente: ${what}`, since: l.contractSignedAt };
+  }
+  if (l.contractGeneratedAt)
+    return { key: "awaiting_signature", label: "Pendente: assinatura", since: l.contractGeneratedAt };
+  if (l.status === "reserved") return { key: "awaiting_contract", label: "Pendente: gerar contrato", since: null };
+  if (l.reservationAgreementGeneratedAt)
+    return { key: "awaiting_fee", label: "Pendente: pagamento da taxa", since: l.reservationAgreementGeneratedAt };
+  if (l.formSubmittedAt || x.formBypassed)
+    return { key: "awaiting_agreement", label: "Pendente: gerar acordo de reserva", since: null };
+  if (l.formSentAt) return { key: "awaiting_form", label: "Pendente: preenchimento do formulário", since: l.formSentAt };
+  if (["proposal_sent", "negotiating"].includes(l.status))
+    return { key: "send_form", label: "Pendente: enviar formulário", since: null };
   return null;
 };
+
+/** Compatibilidade: só a chave do passo pendente. */
+export const leadSubState = (l: SubStateInput, x: PendingExtras = {}): LeadSubState | null =>
+  leadPendingStep(l, x)?.key ?? null;
+
+/** "hoje", "há 1 dia", "há N dias". */
+export const daysAgoLabel = (iso: string, now: Date = new Date()) => {
+  const days = Math.max(0, Math.floor((now.getTime() - new Date(iso).getTime()) / 86400000));
+  if (days === 0) return "hoje";
+  return days === 1 ? "há 1 dia" : `há ${days} dias`;
+};
+
+/** Motivos de perda (lista fixa). */
+export const LOST_REASONS = [
+  "Preço",
+  "Datas incompatíveis",
+  "Sem resposta",
+  "Escolheu concorrência",
+  "Não corresponde ao perfil",
+  "Desistência pessoal",
+  "Documentação não entregue",
+  "Não assinou",
+  "Não pagou",
+  "Outro",
+] as const;
+
+export const formatLostReason = (reason: string, note?: string | null) =>
+  note?.trim() ? `${reason} — ${note.trim()}` : reason;
+
+export const parseLostReason = (v: string | null | undefined): { reason: string; note: string } => {
+  const s = (v ?? "").trim();
+  if (!s) return { reason: "", note: "" };
+  const i = s.indexOf(" — ");
+  const head = i >= 0 ? s.slice(0, i) : s;
+  const tail = i >= 0 ? s.slice(i + 3) : "";
+  if ((LOST_REASONS as readonly string[]).includes(head)) return { reason: head, note: tail };
+  return { reason: "Outro", note: s };
+};
+
+/** Estados que só mudam pelo fluxo (Desistiu, cancelar contrato). */
+export const isFlowLockedStatus = (s: string) => s === "reserved" || s === "won";
 
 /** Caução paga: soma dos pagamentos de caução cobre a devida (caução 0 conta como paga). */
 export const isDepositPaid = (due: number, paid: number) => due <= 0.005 || paid + 0.005 >= due;

@@ -11,7 +11,8 @@ import {
 import { leadStatusLabels, leadSourceLabels } from "@/lib/labels";
 import type { Lead, LeadStatus } from "@/hooks/useLeads";
 import type { StaffUser } from "@/hooks/useStaffUsers";
-import { leadSubState, leadSubStateLabels, type LeadSubState } from "@/lib/leadContractRules";
+import { leadPendingStep, daysAgoLabel, isFlowLockedStatus, type LeadSubState } from "@/lib/leadContractRules";
+import { useLeadPendingExtras } from "@/components/leads/LeadPendingContext";
 
 export const statusTone: Record<LeadStatus, string> = {
   new: "bg-muted text-muted-foreground",
@@ -41,22 +42,74 @@ export const AwaitingSignatureBadge = () => (
 );
 
 const subStateTone: Record<LeadSubState, string> = {
-  signed_awaiting_payment: "bg-success/10 text-success border-success/30",
+  awaiting_payment: "bg-success/10 text-success border-success/30",
   awaiting_signature: "bg-warning/15 text-warning border-warning/40",
+  awaiting_contract: "bg-primary/10 text-primary border-primary/30",
   awaiting_fee: "bg-warning/10 text-warning border-warning/30",
-  form_received: "bg-info/10 text-info border-info/30",
+  awaiting_agreement: "bg-info/10 text-info border-info/30",
   awaiting_form: "bg-muted text-muted-foreground",
+  send_form: "bg-muted text-muted-foreground",
 };
 
-/** Etiqueta do sub-estado derivado (informativa, nunca selecionável). */
+/** Etiqueta única da próxima ação pendente (derivada, nunca selecionável). */
 export const LeadSubStateBadge = ({ lead }: { lead: Lead }) => {
-  const sub = leadSubState(lead);
-  if (!sub) return null;
+  const { extrasFor } = useLeadPendingExtras();
+  const step = leadPendingStep(lead, extrasFor(lead));
+  if (!step) return null;
   return (
-    <Badge variant="outline" className={`${subStateTone[sub]} gap-1`}>
-      {sub === "awaiting_signature" && <PenLine className="h-3 w-3" strokeWidth={1.5} />}
-      {leadSubStateLabels[sub]}
+    <Badge variant="outline" className={`${subStateTone[step.key]} gap-1`}>
+      {step.key === "awaiting_signature" && <PenLine className="h-3 w-3" strokeWidth={1.5} />}
+      {step.label}
+      {step.since && <span className="opacity-70">· {daysAgoLabel(step.since)}</span>}
     </Badge>
+  );
+};
+
+export const FLOW_LOCK_NOTE = "Este estado muda pelo fluxo (Desistiu, cancelar contrato)";
+
+export const LeadStatusBadge = ({
+  lead,
+  onStatusChange,
+  isPending,
+}: {
+  lead: Lead;
+  onStatusChange: (leadId: string, newStatus: LeadStatus, lostReason?: string) => void;
+  isPending?: boolean;
+}) => {
+  if (isFlowLockedStatus(lead.status)) {
+    return (
+      <Badge variant="outline" className={statusTone[lead.status]} title={FLOW_LOCK_NOTE}>
+        {leadStatusLabels[lead.status]}
+      </Badge>
+    );
+  }
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild disabled={isPending}>
+        <Badge
+          variant="outline"
+          className={`${statusTone[lead.status]} cursor-pointer gap-1 pr-1.5`}
+          onClick={(e) => e.stopPropagation()}
+        >
+          {leadStatusLabels[lead.status]}
+          <ChevronDown className="h-3 w-3" strokeWidth={1.5} />
+        </Badge>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="start" onClick={(e) => e.stopPropagation()}>
+        {manualStatusOptions.map((s) => (
+          <DropdownMenuItem
+            key={s}
+            onClick={(e) => {
+              e.stopPropagation();
+              onStatusChange(lead.id, s);
+            }}
+            className={s === lead.status ? "bg-muted" : ""}
+          >
+            {leadStatusLabels[s]}
+          </DropdownMenuItem>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 };
 
@@ -92,43 +145,6 @@ export const urgencyBorder = (l: Lead) => {
 };
 
 export const isOverdue = (l: Lead) => !isClosed(l) && rank(l) === 0;
-
-export const LeadStatusBadge = ({
-  lead,
-  onStatusChange,
-  isPending,
-}: {
-  lead: Lead;
-  onStatusChange: (leadId: string, newStatus: LeadStatus, lostReason?: string) => void;
-  isPending?: boolean;
-}) => (
-  <DropdownMenu>
-    <DropdownMenuTrigger asChild disabled={isPending}>
-      <Badge
-        variant="outline"
-        className={`${statusTone[lead.status]} cursor-pointer gap-1 pr-1.5`}
-        onClick={(e) => e.stopPropagation()}
-      >
-        {leadStatusLabels[lead.status]}
-        <ChevronDown className="h-3 w-3" strokeWidth={1.5} />
-      </Badge>
-    </DropdownMenuTrigger>
-    <DropdownMenuContent align="start" onClick={(e) => e.stopPropagation()}>
-      {manualStatusOptions.map((s) => (
-        <DropdownMenuItem
-          key={s}
-          onClick={(e) => {
-            e.stopPropagation();
-            onStatusChange(lead.id, s);
-          }}
-          className={s === lead.status ? "bg-muted" : ""}
-        >
-          {leadStatusLabels[s]}
-        </DropdownMenuItem>
-      ))}
-    </DropdownMenuContent>
-  </DropdownMenu>
-);
 
 const chipClass = "text-[11px] px-1.5 py-0.5 rounded bg-accent/60 text-accent-foreground";
 
