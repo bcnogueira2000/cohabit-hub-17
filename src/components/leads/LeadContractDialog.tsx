@@ -10,6 +10,17 @@ import { Download, ShieldCheck } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { generateContractDocxFromLead } from "@/lib/generateContractDocxFromLead";
 import type { Lead } from "@/hooks/useLeads";
+import { missingPersonalFields } from "@/lib/leadContractRules";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 const PROFILES = ["Estudante", "Profissional", "Nómada digital", "Outro"];
 
@@ -38,6 +49,8 @@ export const LeadContractDialog = ({ lead, open, onOpenChange }: Props) => {
   const [profile, setProfile] = useState("");
   const [employerOrSchool, setEmployerOrSchool] = useState("");
   const [stayDates, setStayDates] = useState<{ checkIn: string; checkOut: string; roomNumber: string } | null>(null);
+  const [hasCover, setHasCover] = useState(false); // acordo gerado, taxa paga, dispensa ou reserva ativa
+  const [warnOpen, setWarnOpen] = useState(false);
 
   useEffect(() => {
     if (!open) return;
@@ -74,42 +87,72 @@ export const LeadContractDialog = ({ lead, open, onOpenChange }: Props) => {
       const lp = l.profile ? String(l.profile) : "";
       setProfile(lp ? PROFILES.find((p) => p.toLowerCase() === lp.toLowerCase()) ?? "Outro" : "");
       setEmployerOrSchool(l.employer_or_school ?? "");
+      // Quarto e datas: da reserva ativa, senão os planeados na própria lead
       const s: any = stay ?? null;
+      const roomId = s?.room_id ?? l.room_id ?? null;
+      const ci = s ? String(s.check_in).split("T")[0] : l.planned_check_in ?? null;
+      const co = s ? String(s.check_out).split("T")[0] : l.planned_check_out ?? null;
       let roomNumber = "";
-      if (s?.room_id) {
+      if (roomId) {
         const { data: room } = await supabase
           .from("rooms" as any)
           .select("number")
-          .eq("id", s.room_id)
+          .eq("id", roomId)
           .maybeSingle();
         roomNumber = (room as any)?.number ?? "";
       }
+      const { count: feeCount } = await supabase
+        .from("payments" as any)
+        .select("id", { count: "exact", head: true })
+        .eq("lead_id", lead.id)
+        .eq("kind", "booking_fee");
       if (cancelled) return;
-      setStayDates(
-        s
-          ? {
-              checkIn: String(s.check_in).split("T")[0],
-              checkOut: String(s.check_out).split("T")[0],
-              roomNumber,
-            }
-          : null
+      setHasCover(
+        !!s || !!l.reservation_agreement_generated_at || !!l.reservation_not_applicable || (feeCount ?? 0) > 0
       );
+      setStayDates(roomId && ci && co ? { checkIn: ci, checkOut: co, roomNumber } : null);
     })();
     return () => {
       cancelled = true;
     };
   }, [open, lead.id]);
 
-  const handleGenerate = async () => {
+  const handleGenerate = () => {
     const rent = Number(monthlyAmount);
     if (!rent || rent <= 0) {
       toast.error("Indica a renda mensal");
       return;
     }
     if (!stayDates) {
-      toast.error("Esta lead não tem reserva ativa com datas.");
+      toast.error("Esta lead não tem quarto e datas previstas. Gera primeiro o acordo de reserva.");
       return;
     }
+    const missing = missingPersonalFields({
+      fullName: lead.fullName,
+      email: lead.email,
+      nationality,
+      dateOfBirth,
+      address,
+      postalCode,
+      city,
+      documentNumber,
+      documentValidity,
+      taxNumber,
+    });
+    if (missing.length) {
+      toast.error(`Faltam dados pessoais: ${missing.join(", ")}.`);
+      return;
+    }
+    if (!hasCover) {
+      setWarnOpen(true);
+      return;
+    }
+    doGenerate();
+  };
+
+  const doGenerate = async () => {
+    const rent = Number(monthlyAmount);
+    if (!stayDates) return;
     setBusy(true);
     try {
       const patch: Record<string, any> = {
@@ -171,7 +214,7 @@ export const LeadContractDialog = ({ lead, open, onOpenChange }: Props) => {
               Quarto {stayDates.roomNumber || "—"} · {stayDates.checkIn} a {stayDates.checkOut}
             </p>
           ) : (
-            <p className="text-xs text-destructive">Sem reserva ativa associada a esta lead.</p>
+            <p className="text-xs text-destructive">Esta lead não tem quarto e datas previstas.</p>
           )}
 
           <div className="grid grid-cols-3 gap-3">
@@ -294,6 +337,28 @@ export const LeadContractDialog = ({ lead, open, onOpenChange }: Props) => {
           </Button>
         </div>
       </DialogContent>
+      <AlertDialog open={warnOpen} onOpenChange={setWarnOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Sem acordo de reserva</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta lead não tem acordo de reserva gerado, taxa paga nem dispensa. O quarto não fica bloqueado até
+              marcares "Assinou". Queres gerar o contrato na mesma?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                setWarnOpen(false);
+                doGenerate();
+              }}
+            >
+              Gerar na mesma
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Dialog>
   );
 };
