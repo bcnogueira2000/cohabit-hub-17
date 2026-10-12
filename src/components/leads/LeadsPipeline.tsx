@@ -29,8 +29,9 @@ export const manualStatusOptions: LeadStatus[] = (Object.keys(leadStatusLabels) 
   (s) => s !== "reserved" && s !== "won"
 );
 
-/** Reservada e já com contrato gerado à espera de assinatura. */
-export const isAwaitingSignature = (l: Lead) => l.status === "reserved" && !!l.contractGeneratedAt;
+/** Lead ativa com contrato gerado à espera de assinatura (reservada ou não). */
+export const isAwaitingSignature = (l: Lead) =>
+  !["won", "lost"].includes(l.status) && !!l.contractGeneratedAt && !l.contractId;
 
 export const AwaitingSignatureBadge = () => (
   <Badge variant="outline" className="bg-warning/15 text-warning border-warning/40 gap-1">
