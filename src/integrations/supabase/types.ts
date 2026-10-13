@@ -550,6 +550,7 @@ export type Database = {
           source: Database["public"]["Enums"]["lead_source"]
           source_detail: string | null
           status: Database["public"]["Enums"]["lead_status"]
+          status_changed_at: string | null
           stay_duration: string | null
           stay_id: string | null
           tax_number: string | null
@@ -625,6 +626,7 @@ export type Database = {
           source?: Database["public"]["Enums"]["lead_source"]
           source_detail?: string | null
           status?: Database["public"]["Enums"]["lead_status"]
+          status_changed_at?: string | null
           stay_duration?: string | null
           stay_id?: string | null
           tax_number?: string | null
@@ -700,6 +702,7 @@ export type Database = {
           source?: Database["public"]["Enums"]["lead_source"]
           source_detail?: string | null
           status?: Database["public"]["Enums"]["lead_status"]
+          status_changed_at?: string | null
           stay_duration?: string | null
           stay_id?: string | null
           tax_number?: string | null

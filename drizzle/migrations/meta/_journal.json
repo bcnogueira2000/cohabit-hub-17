@@ -50,6 +50,13 @@
       "when": 1791835659596,
       "tag": "0006_checkout_sets_ex_resident",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1791897447897,
+      "tag": "0007_lead_status_changed_at",
+      "breakpoints": true
     }
   ]
 }
