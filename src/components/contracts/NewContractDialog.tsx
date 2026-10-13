@@ -215,6 +215,7 @@ export const NewContractDialog = ({ open, onOpenChange, defaults, leadId, onCrea
           status: "reserved",
           payment_day: paymentDay,
           deposit_due: depositDue,
+          reservation_fee_amount: Math.max(Number(fd.get("reservationFee") || 0), 0),
           regular_rent_amount: transitional ? regularAmount : null,
           notes: String(fd.get("notes") || "") || null,
         } as any)
@@ -339,6 +340,11 @@ export const NewContractDialog = ({ open, onOpenChange, defaults, leadId, onCrea
               <Label>Caução devida (€)</Label>
               <Input name="depositDue" type="number" min="0" step="0.01" className="mt-1.5" />
             </div>
+          </div>
+          <div>
+            <Label>Taxa de reserva (€)</Label>
+            <Input name="reservationFee" type="number" min="0" step="0.01" defaultValue={0} className="mt-1.5" />
+            <p className="text-xs text-muted-foreground mt-1">Deixa 0 se não houver taxa de reserva a cobrar.</p>
           </div>
           <div className="rounded-xl border border-border/60 p-3 space-y-3">
             <div className="flex items-center gap-2">
