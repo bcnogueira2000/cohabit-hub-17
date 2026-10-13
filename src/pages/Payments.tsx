@@ -1396,6 +1396,10 @@ const ReservationFeeSheet = ({ fee, onClose }: { fee: ReservationFeeRow | null; 
               </div>
             )}
 
+            {missing > 0.005 && <WaiveFeeBox fee={fee} onDone={onClose} />}
+
+
+
             <div className="mt-6">
               <h3 className="font-display text-lg font-semibold mb-2">Pagamentos registados</h3>
               {payments.length === 0 ? (
