@@ -18,10 +18,11 @@ export const LeadChecklist = ({ lead }: { lead: Lead }) => {
   const { data: p } = useQuery({
     queryKey: ["leads", "progress", lead.id, lead.contractId],
     queryFn: async (): Promise<Progress> => {
+      // Taxa pode estar ligada à lead ou ao contrato dela (ex.: contrato criado à mão)
       const { data: fees } = await supabase
         .from("payments" as any)
         .select("amount")
-        .eq("lead_id", lead.id)
+        .or(lead.contractId ? `lead_id.eq.${lead.id},contract_id.eq.${lead.contractId}` : `lead_id.eq.${lead.id}`)
         .eq("kind", "booking_fee")
         .eq("status", "active");
       const feePaid = ((fees ?? []) as any[]).reduce((a, r) => a + Number(r.amount ?? 0), 0);
