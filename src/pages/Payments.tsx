@@ -1438,3 +1438,54 @@ const ReservationFeeSheet = ({ fee, onClose }: { fee: ReservationFeeRow | null; 
 
 export default Payments;
 
+
+function WaiveFeeBox({ fee, onDone }: { fee: ReservationFeeRow; onDone: () => void }) {
+  const { data: roles = [] } = useMyRoles();
+  const qc = useQueryClient();
+  const [open, setOpen] = useState(false);
+  const [reason, setReason] = useState("");
+  const [busy, setBusy] = useState(false);
+  if (!(roles.includes("admin" as any) || roles.includes("manager" as any))) return null;
+  const run = async () => {
+    if (!reason.trim()) {
+      toast({ title: "Indica o motivo", variant: "destructive" });
+      return;
+    }
+    setBusy(true);
+    const { error } = await supabase.rpc("waive_reservation_fee" as any, {
+      p_contract_id: fee.contractId ?? null,
+      p_lead_id: fee.leadId ?? null,
+      p_reason: reason.trim(),
+    });
+    setBusy(false);
+    if (error) {
+      toast({ title: "Erro ao dispensar taxa", description: error.message, variant: "destructive" });
+      return;
+    }
+    toast({ title: "Taxa dispensada" });
+    qc.invalidateQueries();
+    onDone();
+  };
+  return (
+    <div className="mt-6 rounded-xl border border-border/60 p-3 space-y-2">
+      {!open ? (
+        <Button variant="outline" className="rounded-full" onClick={() => setOpen(true)}>
+          Dispensar taxa
+        </Button>
+      ) : (
+        <>
+          <p className="text-xs text-muted-foreground">
+            A taxa em falta deixa de ser cobrada. Os pagamentos já registados mantêm-se.
+          </p>
+          <Textarea placeholder="Motivo (obrigatório)" value={reason} onChange={(e) => setReason(e.target.value)} rows={2} />
+          <div className="flex gap-2">
+            <Button className="rounded-full" onClick={run} disabled={busy}>
+              {busy ? "A dispensar…" : "Confirmar dispensa"}
+            </Button>
+            <Button variant="ghost" className="rounded-full" onClick={() => setOpen(false)}>Cancelar</Button>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
