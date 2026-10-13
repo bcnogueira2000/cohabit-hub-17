@@ -77,6 +77,7 @@ export interface Lead {
   docsValidatedAt: string | null;
   createdAt: string;
   updatedAt: string;
+  statusChangedAt: string;
 }
 
 export const mapLead = (r: any): Lead => ({
@@ -146,6 +147,7 @@ export const mapLead = (r: any): Lead => ({
   docsValidatedAt: r.docs_validated_at ?? null,
   createdAt: r.created_at,
   updatedAt: r.updated_at,
+  statusChangedAt: r.status_changed_at ?? r.created_at,
 });
 
 export interface LeadInput {

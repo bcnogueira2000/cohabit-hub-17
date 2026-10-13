@@ -156,13 +156,9 @@ const rank = (l: Lead) => {
   return 2;
 };
 
-export const sortByUrgency = (a: Lead, b: Lead) => {
-  const ra = rank(a);
-  const rb = rank(b);
-  if (ra !== rb) return ra - rb;
-  if (ra === 3 || ra === -1) return b.createdAt.localeCompare(a.createdAt);
-  return (a.nextActionDate || "").localeCompare(b.nextActionDate || "");
-};
+// Mais recente primeiro: data em que a lead entrou no estado atual
+export const sortByUrgency = (a: Lead, b: Lead) =>
+  (b.statusChangedAt || b.createdAt).localeCompare(a.statusChangedAt || a.createdAt);
 
 const isClosed = (l: Lead) => ["won", "lost"].includes(l.status);
 
