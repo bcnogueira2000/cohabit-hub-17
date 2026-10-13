@@ -39,6 +39,31 @@ export const fmtDate = (d: string | null | undefined): string => {
 export const eur = (v: number): string =>
   new Intl.NumberFormat("pt-PT", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(v) + " €";
 
+/** Valor sem símbolo (os modelos já levam "EUR" antes). */
+export const num = (v: number): string =>
+  new Intl.NumberFormat("pt-PT", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(v);
+
+/** Estudante, seja gravado como código ("student") ou etiqueta ("Estudante"). */
+export const isStudentProfile = (p: string | null | undefined): boolean =>
+  /^\s*(student|estudante)\b/i.test(String(p ?? ""));
+
+/** Nome da tipologia do quarto: room_typologies.name, senão rooms.typology. */
+export async function fetchRoomTypology(roomId: string | null | undefined): Promise<string> {
+  if (!roomId) return "";
+  const { data: room } = await supabase
+    .from("rooms" as any)
+    .select("typology, typology_id")
+    .eq("id", roomId)
+    .maybeSingle();
+  const r: any = room;
+  if (!r) return "";
+  if (r.typology_id) {
+    const { data: t } = await supabase.from("room_typologies" as any).select("name").eq("id", r.typology_id).maybeSingle();
+    if ((t as any)?.name) return String((t as any).name);
+  }
+  return r.typology ?? "";
+}
+
 /** Acrescenta o par Campo / Campo_Extenso a partir de um valor em euros. */
 export const setMoney = (data: Record<string, string>, key: string, value: number | null) => {
   if (value == null) {
@@ -46,7 +71,7 @@ export const setMoney = (data: Record<string, string>, key: string, value: numbe
     data[`${key}_Extenso`] = "Não aplicável";
     return;
   }
-  data[key] = eur(value);
+  data[key] = num(value);
   data[`${key}_Extenso`] = value > 0 ? amountToWords(value, "pt") : "";
 };
 
@@ -108,7 +133,7 @@ export async function generateContractDocx(contractId: string): Promise<Generate
 
   const today = new Date();
   const profileRaw = String(resident.profile ?? "");
-  const isStudent = /student|estudante/i.test(profileRaw);
+  const isStudent = isStudentProfile(profileRaw);
   const employerOrSchool = String(resident.employer_or_school ?? "").trim();
   const parsedRoom = roomNumber ? parseRoomNumber(roomNumber) : null;
 
@@ -132,6 +157,7 @@ export async function generateContractDocx(contractId: string): Promise<Generate
     "Nº_Quarto": String(roomNumber ?? ""),
     Piso: parsedRoom?.floor != null ? String(parsedRoom.floor) : "",
     Lado: parsedRoom?.side ?? "",
+    Tipologia: await fetchRoomTypology(stayRoomId),
     Data_Inicio: fmtDate(c.start_date),
     Data_Termo: fmtDate(c.end_date),
     Duracao_Contrato: duracaoContrato(c.start_date, c.end_date),

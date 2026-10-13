@@ -11,7 +11,9 @@ import {
   OUTPUT_BUCKET,
   TEMPLATE_BILINGUE,
   TEMPLATE_BUCKET,
+  fetchRoomTypology,
   fmtDate,
+  isStudentProfile,
   getTemplateForContract,
   setMoney,
   slugifyForPath,
@@ -47,6 +49,11 @@ export async function generateContractDocxFromLead(
 
   // Quarto: prioridade ao indicado nos termos, senão o quarto reservado da lead
   let roomNumber = terms.roomNumber ?? "";
+  let roomIdForTypology: string | null = l.room_id ?? null;
+  if (terms.roomNumber) {
+    const { data: r } = await supabase.from("rooms" as any).select("id").eq("number", terms.roomNumber).maybeSingle();
+    if ((r as any)?.id) roomIdForTypology = (r as any).id;
+  }
   if (!roomNumber && l.room_id) {
     const { data: room } = await supabase
       .from("rooms" as any)
@@ -62,7 +69,7 @@ export async function generateContractDocxFromLead(
 
   const today = new Date();
   const profileRaw = String(l.profile ?? "");
-  const isStudent = /student|estudante/i.test(profileRaw);
+  const isStudent = isStudentProfile(profileRaw);
   const employerOrSchool = String(l.employer_or_school ?? "").trim();
   const parsedRoom = roomNumber ? parseRoomNumber(roomNumber) : null;
 
@@ -87,6 +94,7 @@ export async function generateContractDocxFromLead(
     "Nº_Quarto": String(roomNumber ?? ""),
     Piso: parsedRoom?.floor != null ? String(parsedRoom.floor) : "",
     Lado: parsedRoom?.side ?? "",
+    Tipologia: await fetchRoomTypology(roomIdForTypology),
     Data_Inicio: fmtDate(terms.startDate),
     Data_Termo: fmtDate(terms.endDate),
     Duracao_Contrato: duracaoContrato(terms.startDate, terms.endDate),
