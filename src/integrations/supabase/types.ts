@@ -2053,6 +2053,10 @@ export type Database = {
         Args: { p_payment_id: string; p_reason: string }
         Returns: undefined
       }
+      waive_reservation_fee: {
+        Args: { p_contract_id: string; p_lead_id: string; p_reason: string }
+        Returns: undefined
+      }
     }
     Enums: {
       account_status: "pending_approval" | "active" | "rejected" | "disabled"

@@ -57,6 +57,13 @@
       "when": 1791897447897,
       "tag": "0007_lead_status_changed_at",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1791910124372,
+      "tag": "0008_waive_reservation_fee",
+      "breakpoints": true
     }
   ]
 }
