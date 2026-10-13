@@ -54,6 +54,7 @@ import {
   FLOW_LOCK_NOTE,
 } from "@/components/leads/LeadsPipeline";
 import { LostReasonDialog } from "@/components/leads/LostReasonDialog";
+import { DailyBrief } from "@/components/leads/DailyBrief";
 import { LeadPendingProvider } from "@/components/leads/LeadPendingContext";
 import { isFlowLockedStatus } from "@/lib/leadContractRules";
 import { paymentKindLabel } from "@/hooks/usePayments";
@@ -372,71 +373,7 @@ const Leads = () => {
         </div>
       </div>
 
-      {urgentLeads.length > 0 && (
-        <Card className="bg-destructive/5 border-destructive/20 p-4 mb-5">
-          <div className="flex items-center gap-2 mb-3">
-            <AlertTriangle className="h-4 w-4 text-destructive" strokeWidth={1.5} />
-            <span className="font-display font-semibold text-sm">
-              {urgentLeads.length} {urgentLeads.length === 1 ? "lead" : "leads"} precisa{urgentLeads.length === 1 ? "" : "m"} de atenção
-            </span>
-          </div>
-          <div>
-            {urgentLeads.slice(0, 5).map((l) => (
-              <div
-                key={l.id}
-                onClick={() => setSelected(l)}
-                className="flex items-center justify-between cursor-pointer hover:bg-muted/40 rounded-lg p-2 -mx-1 transition-smooth"
-              >
-                <div className="min-w-0 flex-1 mr-3">
-                  <div className="text-sm font-medium truncate">{shortName(l.fullName)}</div>
-                  <div className="text-xs text-muted-foreground truncate">{urgentReason(l)}</div>
-                </div>
-                <Badge variant="outline" className={`${statusTone[l.status]} text-xs shrink-0`}>
-                  {leadStatusLabels[l.status]}
-                </Badge>
-              </div>
-            ))}
-            {urgentLeads.length > 5 && (
-              <div className="text-xs text-muted-foreground mt-2">
-                + {urgentLeads.length - 5} mais...
-              </div>
-            )}
-          </div>
-        </Card>
-      )}
-
-      {reviewLeads.length > 0 && (
-        <Card className="bg-info/5 border-info/20 p-4 mb-5">
-          <div className="flex items-center gap-2 mb-3">
-            <Inbox className="h-4 w-4 text-info" strokeWidth={1.5} />
-            <span className="font-display font-semibold text-sm">
-              {reviewLeads.length} {reviewLeads.length === 1 ? "candidatura" : "candidaturas"} por rever
-            </span>
-          </div>
-          <div>
-            {reviewLeads.slice(0, 5).map((l) => (
-              <div
-                key={l.id}
-                onClick={() => setSelected(l)}
-                className="flex items-center justify-between cursor-pointer hover:bg-muted/40 rounded-lg p-2 -mx-1 transition-smooth"
-              >
-                <div className="min-w-0 flex-1 mr-3">
-                  <div className="text-sm font-medium truncate">{shortName(l.fullName)}</div>
-                  <div className="text-xs text-muted-foreground truncate">
-                    Formulário preenchido {l.formSubmittedAt ? `a ${fmtDate(l.formSubmittedAt)}` : ""} · sem acordo de reserva
-                  </div>
-                </div>
-                <Badge variant="outline" className={`${statusTone[l.status]} text-xs shrink-0`}>
-                  {leadStatusLabels[l.status]}
-                </Badge>
-              </div>
-            ))}
-            {reviewLeads.length > 5 && (
-              <div className="text-xs text-muted-foreground mt-2">+ {reviewLeads.length - 5} mais...</div>
-            )}
-          </div>
-        </Card>
-      )}
+      <DailyBrief leads={leads} onSelectLead={setSelected} />
 
       {viewMode === "list" && (
         <Tabs value={filter} onValueChange={(v) => setFilter(v as Filter)} className="mb-4">
