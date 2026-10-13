@@ -14,6 +14,20 @@ import type { Lead } from "@/hooks/useLeads";
 import { missingPersonalFields } from "@/lib/leadContractRules";
 
 const PROFILES = ["Estudante", "Profissional", "Nómada digital", "Outro"];
+const PROFILE_CODES: Record<string, string> = {
+  student: "Estudante",
+  estudante: "Estudante",
+  professional: "Profissional",
+  profissional: "Profissional",
+  worker: "Profissional",
+  trabalhador: "Profissional",
+  digital_nomad: "Nómada digital",
+  "nómada digital": "Nómada digital",
+  "nomada digital": "Nómada digital",
+  other: "Outro",
+  outro: "Outro",
+};
+const normalizeProfile = (v: string) => PROFILE_CODES[v.trim().toLowerCase()] ?? "Outro";
 
 type Props = {
   lead: Lead;
@@ -74,7 +88,7 @@ export const LeadContractDialog = ({ lead, open, onOpenChange }: Props) => {
       setDocumentValidity(l.document_validity ? String(l.document_validity).split("T")[0] : "");
       setTaxNumber(l.tax_number ?? "");
       const lp = l.profile ? String(l.profile) : "";
-      setProfile(lp ? PROFILES.find((p) => p.toLowerCase() === lp.toLowerCase()) ?? "Outro" : "");
+      setProfile(lp ? normalizeProfile(lp) : "");
       setEmployerOrSchool(l.employer_or_school ?? "");
       // Quarto e datas: da reserva ativa, senão os planeados na própria lead
       const s: any = stay ?? null;

@@ -41,7 +41,7 @@ const fmtDateLong = (d: string | null | undefined, lang: "pt" | "en" = "pt"): st
   if (Number.isNaN(dt.getTime())) return "";
   return lang === "pt"
     ? `${dt.getDate()} de ${MESES_PT[dt.getMonth()]} de ${dt.getFullYear()}`
-    : `${MESES_EN[dt.getMonth()]} ${dt.getDate()}, ${dt.getFullYear()}`;
+    : `${dt.getDate()} ${MESES_EN[dt.getMonth()]} ${dt.getFullYear()}`;
 };
 
 const num2 = (v: number): string =>
