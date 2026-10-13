@@ -1,6 +1,5 @@
 import { useMemo, useState } from "react";
-import { Sparkles, ChevronDown, ChevronUp, ChevronRight, Copy } from "lucide-react";
-import { toast } from "sonner";
+import { Sparkles, ChevronDown, ChevronUp, ChevronRight } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import type { Lead } from "@/hooks/useLeads";
@@ -46,12 +45,7 @@ export const DailyBrief = ({ leads, onSelectLead }: { leads: Lead[]; onSelectLea
   const summary =
     teamCount === 0 && clientCount === 0
       ? "Tudo em dia. Nenhuma lead precisa de atenção."
-      : `Hoje há ${teamCount} ${teamCount === 1 ? "lead" : "leads"} com ação do vosso lado e ${clientCount} à espera do cliente.`;
-
-  const copy = () => {
-    const text = ["Daily Brief · " + today, ...items.map((i) => "• " + i.label)].join("\n");
-    navigator.clipboard.writeText(text).then(() => toast.success("Resumo copiado"));
-  };
+      : `Hoje há ${teamCount} ${teamCount === 1 ? "lead" : "leads"} com ação do nosso lado e ${clientCount} à espera do cliente.`;
 
   const renderItem = (it: BriefItem) => (
     <li key={it.key}>
@@ -102,10 +96,7 @@ export const DailyBrief = ({ leads, onSelectLead }: { leads: Lead[]; onSelectLea
             {items.length > 0 && <ul className="space-y-0.5">{[...team, ...client].map(renderItem)}</ul>}
           </div>
           <div className="border-t border-primary/15 px-5 py-3 flex flex-wrap items-center gap-3">
-            <Button variant="outline" size="sm" className="bg-card gap-1.5" onClick={copy} disabled={!items.length}>
-              <Copy className="h-3.5 w-3.5" /> Copiar
-            </Button>
-            <span className="flex items-center gap-1.5 text-xs text-muted-foreground"><span className="h-1.5 w-1.5 rounded-full bg-primary" /> do vosso lado</span>
+            <span className="flex items-center gap-1.5 text-xs text-muted-foreground"><span className="h-1.5 w-1.5 rounded-full bg-primary" /> do nosso lado</span>
             <span className="flex items-center gap-1.5 text-xs text-muted-foreground"><span className="h-1.5 w-1.5 rounded-full bg-warning" /> à espera do cliente</span>
             <span className="ml-auto text-xs text-muted-foreground">Resumo automático · clica numa linha para ver as leads</span>
           </div>
