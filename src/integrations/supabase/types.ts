@@ -610,6 +610,7 @@ export type Database = {
           docs_request_items: string[] | null
           docs_request_message: string | null
           docs_requested_at: string | null
+          docs_review_email_sent_at: string | null
           docs_validated_at: string | null
           document_number: string | null
           document_type: string | null
@@ -686,6 +687,7 @@ export type Database = {
           docs_request_items?: string[] | null
           docs_request_message?: string | null
           docs_requested_at?: string | null
+          docs_review_email_sent_at?: string | null
           docs_validated_at?: string | null
           document_number?: string | null
           document_type?: string | null
@@ -762,6 +764,7 @@ export type Database = {
           docs_request_items?: string[] | null
           docs_request_message?: string | null
           docs_requested_at?: string | null
+          docs_review_email_sent_at?: string | null
           docs_validated_at?: string | null
           document_number?: string | null
           document_type?: string | null
