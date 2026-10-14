@@ -253,7 +253,7 @@ const ContractDetail = () => {
           <TabsTrigger value="conta-corrente">Conta corrente</TabsTrigger>
         </TabsList>
         <TabsContent value="conta-corrente">
-          <ContractLedger contractId={contract.id} code={contract.code} />
+          <ContractLedger contractId={contract.id} code={(contract as any).code} />
         </TabsContent>
         <TabsContent value="resumo">
       <Card className="p-5 border-border/60 shadow-card mb-3">
