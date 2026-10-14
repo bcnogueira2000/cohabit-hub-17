@@ -166,7 +166,7 @@ const Payments = () => {
       const cur = m.get(k) ?? { year: r.year, month: r.month, count: 0, total: 0 };
       cur.count += 1; cur.total += Number(r.outstanding ?? 0);
       return m.set(k, cur);
-    }, new Map<string, { year: number; month: number; count: number; total: number }>()).values()
+    }, new Map<string, OverdueMonth>()).values() as IterableIterator<OverdueMonth>
   ).sort((a, b) => a.year - b.year || a.month - b.month);
 
   return (
