@@ -21,7 +21,7 @@ export const useResidents = () =>
   useQuery({
     queryKey: ["residents"],
     queryFn: async (): Promise<Resident[]> => {
-      const { data, error } = await supabase.from("residents").select("*").order("full_name");
+      const { data, error } = await supabase.from("residents").select("*, resident_internal_notes(notes)").order("full_name");
       if (error) throw error;
       return (data ?? []).map(mapResident);
     },
@@ -75,11 +75,16 @@ export const useUpdateResidentLegal = () => {
           postal_code: values.postalCode,
           city: values.city,
           expected_arrival_date: values.expectedArrivalDate,
-          internal_notes: values.internalNotes,
           emergency_contact_invoice_copy: values.emergencyContactInvoiceCopy,
         } as any)
         .eq("id", id);
       if (error) throw error;
+      // Notas internas vivem numa tabela só da equipa (o residente não as vê).
+      if (values.internalNotes !== undefined) {
+        const { error: nErr } = await supabase.from("resident_internal_notes" as any)
+          .upsert({ resident_id: id, notes: values.internalNotes } as any, { onConflict: "resident_id" });
+        if (nErr) throw nErr;
+      }
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["residents"] }),
   });

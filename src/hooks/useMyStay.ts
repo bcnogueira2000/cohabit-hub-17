@@ -30,7 +30,6 @@ export interface MyStayData {
     check_out: string;
     status: StayStatus;
     source: string;
-    notes: string | null;
   }>;
 }
 
@@ -42,7 +41,7 @@ export const useMyStay = () => {
     queryFn: async (): Promise<MyStayData> => {
       const { data: resident } = await supabase
         .from("residents")
-        .select("*")
+        .select("id, full_name, email, phone, move_in, move_out, status, avatar_color, room_id")
         .limit(1)
         .maybeSingle();
 
@@ -60,7 +59,7 @@ export const useMyStay = () => {
       if (resident?.id) {
         const { data: s } = await supabase
           .from("stays")
-          .select("id, check_in, check_out, status, source, notes")
+          .select("id, check_in, check_out, status, source")
           .eq("resident_id", resident.id)
           .order("check_in", { ascending: false });
         stays = (s as any) ?? [];
