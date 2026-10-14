@@ -1583,6 +1583,35 @@ export type Database = {
           },
         ]
       }
+      resident_internal_notes: {
+        Row: {
+          notes: string | null
+          resident_id: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          notes?: string | null
+          resident_id: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          notes?: string | null
+          resident_id?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "resident_internal_notes_resident_id_fkey"
+            columns: ["resident_id"]
+            isOneToOne: true
+            referencedRelation: "residents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       residents: {
         Row: {
           address: string | null
