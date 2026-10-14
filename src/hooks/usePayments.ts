@@ -656,7 +656,7 @@ export const useContractLedger = (contractId: string | undefined) =>
 
 // ============ Outras receitas (serviços extra) ============
 
-export interface ServiceItem { id: string; code: string; name: string; defaultPrice: number; unitLabel: string; vatRate: number | null; active: boolean; sortOrder: number }
+export interface ServiceItem { id: string; code: string; name: string; defaultPrice: number; unitLabel: string; vatRate: number | null; active: boolean; sortOrder: number; description: string | null }
 
 export const useServiceCatalog = () =>
   useQuery({
@@ -664,7 +664,7 @@ export const useServiceCatalog = () =>
     queryFn: async () => {
       const { data, error } = await supabase.from("service_catalog" as any).select("*").order("sort_order");
       if (error) throw error;
-      return ((data ?? []) as any[]).map((r) => ({ id: r.id, code: r.code, name: r.name, defaultPrice: Number(r.default_price ?? 0), unitLabel: r.unit_label, vatRate: r.vat_rate == null ? null : Number(r.vat_rate), active: r.active, sortOrder: r.sort_order ?? 0 })) as ServiceItem[];
+      return ((data ?? []) as any[]).map((r) => ({ id: r.id, code: r.code, name: r.name, defaultPrice: Number(r.default_price ?? 0), unitLabel: r.unit_label, vatRate: r.vat_rate == null ? null : Number(r.vat_rate), active: r.active, sortOrder: r.sort_order ?? 0, description: r.description ?? null })) as ServiceItem[];
     },
   });
 
@@ -781,7 +781,7 @@ export const useChargeableContracts = () =>
     },
   });
 
-export interface ServiceInput { name: string; unitLabel: string; defaultPrice: number; vatRate: number | null; active?: boolean }
+export interface ServiceInput { name: string; unitLabel: string; defaultPrice: number; vatRate: number | null; active?: boolean; description?: string | null }
 
 export const slugify = (name: string) =>
   name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") || "servico";
@@ -802,6 +802,7 @@ export const useUpdateService = () => {
       const { error } = await supabase.from("service_catalog" as any).update({
         name: i.name.trim(), unit_label: i.unitLabel.trim() || "unidade", default_price: i.defaultPrice,
         vat_rate: i.vatRate, active: i.active ?? true,
+        ...(i.description !== undefined ? { description: i.description?.trim() || null } : {}),
       } as any).eq("id", i.id);
       if (error) throw error;
     },
@@ -816,6 +817,7 @@ export const useCreateService = () => {
       const { error } = await supabase.from("service_catalog" as any).insert({
         code: uniqueServiceCode(i.name, i.existingCodes), name: i.name.trim(), unit_label: i.unitLabel.trim() || "unidade",
         default_price: i.defaultPrice, vat_rate: i.vatRate, active: true, sort_order: i.sortOrder,
+        description: i.description?.trim() || null,
       } as any);
       if (error) throw error;
     },

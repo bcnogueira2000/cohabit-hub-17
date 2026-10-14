@@ -253,7 +253,7 @@ export const OtherIncomeSection = () => {
         <Button variant="outline" size="icon" className="rounded-full" onClick={() => shift(-1)} aria-label="Mês anterior"><ChevronLeft className="h-4 w-4" /></Button>
         <div className="font-display text-xl font-semibold min-w-[190px] text-center capitalize">{label}</div>
         <Button variant="outline" size="icon" className="rounded-full" onClick={() => shift(1)} aria-label="Mês seguinte"><ChevronRight className="h-4 w-4" /></Button>
-        <div className="ml-auto flex gap-2"><Button variant="outline" className="rounded-full" onClick={() => setCatalogOpen(true)}>Catálogo de serviços</Button><Button className="rounded-full" onClick={() => setCreating(true)}><Plus className="h-4 w-4 mr-1" /> Lançar serviço extra</Button></div>
+        <div className="ml-auto flex flex-col items-end gap-2"><Button variant="outline" className="rounded-full" onClick={() => setCatalogOpen(true)}>Catálogo de serviços</Button><Button className="rounded-full" onClick={() => setCreating(true)}><Plus className="h-4 w-4 mr-1" /> Lançar serviço extra</Button></div>
       </div>
 
       <div className="grid grid-cols-3 gap-3">
