@@ -78,6 +78,13 @@
       "when": 1791984010450,
       "tag": "0010_extra_charges",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1791986796598,
+      "tag": "0011_security_hardening",
+      "breakpoints": true
     }
   ]
 }
