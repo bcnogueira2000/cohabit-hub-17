@@ -59,7 +59,7 @@ export const useVoidPayment = () => {
     },
     onSuccess: () => {
       for (const k of ["leads", "rent-month", "charge-payments", "contract", "contracts", "rent-current-month", "deposits",
-        "deposits-to-receive", "deposit-payments", "reservation-fees", "booking-fee-payments", "contract-activity", "lead_activity", "contract-ledger"])
+        "deposits-to-receive", "deposit-payments", "reservation-fees", "booking-fee-payments", "contract-activity", "lead_activity", "contract-ledger", "extra-charges", "extra-charge-payments"])
         qc.invalidateQueries({ queryKey: [k] });
     },
   });
@@ -648,6 +648,134 @@ export const useContractLedger = (contractId: string | undefined) =>
         voidedByName: r.voided_by_name,
         voidReason: r.void_reason,
         rentChargeId: r.rent_charge_id,
+        extraChargeId: r.extra_charge_id,
       })) as import("@/lib/contractLedger").LedgerEntry[];
+    },
+  });
+
+// ============ Outras receitas (serviços extra) ============
+
+export interface ServiceItem { id: string; code: string; name: string; defaultPrice: number; unitLabel: string; active: boolean }
+
+export const useServiceCatalog = () =>
+  useQuery({
+    queryKey: ["service-catalog"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("service_catalog" as any).select("*").order("sort_order");
+      if (error) throw error;
+      return ((data ?? []) as any[]).map((r) => ({ id: r.id, code: r.code, name: r.name, defaultPrice: Number(r.default_price ?? 0), unitLabel: r.unit_label, active: r.active })) as ServiceItem[];
+    },
+  });
+
+export interface ExtraChargeRow {
+  id: string; contractId: string; contractCode: string | null; residentName: string; roomNumber: string | null;
+  name: string; description: string | null; notes: string | null; quantity: number; unitPrice: number; unitLabel: string | null;
+  amount: number; dueDate: string; status: "active" | "voided"; paid: number; outstanding: number;
+  state: PaymentState | null; voidReason: string | null; voidedByName: string | null; createdByName: string | null;
+}
+
+export const useExtraCharges = () =>
+  useQuery({
+    queryKey: ["extra-charges"],
+    queryFn: async () => {
+      const [{ data, error }, { data: bal, error: e2 }] = await Promise.all([
+        supabase.from("extra_charges" as any)
+          .select("*, service:service_catalog(name), contract:contracts(code, resident:residents(full_name, short_name, room:rooms(number)))")
+          .order("due_date", { ascending: false }),
+        supabase.from("extra_charge_balance" as any).select("*"),
+      ]);
+      if (error) throw error;
+      if (e2) throw e2;
+      const bm = new Map(((bal ?? []) as any[]).map((b) => [b.extra_charge_id, b]));
+      return ((data ?? []) as any[]).map((r) => {
+        const b: any = bm.get(r.id) ?? {};
+        const res = r.contract?.resident;
+        return {
+          id: r.id, contractId: r.contract_id, contractCode: r.contract?.code ?? null,
+          residentName: res?.short_name || res?.full_name || "—", roomNumber: res?.room?.number ?? null,
+          name: r.service?.name ?? r.custom_name ?? "Extra", description: r.description, notes: r.notes,
+          quantity: Number(r.quantity), unitPrice: Number(r.unit_price), unitLabel: r.unit_label, amount: Number(r.amount),
+          dueDate: r.due_date, status: r.status, paid: Number(b.paid ?? 0),
+          outstanding: r.status === "voided" ? 0 : Number(b.outstanding ?? r.amount),
+          state: r.status === "voided" ? null : (b.payment_state ?? "due"),
+          voidReason: r.void_reason, voidedByName: r.voided_by_name, createdByName: r.created_by_name,
+        } as ExtraChargeRow;
+      });
+    },
+  });
+
+export const useExtraChargePayments = (extraChargeId: string | undefined) =>
+  useQuery({
+    enabled: !!extraChargeId,
+    queryKey: ["extra-charge-payments", extraChargeId],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("payments" as any).select("*").eq("extra_charge_id", extraChargeId!).order("paid_at", { ascending: false });
+      if (error) throw error;
+      return (data ?? []) as any[];
+    },
+  });
+
+const invalidateExtras = (qc: ReturnType<typeof useQueryClient>) => {
+  for (const k of ["extra-charges", "extra-charge-payments", "contract-ledger", "contract", "contract-activity"]) qc.invalidateQueries({ queryKey: [k] });
+};
+
+export const useCreateExtraCharge = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (i: {
+      contractId: string; serviceId: string | null; customName?: string | null; quantity: number; unitPrice: number;
+      dueDate: string; description?: string | null; notes?: string | null; payNow: boolean;
+      method?: PaymentMethod | null; paidAt?: string | null; reference?: string | null;
+    }) => {
+      const { error } = await supabase.rpc("create_extra_charge" as any, {
+        p_contract_id: i.contractId, p_service_id: i.serviceId, p_custom_name: i.customName ?? null,
+        p_quantity: i.quantity, p_unit_price: i.unitPrice, p_due_date: i.dueDate,
+        p_description: i.description ?? null, p_notes: i.notes ?? null, p_pay_now: i.payNow,
+        p_method: i.payNow ? i.method ?? "transfer" : null, p_paid_at: i.payNow ? i.paidAt ?? null : null,
+        p_reference: i.reference ?? null,
+      });
+      if (error) throw new Error(error.message);
+    },
+    onSuccess: () => invalidateExtras(qc),
+  });
+};
+
+export const useCreateExtraPayment = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (i: { contractId: string; extraChargeId: string; amount: number; paidAt: string; method: PaymentMethod; reference?: string | null }) => {
+      const { error } = await supabase.from("payments" as any).insert({
+        contract_id: i.contractId, extra_charge_id: i.extraChargeId, kind: "extra", amount: i.amount,
+        paid_at: i.paidAt, method: i.method, reference: i.reference?.trim() || null,
+      } as any);
+      if (error) throw error;
+    },
+    onSuccess: () => invalidateExtras(qc),
+  });
+};
+
+export const useVoidExtraCharge = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (i: { id: string; reason: string }) => {
+      const { error } = await supabase.rpc("void_extra_charge" as any, { p_id: i.id, p_reason: i.reason });
+      if (error) throw new Error(error.message);
+    },
+    onSuccess: () => invalidateExtras(qc),
+  });
+};
+
+/** Contratos onde se podem lançar extras (ativos ou reservados). */
+export const useChargeableContracts = () =>
+  useQuery({
+    queryKey: ["chargeable-contracts"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("contracts" as any)
+        .select("id, code, status, resident:residents(full_name, room:rooms(number))")
+        .in("status", ["active", "reserved"]).order("code");
+      if (error) throw error;
+      return ((data ?? []) as any[]).map((c) => ({
+        id: c.id as string, label: `${c.resident?.full_name ?? "—"}${c.resident?.room?.number ? ` · Q${c.resident.room.number}` : ""}${c.code ? ` · ${c.code}` : ""}`,
+      }));
     },
   });
