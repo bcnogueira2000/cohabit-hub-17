@@ -197,7 +197,7 @@ const Payments = () => {
       </div>
 
       <Tabs defaultValue="rent" className="space-y-6">
-        <TabsList className="rounded-full">
+        <TabsList className="rounded-full max-w-full overflow-x-auto justify-start">
           <TabsTrigger value="rent" className="rounded-full">Rendas</TabsTrigger>
           <TabsTrigger value="deposits" className="rounded-full">Cauções</TabsTrigger>
           <TabsTrigger value="reservation" className="rounded-full">Taxa de Reserva</TabsTrigger>
@@ -237,7 +237,7 @@ const Payments = () => {
         <Button variant="outline" size="icon" className="rounded-full" onClick={() => shiftMonth(-1)} aria-label="Mês anterior">
           <ChevronLeft className="h-4 w-4" strokeWidth={1.5} />
         </Button>
-        <div className="font-display text-xl font-semibold min-w-[190px] text-center">
+        <div className="font-display text-xl font-semibold flex-1 sm:flex-none sm:min-w-[190px] text-center">
           {monthLabel(year, month)}
         </div>
         <Button variant="outline" size="icon" className="rounded-full" onClick={() => shiftMonth(1)} aria-label="Mês seguinte">
@@ -260,23 +260,23 @@ const Payments = () => {
 
       {/* KPIs */}
       <div className="grid grid-cols-3 gap-3 mb-6">
-        <Card className="p-4 border-border/60 shadow-card">
+        <Card className="p-3 sm:p-4 border-border/60 shadow-card min-w-0">
           <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
             <TrendingUp className="h-4 w-4" strokeWidth={1.5} /> Faturado
           </div>
-          <div className="font-display text-2xl font-semibold">{eur(totals.billed)}</div>
+          <div className="font-display text-base sm:text-2xl font-semibold whitespace-nowrap">{eur(totals.billed)}</div>
         </Card>
-        <Card className="p-4 border-border/60 shadow-card">
+        <Card className="p-3 sm:p-4 border-border/60 shadow-card min-w-0">
           <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
             <Wallet className="h-4 w-4" strokeWidth={1.5} /> Recebido
           </div>
-          <div className="font-display text-2xl font-semibold text-success">{eur(totals.paid)}</div>
+          <div className="font-display text-base sm:text-2xl font-semibold whitespace-nowrap text-success">{eur(totals.paid)}</div>
         </Card>
-        <Card className="p-4 border-border/60 shadow-card">
+        <Card className="p-3 sm:p-4 border-border/60 shadow-card min-w-0">
           <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
             <AlertTriangle className="h-4 w-4" strokeWidth={1.5} /> Em falta
           </div>
-          <div className="font-display text-2xl font-semibold text-destructive">{eur(totals.outstanding)}</div>
+          <div className="font-display text-base sm:text-2xl font-semibold whitespace-nowrap text-destructive">{eur(totals.outstanding)}</div>
         </Card>
       </div>
 
@@ -655,23 +655,23 @@ const DepositsSection = () => {
   return (
     <div>
       <div className="grid grid-cols-3 gap-3 mb-6">
-        <Card className="p-4 border-border/60 shadow-card">
+        <Card className="p-3 sm:p-4 border-border/60 shadow-card min-w-0">
           <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
             <Wallet className="h-4 w-4" strokeWidth={1.5} /> Recebido
           </div>
-          <div className="font-display text-2xl font-semibold">{eur(totals.received)}</div>
+          <div className="font-display text-base sm:text-2xl font-semibold whitespace-nowrap">{eur(totals.received)}</div>
         </Card>
-        <Card className="p-4 border-border/60 shadow-card">
+        <Card className="p-3 sm:p-4 border-border/60 shadow-card min-w-0">
           <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
             <TrendingUp className="h-4 w-4" strokeWidth={1.5} /> Devolvido
           </div>
-          <div className="font-display text-2xl font-semibold text-success">{eur(totals.returned)}</div>
+          <div className="font-display text-base sm:text-2xl font-semibold whitespace-nowrap text-success">{eur(totals.returned)}</div>
         </Card>
-        <Card className="p-4 border-border/60 shadow-card">
+        <Card className="p-3 sm:p-4 border-border/60 shadow-card min-w-0">
           <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
             <PiggyBank className="h-4 w-4" strokeWidth={1.5} /> Retido
           </div>
-          <div className="font-display text-2xl font-semibold">{eur(totals.held)}</div>
+          <div className="font-display text-base sm:text-2xl font-semibold whitespace-nowrap">{eur(totals.held)}</div>
         </Card>
       </div>
 
@@ -1187,23 +1187,23 @@ const ReservationFeesSection = () => {
   return (
     <div>
       <div className="grid grid-cols-3 gap-3 mb-6">
-        <Card className="p-4 border-border/60 shadow-card">
+        <Card className="p-3 sm:p-4 border-border/60 shadow-card min-w-0">
           <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
             <TrendingUp className="h-4 w-4" strokeWidth={1.5} /> Previsto
           </div>
-          <div className="font-display text-2xl font-semibold">{eur(totals.expected)}</div>
+          <div className="font-display text-base sm:text-2xl font-semibold whitespace-nowrap">{eur(totals.expected)}</div>
         </Card>
-        <Card className="p-4 border-border/60 shadow-card">
+        <Card className="p-3 sm:p-4 border-border/60 shadow-card min-w-0">
           <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
             <Wallet className="h-4 w-4" strokeWidth={1.5} /> Recebido
           </div>
-          <div className="font-display text-2xl font-semibold text-success">{eur(totals.received)}</div>
+          <div className="font-display text-base sm:text-2xl font-semibold whitespace-nowrap text-success">{eur(totals.received)}</div>
         </Card>
-        <Card className="p-4 border-border/60 shadow-card">
+        <Card className="p-3 sm:p-4 border-border/60 shadow-card min-w-0">
           <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
             <AlertTriangle className="h-4 w-4" strokeWidth={1.5} /> Em falta
           </div>
-          <div className="font-display text-2xl font-semibold text-destructive">{eur(totals.outstanding)}</div>
+          <div className="font-display text-base sm:text-2xl font-semibold whitespace-nowrap text-destructive">{eur(totals.outstanding)}</div>
         </Card>
       </div>
 
