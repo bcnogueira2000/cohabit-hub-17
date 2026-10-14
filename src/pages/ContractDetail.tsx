@@ -1,5 +1,7 @@
 import { useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ContractLedger } from "@/components/contracts/ContractLedger";
 import { ArrowLeft, ArrowRight, CalendarRange, Download, FileText, Info, LogIn, LogOut, Pencil, Repeat, ShieldCheck, Trash2, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -52,6 +54,8 @@ const Field = ({ label, children }: { label: string; children: React.ReactNode }
 const ContractDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const tab = searchParams.get("tab") === "conta-corrente" ? "conta-corrente" : "resumo";
   const { data: contract, isLoading } = useContract(id);
   const { data: stays = [] } = useContractStays(id);
   const { data: rooms = [] } = useRooms();
@@ -243,6 +247,15 @@ const ContractDetail = () => {
 
 
       <ContractWonAlert contractId={contract.id} />
+      <Tabs value={tab} onValueChange={(v) => setSearchParams(v === "resumo" ? {} : { tab: v }, { replace: true })}>
+        <TabsList className="mb-4">
+          <TabsTrigger value="resumo">Resumo</TabsTrigger>
+          <TabsTrigger value="conta-corrente">Conta corrente</TabsTrigger>
+        </TabsList>
+        <TabsContent value="conta-corrente">
+          <ContractLedger contractId={contract.id} code={contract.code} />
+        </TabsContent>
+        <TabsContent value="resumo">
       <Card className="p-5 border-border/60 shadow-card mb-3">
         <h3 className="font-display text-lg font-semibold mb-3">Dados do contrato</h3>
         <div className="grid sm:grid-cols-3 gap-4">
@@ -332,6 +345,8 @@ const ContractDetail = () => {
         )}
       </Card>
       <ContractActivity contractId={contract.id} />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
