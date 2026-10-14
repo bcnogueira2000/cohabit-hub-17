@@ -59,7 +59,7 @@ export const useVoidPayment = () => {
     },
     onSuccess: () => {
       for (const k of ["leads", "rent-month", "charge-payments", "contract", "contracts", "rent-current-month", "deposits",
-        "deposits-to-receive", "deposit-payments", "reservation-fees", "booking-fee-payments", "contract-activity", "lead_activity"])
+        "deposits-to-receive", "deposit-payments", "reservation-fees", "booking-fee-payments", "contract-activity", "lead_activity", "contract-ledger"])
         qc.invalidateQueries({ queryKey: [k] });
     },
   });
@@ -223,6 +223,7 @@ export const useCreatePayment = () => {
       qc.invalidateQueries({ queryKey: ["contract", input.contractId] });
       qc.invalidateQueries({ queryKey: ["contracts"] });
       qc.invalidateQueries({ queryKey: ["rent-current-month"] });
+      qc.invalidateQueries({ queryKey: ["contract-ledger"] });
     },
   });
 };
@@ -608,3 +609,45 @@ export const useCreateBookingFeePayment = () => {
 };
 
 
+
+// ============ Conta corrente ============
+
+/** Conta corrente (só leitura) de um contrato: vista contract_ledger, ordenada cronologicamente. */
+export const useContractLedger = (contractId: string | undefined) =>
+  useQuery({
+    queryKey: ["contract-ledger", contractId],
+    enabled: !!contractId,
+    refetchInterval: 60_000,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("contract_ledger" as any)
+        .select("*")
+        .eq("contract_id", contractId!)
+        .order("entry_date", { ascending: true })
+        .order("created_at", { ascending: true });
+      if (error) throw error;
+      return ((data ?? []) as any[]).map((r) => ({
+        contractId: r.contract_id,
+        entryDate: r.entry_date,
+        kind: r.kind,
+        source: r.source,
+        sourceId: r.source_id,
+        description: r.description,
+        debit: Number(r.debit ?? 0),
+        credit: Number(r.credit ?? 0),
+        countsInBalance: !!r.counts_in_balance,
+        status: r.status,
+        runningBalance: Number(r.running_balance ?? 0),
+        paymentState: r.payment_state,
+        paid: r.paid == null ? null : Number(r.paid),
+        outstanding: r.outstanding == null ? null : Number(r.outstanding),
+        method: r.method,
+        reference: r.reference,
+        moloniDocumentNumber: r.moloni_document_number,
+        voidedAt: r.voided_at,
+        voidedByName: r.voided_by_name,
+        voidReason: r.void_reason,
+        rentChargeId: r.rent_charge_id,
+      })) as import("@/lib/contractLedger").LedgerEntry[];
+    },
+  });
