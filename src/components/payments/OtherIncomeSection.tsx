@@ -14,6 +14,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { toast } from "@/hooks/use-toast";
 import { PaymentStateBadge } from "@/components/payments/PaymentStateBadge";
 import { PaymentEntry } from "@/components/payments/PaymentEntry";
+import { ServiceCatalogDialog } from "@/components/payments/ServiceCatalogDialog";
 import {
   paymentMethodLabels,
   useChargeableContracts,
@@ -63,6 +64,7 @@ const NewExtraDialog = ({ open, onClose }: { open: boolean; onClose: () => void 
     if (!serviceId) return toast({ title: "Escolhe o serviço", variant: "destructive" });
     if (serviceId === CUSTOM && !customName.trim()) return toast({ title: "Indica o nome do serviço", variant: "destructive" });
     if (!(Number(qty) > 0)) return toast({ title: "Quantidade inválida", variant: "destructive" });
+    if (total === 0 && !window.confirm("O total deste lançamento é 0 €. Queres mesmo lançar?")) return;
     try {
       await create.mutateAsync({
         contractId, serviceId: serviceId === CUSTOM ? null : serviceId, customName: serviceId === CUSTOM ? customName : null,
@@ -228,6 +230,7 @@ export const OtherIncomeSection = () => {
   const [service, setService] = useState("all");
   const [state, setState] = useState("all");
   const [creating, setCreating] = useState(false);
+  const [catalogOpen, setCatalogOpen] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const prefix = `${ym.y}-${String(ym.m).padStart(2, "0")}`;
   const label = new Date(ym.y, ym.m - 1, 1).toLocaleDateString("pt-PT", { month: "long", year: "numeric" });
@@ -250,7 +253,7 @@ export const OtherIncomeSection = () => {
         <Button variant="outline" size="icon" className="rounded-full" onClick={() => shift(-1)} aria-label="Mês anterior"><ChevronLeft className="h-4 w-4" /></Button>
         <div className="font-display text-xl font-semibold min-w-[190px] text-center capitalize">{label}</div>
         <Button variant="outline" size="icon" className="rounded-full" onClick={() => shift(1)} aria-label="Mês seguinte"><ChevronRight className="h-4 w-4" /></Button>
-        <div className="ml-auto"><Button className="rounded-full" onClick={() => setCreating(true)}><Plus className="h-4 w-4 mr-1" /> Lançar serviço extra</Button></div>
+        <div className="ml-auto flex gap-2"><Button variant="outline" className="rounded-full" onClick={() => setCatalogOpen(true)}>Catálogo de serviços</Button><Button className="rounded-full" onClick={() => setCreating(true)}><Plus className="h-4 w-4 mr-1" /> Lançar serviço extra</Button></div>
       </div>
 
       <div className="grid grid-cols-3 gap-3">
@@ -310,6 +313,7 @@ export const OtherIncomeSection = () => {
         )}
       </Card>
 
+      <ServiceCatalogDialog open={catalogOpen} onClose={() => setCatalogOpen(false)} />
       <NewExtraDialog open={creating} onClose={() => setCreating(false)} />
       <ExtraSheet row={selected} onClose={() => setSelectedId(null)} />
     </div>
