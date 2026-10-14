@@ -46,12 +46,17 @@ Deno.serve(async (req) => {
 
     // Documentos pedidos depois da submissão (submit_lead_documents).
     if (body?.kind === "documents") {
-      const { data: l } = await admin
+      // Marca como enviado de forma atómica — só a primeira chamada passa.
+      const { data: l, error: claimErr } = await admin
         .from("leads")
-        .select("full_name, email, docs_received_at, docs_request_items")
+        .update({ docs_review_email_sent_at: new Date().toISOString() })
         .eq("id", leadId)
+        .not("docs_received_at", "is", null)
+        .is("docs_review_email_sent_at", null)
+        .select("full_name, email, docs_received_at, docs_request_items")
         .maybeSingle();
-      if (!l?.docs_received_at) return json({ ok: true, skipped: true });
+      if (claimErr) return json({ error: claimErr.message }, 500);
+      if (!l) return json({ ok: true, skipped: true });
       const html = `
         <div style="font-family: Arial, Helvetica, sans-serif; font-size: 15px; color: #1f2937; line-height: 1.6;">
           <p><strong>${esc(l.full_name)}</strong> enviou os documentos pedidos.</p>
@@ -66,6 +71,7 @@ Deno.serve(async (req) => {
       if (!r.ok) {
         const details = await r.text();
         console.error(`Resend failed [${r.status}]: ${details}`);
+        await admin.from("leads").update({ docs_review_email_sent_at: null }).eq("id", leadId);
         return json({ error: "Falha no envio do email", details }, 502);
       }
       return json({ ok: true });
