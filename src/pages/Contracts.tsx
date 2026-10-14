@@ -123,14 +123,14 @@ const Contracts = () => {
 
   return (
     <div className="px-4 lg:px-10 2xl:px-14 py-6 lg:py-10 max-w-[1600px] mx-auto">
-      <div className="flex items-start justify-between gap-4 mb-6">
+      <div className="flex flex-wrap items-start justify-between gap-4 mb-6">
         <div>
           <h1 className="font-display text-3xl lg:text-4xl font-semibold">Contratos</h1>
           <p className="text-muted-foreground mt-1">
             {contracts.length} contrato{contracts.length === 1 ? "" : "s"} registado{contracts.length === 1 ? "" : "s"}
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {transitionalContracts.length > 0 && (
             <Button
               variant="outline"
@@ -178,11 +178,11 @@ const Contracts = () => {
 
 
       {/* Filtros */}
-      <div className="flex flex-wrap items-end gap-2 mb-5">
+      <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-end gap-2 mb-5">
         <div>
           <Label className="text-xs text-muted-foreground">Estado</Label>
           <Select value={status} onValueChange={setStatus}>
-            <SelectTrigger className="w-[170px] rounded-full mt-1"><SelectValue /></SelectTrigger>
+            <SelectTrigger className="w-full sm:w-[170px] rounded-full mt-1"><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todos os estados</SelectItem>
               {Object.entries(contractStatusLabels).map(([k, v]) => (
@@ -194,7 +194,7 @@ const Contracts = () => {
         <div>
           <Label className="text-xs text-muted-foreground">Tipologia</Label>
           <Select value={typology} onValueChange={setTypology}>
-            <SelectTrigger className="w-[170px] rounded-full mt-1"><SelectValue /></SelectTrigger>
+            <SelectTrigger className="w-full sm:w-[170px] rounded-full mt-1"><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todas as tipologias</SelectItem>
               {typologies.map((t) => (
@@ -205,11 +205,11 @@ const Contracts = () => {
         </div>
         <div>
           <Label className="text-xs text-muted-foreground">De</Label>
-          <Input type="date" value={from} onChange={(e) => setFrom(e.target.value)} className="mt-1 w-[160px] rounded-full" />
+          <Input type="date" value={from} onChange={(e) => setFrom(e.target.value)} className="mt-1 w-full sm:w-[160px] rounded-full" />
         </div>
         <div>
           <Label className="text-xs text-muted-foreground">Até</Label>
-          <Input type="date" value={to} onChange={(e) => setTo(e.target.value)} className="mt-1 w-[160px] rounded-full" />
+          <Input type="date" value={to} onChange={(e) => setTo(e.target.value)} className="mt-1 w-full sm:w-[160px] rounded-full" />
         </div>
       </div>
 
