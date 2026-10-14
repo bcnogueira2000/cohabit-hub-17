@@ -44,7 +44,7 @@ export const NotificationBell = ({ className, iconClassName }: Props) => {
           <Bell className={cn("h-5 w-5 text-muted-foreground", iconClassName)} />
           {unread > 0 && (
             <span className="absolute top-1 right-1 min-w-[16px] h-4 px-1 rounded-full bg-primary text-primary-foreground text-[10px] font-bold flex items-center justify-center">
-              {unread > 9 ? "9+" : unread}
+              {unread > 99 ? "99+" : unread}
             </span>
           )}
         </button>
