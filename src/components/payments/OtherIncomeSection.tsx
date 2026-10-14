@@ -211,7 +211,7 @@ const ExtraSheet = ({ row, onClose }: { row: ExtraChargeRow | null; onClose: () 
               {payments.map((p) => <PaymentEntry key={p.id} payment={p} />)}
             </div>
           )}
-          <Link to={`/contratos/${row.contractId}?tab=conta-corrente`} className="inline-flex items-center gap-1 text-primary text-sm">
+          <Link to={`/contracts/${row.contractId}?tab=conta-corrente`} className="inline-flex items-center gap-1 text-primary text-sm">
             Ver conta corrente <ExternalLink className="h-3 w-3" />
           </Link>
         </div>
