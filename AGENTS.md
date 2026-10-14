@@ -8,3 +8,8 @@
 - Anonymous visitors have no table grants in public except INSERT on requests/stays (public forms); public flows use SECURITY DEFINER RPCs, and roles are assigned only via set-user-role, handle_new_user or approve_profile, so no client can escalate privileges.
 - Staff-only resident notes live in resident_internal_notes (residents.internal_notes is deprecated and kept empty) and a trigger blocks non-staff from changing account_status/resident_id/email/user_id on profiles, because residents can read their own residents/profiles rows.
 - Financial guardrails live in DB triggers (no delete of payments/extra_charges, immutable payment amounts/links, no overpayment, contracts deletable only without payments/extras, no overlapping reserved/active contracts per resident, audit_log on financial tables), so every client and RPC is bound by the same rules.
+
+## Política de notificações
+- Só se notifica o que exige uma ação humana e não é visível noutra página da app.
+- Tipos em uso: form_submitted, docs_received, request_new, request_comment, request_status, contract_ending, deposit_pending (os dois últimos uma única vez por utilizador e contrato).
+- Estados financeiros como rendas em atraso vêem-se no portal de pagamentos e não geram notificações.
