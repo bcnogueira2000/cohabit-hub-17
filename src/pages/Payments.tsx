@@ -159,8 +159,9 @@ const Payments = () => {
     },
   });
   const overdueTotal = overdueAll.reduce((a, r) => a + Number(r.outstanding ?? 0), 0);
-  const overdueMonths = Array.from(
-    overdueAll.reduce((m, r) => {
+  type OverdueMonth = { year: number; month: number; count: number; total: number };
+  const overdueMonths: OverdueMonth[] = Array.from(
+    overdueAll.reduce((m: Map<string, OverdueMonth>, r: any) => {
       const k = `${r.year}-${String(r.month).padStart(2, "0")}`;
       const cur = m.get(k) ?? { year: r.year, month: r.month, count: 0, total: 0 };
       cur.count += 1; cur.total += Number(r.outstanding ?? 0);
