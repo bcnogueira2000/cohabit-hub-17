@@ -656,7 +656,7 @@ export const useContractLedger = (contractId: string | undefined) =>
 
 // ============ Outras receitas (serviços extra) ============
 
-export interface ServiceItem { id: string; code: string; name: string; defaultPrice: number; unitLabel: string; active: boolean }
+export interface ServiceItem { id: string; code: string; name: string; defaultPrice: number; unitLabel: string; active: boolean; description: string | null }
 
 export const useServiceCatalog = () =>
   useQuery({
@@ -664,7 +664,7 @@ export const useServiceCatalog = () =>
     queryFn: async () => {
       const { data, error } = await supabase.from("service_catalog" as any).select("*").order("sort_order");
       if (error) throw error;
-      return ((data ?? []) as any[]).map((r) => ({ id: r.id, code: r.code, name: r.name, defaultPrice: Number(r.default_price ?? 0), unitLabel: r.unit_label, active: r.active })) as ServiceItem[];
+      return ((data ?? []) as any[]).map((r) => ({ id: r.id, code: r.code, name: r.name, defaultPrice: Number(r.default_price ?? 0), unitLabel: r.unit_label, active: r.active, description: r.description })) as ServiceItem[];
     },
   });
 
@@ -780,3 +780,22 @@ export const useChargeableContracts = () =>
       }));
     },
   });
+
+/** Cria ou edita um serviço do catálogo (nunca se apaga: desativa-se). */
+export const useSaveService = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (s: { id?: string; name: string; description?: string | null; defaultPrice: number; unitLabel: string; active: boolean }) => {
+      const row = { name: s.name.trim(), description: s.description?.trim() || null, default_price: s.defaultPrice, unit_label: s.unitLabel.trim() || "unidade", active: s.active };
+      if (s.id) {
+        const { error } = await supabase.from("service_catalog" as any).update(row as any).eq("id", s.id);
+        if (error) throw error;
+      } else {
+        const code = s.name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, "") + "_" + Date.now().toString(36);
+        const { error } = await supabase.from("service_catalog" as any).insert({ ...row, code, sort_order: 100 } as any);
+        if (error) throw error;
+      }
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["service-catalog"] }),
+  });
+};
