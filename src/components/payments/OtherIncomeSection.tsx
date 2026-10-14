@@ -14,7 +14,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { toast } from "@/hooks/use-toast";
 import { PaymentStateBadge } from "@/components/payments/PaymentStateBadge";
 import { PaymentEntry } from "@/components/payments/PaymentEntry";
-import { ServiceCatalog } from "@/components/payments/ServiceCatalog";
 import {
   paymentMethodLabels,
   useChargeableContracts,
@@ -310,8 +309,6 @@ export const OtherIncomeSection = () => {
           </table>
         )}
       </Card>
-
-      <ServiceCatalog />
 
       <NewExtraDialog open={creating} onClose={() => setCreating(false)} />
       <ExtraSheet row={selected} onClose={() => setSelectedId(null)} />
