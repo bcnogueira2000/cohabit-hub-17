@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { NationalitySelect, PhoneInput, NationalityFormField, PhoneFormField } from "@/components/CountryFields";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
 import { Button } from "@/components/ui/button";
