@@ -64,6 +64,13 @@
       "when": 1791910124372,
       "tag": "0008_waive_reservation_fee",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1791981359056,
+      "tag": "0009_contract_ledger_view",
+      "breakpoints": true
     }
   ]
 }
