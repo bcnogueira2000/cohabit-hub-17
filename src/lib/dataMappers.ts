@@ -41,7 +41,7 @@ export const mapResident = (r: any): Resident => ({
   gender: r.gender ?? null,
   age: r.age ?? null,
   expectedArrivalDate: r.expected_arrival_date ?? null,
-  internalNotes: r.internal_notes ?? null,
+  internalNotes: (Array.isArray(r.resident_internal_notes) ? r.resident_internal_notes[0]?.notes : r.resident_internal_notes?.notes) ?? null,
   emergencyContactInvoiceCopy: r.emergency_contact_invoice_copy ?? false,
 });
 

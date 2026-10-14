@@ -118,7 +118,6 @@ const MyStay = () => {
                       <p className="text-sm font-medium">
                         {fmt(s.check_in, lang)} – {fmt(s.check_out, lang)}
                       </p>
-                      {s.notes && <p className="text-xs text-muted-foreground mt-0.5">{s.notes}</p>}
                     </div>
                     <Badge variant="outline" className={cn("text-[10px]", stayStatusBadgeClass[s.status])}>
                       {pickLabel(stayStatusLabels[s.status], lang)}
