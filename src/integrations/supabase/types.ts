@@ -1869,6 +1869,35 @@ export type Database = {
         }
         Relationships: []
       }
+      contract_ledger: {
+        Row: {
+          contract_id: string | null
+          counts_in_balance: boolean | null
+          created_at: string | null
+          credit: number | null
+          debit: number | null
+          description: string | null
+          entry_date: string | null
+          kind: string | null
+          method: string | null
+          moloni_document_id: number | null
+          moloni_document_number: string | null
+          outstanding: number | null
+          paid: number | null
+          payment_state: string | null
+          reference: string | null
+          rent_charge_id: string | null
+          resident_id: string | null
+          running_balance: number | null
+          source: string | null
+          source_id: string | null
+          status: string | null
+          void_reason: string | null
+          voided_at: string | null
+          voided_by_name: string | null
+        }
+        Relationships: []
+      }
       rent_charge_balance: {
         Row: {
           amount: number | null
