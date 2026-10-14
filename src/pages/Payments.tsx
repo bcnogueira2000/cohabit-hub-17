@@ -145,6 +145,29 @@ const Payments = () => {
 
   const selected = filtered.find((r) => r.id === selectedId) ?? charges.find((r) => r.id === selectedId) ?? null;
 
+  // Rendas em atraso em todos os meses (vencidas e com valor em falta)
+  const { data: overdueAll = [] } = useQuery({
+    queryKey: ["rent-overdue-all"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("rent_charge_balance" as any)
+        .select("year, month, outstanding, due_date")
+        .lt("due_date", new Date().toISOString().slice(0, 10))
+        .gt("outstanding", 0);
+      if (error) throw error;
+      return (data ?? []) as any[];
+    },
+  });
+  const overdueTotal = overdueAll.reduce((a, r) => a + Number(r.outstanding ?? 0), 0);
+  const overdueMonths = Array.from(
+    overdueAll.reduce((m, r) => {
+      const k = `${r.year}-${String(r.month).padStart(2, "0")}`;
+      const cur = m.get(k) ?? { year: r.year, month: r.month, count: 0, total: 0 };
+      cur.count += 1; cur.total += Number(r.outstanding ?? 0);
+      return m.set(k, cur);
+    }, new Map<string, { year: number; month: number; count: number; total: number }>()).values()
+  ).sort((a, b) => a.year - b.year || a.month - b.month);
+
   return (
     <div className="px-4 lg:px-10 2xl:px-14 py-6 lg:py-10 max-w-[1600px] mx-auto">
       <div className="flex flex-wrap items-start justify-between gap-4 mb-6">
@@ -181,6 +204,32 @@ const Payments = () => {
         </TabsList>
 
         <TabsContent value="rent" className="mt-0">
+      {/* Em atraso (todos os meses) */}
+      {overdueAll.length > 0 && (
+        <Card className="p-4 mb-6 border-destructive/30 bg-destructive/5">
+          <div className="flex flex-wrap items-center gap-3">
+            <AlertTriangle className="h-5 w-5 text-destructive" strokeWidth={1.5} />
+            <div className="flex-1 min-w-[200px]">
+              <div className="font-display text-lg font-semibold text-destructive">Em atraso: {eur(overdueTotal)}</div>
+              <div className="text-xs text-muted-foreground">{overdueAll.length} {overdueAll.length === 1 ? "renda vencida" : "rendas vencidas"} por pagar, em todos os meses</div>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {overdueMonths.map((m) => (
+                <Button
+                  key={`${m.year}-${m.month}`}
+                  size="sm"
+                  variant="outline"
+                  className="rounded-full"
+                  onClick={() => { setYear(m.year); setMonth(m.month); setState("overdue"); }}
+                >
+                  {monthLabel(m.year, m.month)} · {m.count}
+                </Button>
+              ))}
+            </div>
+          </div>
+        </Card>
+      )}
+
       {/* Seletor de mês */}
 
       <div className="flex items-center gap-2 mb-6">
