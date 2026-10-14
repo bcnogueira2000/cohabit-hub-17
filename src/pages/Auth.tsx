@@ -141,10 +141,7 @@ const Auth = () => {
           </Button>
         </Card>
 
-        <div className="flex items-center justify-center gap-3 mt-5 text-xs">
-          <Link to="/submit" className="text-muted-foreground hover:text-foreground">És residente sem conta? Submeter pedido →</Link>
-        </div>
-        <div className="flex justify-center gap-2 pt-3 text-xs">
+        <div className="flex justify-center gap-2 pt-5 text-xs">
           <button onClick={() => setLang("pt")} className={lang === "pt" ? "font-semibold" : "text-muted-foreground"}>PT</button>
           <span className="text-muted-foreground">·</span>
           <button onClick={() => setLang("en")} className={lang === "en" ? "font-semibold" : "text-muted-foreground"}>EN</button>
