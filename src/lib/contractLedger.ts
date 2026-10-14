@@ -38,7 +38,8 @@ const r2 = (v: number) => Math.round(v * 100) / 100;
 /** Saldo positivo = o residente deve. Só rendas e pagamentos de renda ativos contam. */
 export const ledgerSummary = (entries: LedgerEntry[], today = new Date().toISOString().slice(0, 10)) => {
   const active = entries.filter((e) => e.status === "active");
-  const balance = r2(active.filter((e) => e.countsInBalance).reduce((s, e) => s + e.debit - e.credit, 0));
+  // Rendas futuras ainda não são dívida: o saldo atual só conta o que já venceu.
+  const balance = r2(active.filter((e) => e.countsInBalance && (e.debit === 0 || e.entryDate <= today)).reduce((s, e) => s + e.debit - e.credit, 0));
   const charges = active.filter((e) => e.source === "rent_charge");
   const open = charges.filter((e) => (e.outstanding ?? 0) > 0.005).sort((a, b) => a.entryDate.localeCompare(b.entryDate));
   const overdue = r2(open.filter((e) => e.entryDate < today).reduce((s, e) => s + (e.outstanding ?? 0), 0));
