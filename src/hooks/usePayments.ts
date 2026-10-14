@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { shortName } from "@/lib/shortName";
 import { supabase } from "@/integrations/supabase/client";
 
 export type PaymentState = "paid" | "partial" | "overdue" | "due";
@@ -775,7 +776,7 @@ export const useChargeableContracts = () =>
         .in("status", ["active", "reserved"]).order("code");
       if (error) throw error;
       return ((data ?? []) as any[]).map((c) => ({
-        id: c.id as string, label: `${c.resident?.full_name ?? "—"}${c.resident?.room?.number ? ` · Q${c.resident.room.number}` : ""}${c.code ? ` · ${c.code}` : ""}`,
+        id: c.id as string, label: `${c.resident?.full_name ? shortName(c.resident.full_name) : "—"}${c.resident?.room?.number ? ` · Q${c.resident.room.number}` : ""}${c.code ? ` · ${c.code}` : ""}`,
       }));
     },
   });
