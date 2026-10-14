@@ -1,6 +1,5 @@
 import { useMemo, useState } from "react";
-import { Download, FileText } from "lucide-react";
-import { Card } from "@/components/ui/card";
+import { CalendarDays, Check, Download, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -19,11 +18,11 @@ const eur = (v: number) => new Intl.NumberFormat("pt-PT", { style: "currency", c
 const fmtDate = (d: string) => new Date(d).toLocaleDateString("pt-PT", { day: "2-digit", month: "short", year: "numeric" });
 
 const Stat = ({ label, value, hint, tone }: { label: string; value: string; hint?: string; tone?: string }) => (
-  <Card className="p-4 border-border/60 shadow-card">
-    <span className="text-xs text-muted-foreground block">{label}</span>
-    <span className={cn("font-display text-xl font-semibold block mt-1", tone)}>{value}</span>
-    {hint && <span className="text-xs text-muted-foreground">{hint}</span>}
-  </Card>
+  <div className="rounded-2xl bg-muted/50 px-4 py-5 text-center">
+    <span className={cn("font-display text-2xl font-bold block", tone ?? "text-foreground")}>{value}</span>
+    <span className="text-xs text-muted-foreground block mt-1.5">{label}</span>
+    {hint && <span className="text-[11px] text-muted-foreground/80 block">{hint}</span>}
+  </div>
 );
 
 const PdfButton = ({ entry }: { entry: LedgerEntry }) => {
@@ -122,36 +121,79 @@ export const ContractLedger = ({ contractId, code }: { contractId: string; code?
     <div className="space-y-4">
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
         <Stat label="Saldo atual" value={eur(Math.abs(s.balance))} hint={balanceLabel(s.balance)} tone={balTone} />
-        <Stat label="Em atraso" value={eur(s.overdue)} tone={s.overdue > 0 ? "text-destructive" : undefined} />
-        <Stat label="Próximo pagamento" value={s.next ? eur(s.next.outstanding ?? 0) : "—"} hint={s.next ? fmtDate(s.next.entryDate) : "sem rendas futuras"} />
+        <Stat label="Em atraso" value={eur(s.overdue)} tone={s.overdue > 0 ? "text-destructive" : "text-muted-foreground"} />
+        <Stat label="Próximo pagamento" value={s.next ? eur(s.next.outstanding ?? 0) : "—"} hint={s.next ? fmtDate(s.next.entryDate) : "sem rendas futuras"} tone="text-warning" />
         <Stat label="Caução retida" value={eur(s.depositHeld)} />
-        <Stat label="Total pago (rendas)" value={eur(s.totalPaid)} />
+        <Stat label="Total pago" value={eur(s.totalPaid)} tone="text-success" />
       </div>
 
-      <Card className="p-5 border-border/60 shadow-card">
-        <h3 className="font-display text-lg font-semibold mb-3">A pagar ({s.open.length})</h3>
-        {s.open.length === 0 ? (
-          <p className="text-sm text-muted-foreground">Nenhuma renda por pagar.</p>
-        ) : (
-          <div className="space-y-2">
-            {s.open.map((e) => (
-              <div key={e.sourceId} className="flex flex-wrap items-center gap-3 rounded-xl border border-border/60 p-3">
-                <div className="flex-1 min-w-0">
-                  <div className="font-medium">{e.description}</div>
-                  <div className="text-xs text-muted-foreground">Vence {fmtDate(e.entryDate)}</div>
-                </div>
-                {e.paymentState && <PaymentStateBadge state={e.paymentState} />}
-                <span className="font-display font-semibold">{eur(e.outstanding ?? 0)}</span>
-                <Button size="sm" variant="outline" onClick={() => setPaying(e)}>Registar pagamento</Button>
-              </div>
-            ))}
+      <div className="grid lg:grid-cols-2 gap-4">
+        <div className="rounded-2xl border border-border/60 bg-card p-5">
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="flex items-center gap-2 font-display text-base font-semibold text-primary">
+              <CalendarDays className="h-4 w-4" strokeWidth={1.75} /> Próximos pagamentos
+            </h3>
+            {s.open.length > s.upcoming.length && (
+              <span className="text-xs text-muted-foreground">+{s.open.length - s.upcoming.length} rendas futuras no extrato</span>
+            )}
           </div>
-        )}
-      </Card>
+          {s.upcoming.length === 0 ? (
+            <p className="text-sm text-muted-foreground py-3">Nada por pagar. Está tudo em dia.</p>
+          ) : (
+            <div className="divide-y divide-border/60">
+              {s.upcoming.map((e) => {
+                const late = e.entryDate < today;
+                const canPay = e.sourceId === s.payableId;
+                return (
+                  <div key={e.sourceId} className="flex items-center gap-3 py-3">
+                    <div className="flex-1 min-w-0">
+                      <div className="font-medium">{e.description}</div>
+                      <div className={cn("text-xs", late ? "text-destructive" : "text-muted-foreground")}>
+                        {late ? `Venceu ${fmtDate(e.entryDate)}` : `Vence ${fmtDate(e.entryDate)}`}
+                        {e.paymentState === "partial" && " · parcial"}
+                      </div>
+                    </div>
+                    <span className="font-display text-lg font-bold text-primary">{eur(e.outstanding ?? 0)}</span>
+                    {canPay ? (
+                      <Button size="sm" variant="outline" className="rounded-full" onClick={() => setPaying(e)}>Registar</Button>
+                    ) : (
+                      <TooltipProvider><Tooltip><TooltipTrigger asChild>
+                        <span><Button size="sm" variant="outline" className="rounded-full" disabled>Registar</Button></span>
+                      </TooltipTrigger><TooltipContent>Regista primeiro a renda mais antiga em aberto</TooltipContent></Tooltip></TooltipProvider>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
 
-      <Card className="p-5 border-border/60 shadow-card">
+        <div className="rounded-2xl border border-border/60 bg-card p-5">
+          <h3 className="font-display text-base font-semibold mb-2">Pagamentos recentes</h3>
+          {s.recent.length === 0 ? (
+            <p className="text-sm text-muted-foreground py-3">Ainda sem pagamentos de renda.</p>
+          ) : (
+            <div className="divide-y divide-border/60">
+              {s.recent.map((e) => (
+                <div key={e.sourceId} className="flex items-center gap-3 py-3">
+                  <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-success/10 text-success">
+                    <Check className="h-4 w-4" strokeWidth={2} />
+                  </span>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm">{e.description} · {eur(e.credit)}</div>
+                    <div className="text-xs text-muted-foreground">{fmtDate(e.entryDate)}</div>
+                  </div>
+                  <span className="rounded-full bg-success/10 text-success text-xs font-medium px-2.5 py-0.5">Pago</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="rounded-2xl border border-border/60 bg-card p-5">
         <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
-          <h3 className="font-display text-lg font-semibold">Extrato</h3>
+          <h3 className="font-display text-base font-semibold">Extrato</h3>
           <div className="flex flex-wrap items-center gap-3">
             <Select value={kind} onValueChange={setKind}>
               <SelectTrigger className="w-48 h-9"><SelectValue /></SelectTrigger>
@@ -207,7 +249,7 @@ export const ContractLedger = ({ contractId, code }: { contractId: string; code?
             </table>
           </div>
         )}
-      </Card>
+      </div>
 
       <PayDialog contractId={contractId} charge={paying} onClose={() => setPaying(null)} />
     </div>
