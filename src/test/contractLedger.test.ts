@@ -43,3 +43,26 @@ describe("ledgerSummary", () => {
     expect(balanceLabel(-5)).toBe("crédito a favor");
   });
 });
+
+describe("serviços extra na conta corrente", () => {
+  const base = { contractId: "c", countsInBalance: true, status: "active" as const, runningBalance: 0, paid: 0, method: null, reference: null,
+    moloniDocumentNumber: null, voidedAt: null, voidedByName: null, voidReason: null, rentChargeId: null };
+  const today = "2026-10-14";
+  const rentOld = { ...base, entryDate: "2026-10-01", kind: "rent", source: "rent_charge" as const, sourceId: "r1", description: "R", debit: 500, credit: 0, paymentState: "overdue" as const, outstanding: 500 };
+  const extra = { ...base, entryDate: "2026-10-10", kind: "extra", source: "extra_charge" as const, sourceId: "e1", description: "Kit", debit: 30, credit: 0, paymentState: "overdue" as const, outstanding: 30 };
+  const extraVoid = { ...extra, sourceId: "e2", status: "voided" as const, countsInBalance: false };
+
+  it("extra pendente soma ao saldo e o anulado não", () => {
+    expect(ledgerSummary([rentOld, extra, extraVoid], today).balance).toBe(530);
+  });
+  it("extra pode ser pago mesmo com renda mais antiga em aberto", () => {
+    const s = ledgerSummary([rentOld, extra], today);
+    expect(s.canPay(extra)).toBe(true);
+    expect(s.payableId).toBe("r1");
+    expect(s.upcoming.map((e) => e.sourceId)).toContain("e1");
+  });
+  it("pagamento de extra conta no total pago", () => {
+    const p = { ...base, entryDate: "2026-10-11", kind: "extra_payment", source: "payment" as const, sourceId: "p1", description: "P", debit: 0, credit: 30, paymentState: null, outstanding: null };
+    expect(ledgerSummary([extra, p], today).totalPaid).toBe(30);
+  });
+});

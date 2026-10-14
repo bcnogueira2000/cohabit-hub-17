@@ -10,7 +10,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { PaymentStateBadge } from "@/components/payments/PaymentStateBadge";
-import { useContractLedger, useCreatePayment, paymentMethodLabels, type PaymentMethod } from "@/hooks/usePayments";
+import { useContractLedger, useCreatePayment, useCreateExtraPayment, paymentMethodLabels, type PaymentMethod } from "@/hooks/usePayments";
 import { useMoloniDocumentPdf } from "@/hooks/useMoloni";
 import { balanceLabel, ledgerKindLabels, ledgerSummary, type LedgerEntry } from "@/lib/contractLedger";
 
@@ -49,6 +49,7 @@ const PdfButton = ({ entry }: { entry: LedgerEntry }) => {
 
 const PayDialog = ({ contractId, charge, onClose }: { contractId: string; charge: LedgerEntry | null; onClose: () => void }) => {
   const create = useCreatePayment();
+  const createExtra = useCreateExtraPayment();
   const submit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!charge) return;
@@ -56,11 +57,9 @@ const PayDialog = ({ contractId, charge, onClose }: { contractId: string; charge
     const amount = Number(fd.get("amount"));
     if (!amount || amount <= 0) return toast.error("Indica o valor");
     try {
-      await create.mutateAsync({
-        contractId, rentChargeId: charge.sourceId, amount,
-        paidAt: String(fd.get("paidAt")), method: String(fd.get("method")) as PaymentMethod,
-        reference: String(fd.get("reference") || ""),
-      });
+      const base = { contractId, amount, paidAt: String(fd.get("paidAt")), method: String(fd.get("method")) as PaymentMethod, reference: String(fd.get("reference") || "") };
+      if (charge.source === "extra_charge") await createExtra.mutateAsync({ ...base, extraChargeId: charge.sourceId });
+      else await create.mutateAsync({ ...base, rentChargeId: charge.sourceId });
       toast.success("Pagamento registado");
       onClose();
     } catch (err: any) {
@@ -143,7 +142,7 @@ export const ContractLedger = ({ contractId, code }: { contractId: string; code?
             <div className="divide-y divide-border/60">
               {s.upcoming.map((e) => {
                 const late = e.entryDate < today;
-                const canPay = e.sourceId === s.payableId;
+                const canPay = s.canPay(e);
                 return (
                   <div key={e.sourceId} className="flex items-center gap-3 py-3">
                     <div className="flex-1 min-w-0">
@@ -171,7 +170,7 @@ export const ContractLedger = ({ contractId, code }: { contractId: string; code?
         <div className="rounded-2xl border border-border/60 bg-card p-5">
           <h3 className="font-display text-base font-semibold mb-2">Pagamentos recentes</h3>
           {s.recent.length === 0 ? (
-            <p className="text-sm text-muted-foreground py-3">Ainda sem pagamentos de renda.</p>
+            <p className="text-sm text-muted-foreground py-3">Ainda sem pagamentos.</p>
           ) : (
             <div className="divide-y divide-border/60">
               {s.recent.map((e) => (
@@ -239,7 +238,7 @@ export const ContractLedger = ({ contractId, code }: { contractId: string; code?
                       <td className="pr-3 text-right whitespace-nowrap font-medium">{e.countsInBalance ? eur(e.runningBalance) : ""}</td>
                       <td className="pr-3">
                         {voided ? <span className="text-xs text-destructive">Anulado</span>
-                          : e.source === "rent_charge" && e.paymentState ? <PaymentStateBadge state={e.paymentState} /> : null}
+                          : (e.source === "rent_charge" || e.source === "extra_charge") && e.paymentState ? <PaymentStateBadge state={e.paymentState} /> : null}
                       </td>
                       <td>{(e.kind === "rent" || e.kind === "rent_payment") && <PdfButton entry={e} />}</td>
                     </tr>

@@ -27,6 +27,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sh
 import { toast } from "@/hooks/use-toast";
 import { PaymentStateBadge } from "@/components/payments/PaymentStateBadge";
 import { PaymentEntry } from "@/components/payments/PaymentEntry";
+import { OtherIncomeSection } from "@/components/payments/OtherIncomeSection";
 import {
   paymentMethodLabels,
   paymentStateLabels,
@@ -176,6 +177,7 @@ const Payments = () => {
           <TabsTrigger value="rent" className="rounded-full">Rendas</TabsTrigger>
           <TabsTrigger value="deposits" className="rounded-full">Cauções</TabsTrigger>
           <TabsTrigger value="reservation" className="rounded-full">Taxa de Reserva</TabsTrigger>
+          <TabsTrigger value="other" className="rounded-full">Outras receitas</TabsTrigger>
         </TabsList>
 
         <TabsContent value="rent" className="mt-0">
@@ -354,6 +356,10 @@ const Payments = () => {
 
         <TabsContent value="reservation" className="mt-0">
           <ReservationFeesSection />
+        </TabsContent>
+
+        <TabsContent value="other" className="mt-0">
+          <OtherIncomeSection />
         </TabsContent>
       </Tabs>
 

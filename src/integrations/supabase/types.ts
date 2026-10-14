@@ -404,6 +404,116 @@ export type Database = {
           },
         ]
       }
+      extra_charges: {
+        Row: {
+          amount: number | null
+          contract_id: string
+          created_at: string
+          created_by: string | null
+          created_by_name: string | null
+          custom_name: string | null
+          description: string | null
+          due_date: string
+          id: string
+          moloni_document_id: number | null
+          moloni_document_number: string | null
+          notes: string | null
+          quantity: number
+          request_id: string | null
+          resident_id: string | null
+          service_id: string | null
+          status: string
+          unit_label: string | null
+          unit_price: number
+          vat_rate: number | null
+          void_reason: string | null
+          voided_at: string | null
+          voided_by: string | null
+          voided_by_name: string | null
+        }
+        Insert: {
+          amount?: number | null
+          contract_id: string
+          created_at?: string
+          created_by?: string | null
+          created_by_name?: string | null
+          custom_name?: string | null
+          description?: string | null
+          due_date: string
+          id?: string
+          moloni_document_id?: number | null
+          moloni_document_number?: string | null
+          notes?: string | null
+          quantity?: number
+          request_id?: string | null
+          resident_id?: string | null
+          service_id?: string | null
+          status?: string
+          unit_label?: string | null
+          unit_price?: number
+          vat_rate?: number | null
+          void_reason?: string | null
+          voided_at?: string | null
+          voided_by?: string | null
+          voided_by_name?: string | null
+        }
+        Update: {
+          amount?: number | null
+          contract_id?: string
+          created_at?: string
+          created_by?: string | null
+          created_by_name?: string | null
+          custom_name?: string | null
+          description?: string | null
+          due_date?: string
+          id?: string
+          moloni_document_id?: number | null
+          moloni_document_number?: string | null
+          notes?: string | null
+          quantity?: number
+          request_id?: string | null
+          resident_id?: string | null
+          service_id?: string | null
+          status?: string
+          unit_label?: string | null
+          unit_price?: number
+          vat_rate?: number | null
+          void_reason?: string | null
+          voided_at?: string | null
+          voided_by?: string | null
+          voided_by_name?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "extra_charges_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "contract_balance"
+            referencedColumns: ["contract_id"]
+          },
+          {
+            foreignKeyName: "extra_charges_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "contracts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "extra_charges_resident_id_fkey"
+            columns: ["resident_id"]
+            isOneToOne: false
+            referencedRelation: "residents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "extra_charges_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "service_catalog"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lead_activity: {
         Row: {
           actor_name: string | null
@@ -1020,6 +1130,7 @@ export type Database = {
           amount: number
           contract_id: string | null
           created_at: string
+          extra_charge_id: string | null
           id: string
           kind: Database["public"]["Enums"]["payment_kind"]
           lead_id: string | null
@@ -1039,6 +1150,7 @@ export type Database = {
           amount: number
           contract_id?: string | null
           created_at?: string
+          extra_charge_id?: string | null
           id?: string
           kind?: Database["public"]["Enums"]["payment_kind"]
           lead_id?: string | null
@@ -1058,6 +1170,7 @@ export type Database = {
           amount?: number
           contract_id?: string | null
           created_at?: string
+          extra_charge_id?: string | null
           id?: string
           kind?: Database["public"]["Enums"]["payment_kind"]
           lead_id?: string | null
@@ -1086,6 +1199,20 @@ export type Database = {
             columns: ["contract_id"]
             isOneToOne: false
             referencedRelation: "contracts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payments_extra_charge_id_fkey"
+            columns: ["extra_charge_id"]
+            isOneToOne: false
+            referencedRelation: "extra_charge_balance"
+            referencedColumns: ["extra_charge_id"]
+          },
+          {
+            foreignKeyName: "payments_extra_charge_id_fkey"
+            columns: ["extra_charge_id"]
+            isOneToOne: false
+            referencedRelation: "extra_charges"
             referencedColumns: ["id"]
           },
           {
@@ -1677,6 +1804,48 @@ export type Database = {
           },
         ]
       }
+      service_catalog: {
+        Row: {
+          active: boolean
+          code: string
+          created_at: string
+          default_price: number
+          description: string | null
+          id: string
+          name: string
+          sort_order: number
+          unit_label: string
+          updated_at: string
+          vat_rate: number | null
+        }
+        Insert: {
+          active?: boolean
+          code: string
+          created_at?: string
+          default_price?: number
+          description?: string | null
+          id?: string
+          name: string
+          sort_order?: number
+          unit_label?: string
+          updated_at?: string
+          vat_rate?: number | null
+        }
+        Update: {
+          active?: boolean
+          code?: string
+          created_at?: string
+          default_price?: number
+          description?: string | null
+          id?: string
+          name?: string
+          sort_order?: number
+          unit_label?: string
+          updated_at?: string
+          vat_rate?: number | null
+        }
+        Relationships: []
+      }
       stays: {
         Row: {
           check_in: string
@@ -1878,6 +2047,7 @@ export type Database = {
           debit: number | null
           description: string | null
           entry_date: string | null
+          extra_charge_id: string | null
           kind: string | null
           method: string | null
           moloni_document_id: number | null
@@ -1895,6 +2065,16 @@ export type Database = {
           void_reason: string | null
           voided_at: string | null
           voided_by_name: string | null
+        }
+        Relationships: []
+      }
+      extra_charge_balance: {
+        Row: {
+          amount: number | null
+          extra_charge_id: string | null
+          outstanding: number | null
+          paid: number | null
+          payment_state: string | null
         }
         Relationships: []
       }
@@ -1942,6 +2122,23 @@ export type Database = {
         Returns: Record<string, unknown>
       }
       compute_short_name: { Args: { p_full_name: string }; Returns: string }
+      create_extra_charge: {
+        Args: {
+          p_contract_id: string
+          p_custom_name: string
+          p_description: string
+          p_due_date: string
+          p_method: Database["public"]["Enums"]["payment_method"]
+          p_notes: string
+          p_paid_at: string
+          p_pay_now: boolean
+          p_quantity: number
+          p_reference: string
+          p_service_id: string
+          p_unit_price: number
+        }
+        Returns: string
+      }
       current_resident_id: { Args: never; Returns: string }
       evaluate_lead_won: { Args: { p_lead_id: string }; Returns: boolean }
       generate_cleaning_instances: {
@@ -2078,6 +2275,10 @@ export type Database = {
         Returns: string
       }
       validate_lead_documents: { Args: { p_lead_id: string }; Returns: string }
+      void_extra_charge: {
+        Args: { p_id: string; p_reason: string }
+        Returns: undefined
+      }
       void_payment: {
         Args: { p_payment_id: string; p_reason: string }
         Returns: undefined
