@@ -162,23 +162,9 @@ export const useApproveProfile = () => {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (input: { userId: string; residentId: string }) => {
-      // 1. Link resident to user
-      const { error: resErr } = await supabase
-        .from("residents")
-        .update({ user_id: input.userId } as any)
-        .eq("id", input.residentId);
-      if (resErr) throw resErr;
-      // 2. Update profile
-      const { error: profErr } = await supabase
-        .from("profiles" as any)
-        .update({ account_status: "active", resident_id: input.residentId } as any)
-        .eq("user_id", input.userId);
-      if (profErr) throw profErr;
-      // 3. Insert role
-      const { error: roleErr } = await supabase
-        .from("user_roles" as any)
-        .insert({ user_id: input.userId, role: "resident" } as any);
-      if (roleErr && !String(roleErr.message).includes("duplicate")) throw roleErr;
+      // Liga residente, ativa a conta e dá o papel de residente numa só operação segura.
+      const { error } = await supabase.rpc("approve_profile" as any, { p_user_id: input.userId, p_resident_id: input.residentId });
+      if (error) throw new Error(error.message);
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["pending_profiles"] });

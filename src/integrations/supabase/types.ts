@@ -2112,6 +2112,10 @@ export type Database = {
       }
     }
     Functions: {
+      approve_profile: {
+        Args: { p_resident_id: string; p_user_id: string }
+        Returns: undefined
+      }
       cancel_room_reservation: { Args: { p_lead_id: string }; Returns: string }
       compensation_months: {
         Args: { p_end: string; p_start: string }
