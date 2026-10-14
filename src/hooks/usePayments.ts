@@ -656,7 +656,7 @@ export const useContractLedger = (contractId: string | undefined) =>
 
 // ============ Outras receitas (serviços extra) ============
 
-export interface ServiceItem { id: string; code: string; name: string; defaultPrice: number; unitLabel: string; active: boolean }
+export interface ServiceItem { id: string; code: string; name: string; defaultPrice: number; unitLabel: string; active: boolean; description: string | null }
 
 export const useServiceCatalog = () =>
   useQuery({
@@ -664,7 +664,7 @@ export const useServiceCatalog = () =>
     queryFn: async () => {
       const { data, error } = await supabase.from("service_catalog" as any).select("*").order("sort_order");
       if (error) throw error;
-      return ((data ?? []) as any[]).map((r) => ({ id: r.id, code: r.code, name: r.name, defaultPrice: Number(r.default_price ?? 0), unitLabel: r.unit_label, active: r.active })) as ServiceItem[];
+      return ((data ?? []) as any[]).map((r) => ({ id: r.id, code: r.code, name: r.name, defaultPrice: Number(r.default_price ?? 0), unitLabel: r.unit_label, active: r.active, description: r.description })) as ServiceItem[];
     },
   });
 
