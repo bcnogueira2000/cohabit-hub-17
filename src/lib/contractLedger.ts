@@ -46,7 +46,11 @@ export const ledgerSummary = (entries: LedgerEntry[], today = new Date().toISOSt
   const depositIn = active.filter((e) => e.kind === "deposit").reduce((s, e) => s + e.credit, 0);
   const depositOut = active.filter((e) => e.kind === "deposit_return").reduce((s, e) => s + e.debit, 0);
   const totalPaid = r2(active.filter((e) => e.kind === "rent_payment").reduce((s, e) => s + e.credit, 0));
-  return { balance, overdue, next, open, depositHeld: r2(depositIn - depositOut), totalPaid };
+  // Mostram-se só as rendas vencidas e a próxima; só a mais antiga em aberto pode ser paga.
+  const upcoming = open.filter((e) => e.entryDate < today || e === next);
+  const payableId = open[0]?.sourceId ?? null;
+  const recent = active.filter((e) => e.kind === "rent_payment").sort((a, b) => b.entryDate.localeCompare(a.entryDate)).slice(0, 3);
+  return { balance, overdue, next, open, upcoming, payableId, recent, depositHeld: r2(depositIn - depositOut), totalPaid };
 };
 
 export const balanceLabel = (balance: number) =>

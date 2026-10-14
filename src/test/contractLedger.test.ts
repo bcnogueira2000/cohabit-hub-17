@@ -32,6 +32,11 @@ describe("ledgerSummary", () => {
   it("caução retida = recebida - devolvida", () => {
     expect(ledgerSummary([...entries, pay("x", "deposit_return", 0, 300)]).depositHeld).toBe(550);
   });
+  it("a pagar mostra vencidas + próxima e só a mais antiga é pagável", () => {
+    const m = ledgerSummary([rent("a", "2026-10-01", 850, 850), rent("b", "2026-11-01", 850, 850), rent("c", "2026-12-01", 850, 850)], "2026-10-15");
+    expect(m.upcoming.map((e) => e.sourceId)).toEqual(["a", "b"]);
+    expect(m.payableId).toBe("a");
+  });
   it("etiqueta do saldo", () => {
     expect(balanceLabel(10)).toBe("por regularizar");
     expect(balanceLabel(0)).toBe("em dia");
