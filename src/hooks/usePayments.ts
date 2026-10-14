@@ -680,7 +680,7 @@ export const useExtraCharges = () =>
     queryFn: async () => {
       const [{ data, error }, { data: bal, error: e2 }] = await Promise.all([
         supabase.from("extra_charges" as any)
-          .select("*, service:service_catalog(name), contract:contracts(code, resident:residents(full_name, short_name, room:rooms(number)))")
+          .select("*, service:service_catalog(name), contract:contracts(code, resident:residents(full_name, short_name, room:rooms!residents_room_id_fkey(number)))")
           .order("due_date", { ascending: false }),
         supabase.from("extra_charge_balance" as any).select("*"),
       ]);
@@ -771,7 +771,7 @@ export const useChargeableContracts = () =>
     queryKey: ["chargeable-contracts"],
     queryFn: async () => {
       const { data, error } = await supabase.from("contracts" as any)
-        .select("id, code, status, resident:residents(full_name, room:rooms(number))")
+        .select("id, code, status, resident:residents(full_name, room:rooms!residents_room_id_fkey(number))")
         .in("status", ["active", "reserved"]).order("code");
       if (error) throw error;
       return ((data ?? []) as any[]).map((c) => ({
