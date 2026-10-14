@@ -20,7 +20,6 @@ import Dashboard from "./pages/Dashboard";
 import Requests from "./pages/Requests";
 import RequestDetail from "./pages/RequestDetail";
 import NewRequest from "./pages/NewRequest";
-import PublicRequest from "./pages/PublicRequest";
 import CandidateForm from "./pages/CandidateForm";
 import CandidateDocuments from "./pages/CandidateDocuments";
 import Cleaning from "./pages/Cleaning";
@@ -68,7 +67,6 @@ const App = () => (
           <Routes>
             <Route path="/auth" element={<Auth />} />
             <Route path="/reset-password" element={<ResetPassword />} />
-            <Route path="/submit" element={<PublicRequest />} />
             <Route path="/candidatura/:token" element={<CandidateForm />} />
             <Route path="/candidatura/:token/documentos" element={<CandidateDocuments />} />
 

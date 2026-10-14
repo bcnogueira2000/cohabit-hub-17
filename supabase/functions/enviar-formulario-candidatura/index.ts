@@ -6,8 +6,9 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
-const FORM_BASE_URL =
-  Deno.env.get("CANDIDATE_FORM_BASE_URL") ?? "https://SEU_DOMINIO";
+const FORM_BASE_URL = (Deno.env.get("CANDIDATE_FORM_BASE_URL") ?? "").trim().replace(/\/+$/, "");
+const esc = (s: string) =>
+  String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
 const FROM_EMAIL = "Living Colours <reservas@livingcolours.pt>";
 
 const json = (body: unknown, status = 200) =>
@@ -33,6 +34,9 @@ Deno.serve(async (req) => {
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
     const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
     const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    if (!FORM_BASE_URL) {
+      return json({ error: "CANDIDATE_FORM_BASE_URL não está configurada" }, 500);
+    }
     const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
     if (!RESEND_API_KEY) {
       return json({ error: "RESEND_API_KEY não está configurada" }, 500);
@@ -84,7 +88,7 @@ Deno.serve(async (req) => {
     if (!token) return json({ error: "Não foi possível gerar o link" }, 500);
 
     const link = `${FORM_BASE_URL}/candidatura/${token}`;
-    const firstName = (lead.short_name || lead.full_name || "").split(" ")[0] || "";
+    const firstName = esc((lead.short_name || lead.full_name || "").split(" ")[0] || "");
     const isEN = String(lead.language ?? "").trim().toLowerCase() === "en";
 
     const copy = isEN
@@ -115,8 +119,8 @@ Deno.serve(async (req) => {
       <div style="font-family: Arial, Helvetica, sans-serif; font-size: 15px; color: #1f2937; line-height: 1.6;">
         <p>${copy.greeting}</p>
         <p>${copy.intro}</p>
-        <p><a href="${link}" style="display:inline-block;padding:12px 20px;background:#1f6f6b;color:#ffffff;border-radius:9999px;text-decoration:none;">${copy.cta}</a></p>
-        <p style="font-size:13px;color:#6b7280;">${copy.fallback}<br />${link}</p>
+        <p><a href="${esc(link)}" style="display:inline-block;padding:12px 20px;background:#1f6f6b;color:#ffffff;border-radius:9999px;text-decoration:none;">${copy.cta}</a></p>
+        <p style="font-size:13px;color:#6b7280;">${copy.fallback}<br />${esc(link)}</p>
         <p style="font-size:13px;color:#6b7280;">${copy.validity}</p>
         <p>${copy.signoff}</p>
       </div>

@@ -1,7 +1,4 @@
 project_id = "rjwyxssxbknyhsnnirhq"
 
-[functions.upload-lead-document]
-verify_jwt = false
-
 [functions.notificar-formulario-preenchido]
 verify_jwt = false

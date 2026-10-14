@@ -1,7 +1,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.4";
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 
-const FORM_BASE_URL = Deno.env.get("CANDIDATE_FORM_BASE_URL") ?? "https://cohabit-hub-17.lovable.app";
+const FORM_BASE_URL = (Deno.env.get("CANDIDATE_FORM_BASE_URL") ?? "").trim().replace(/\/+$/, "");
 const FROM_EMAIL = "Living Colours <reservas@livingcolours.pt>";
 const KINDS = ["id_document", "iban_proof", "enrollment_or_work_proof", "other"];
 
@@ -38,6 +38,7 @@ Deno.serve(async (req) => {
     const authHeader = req.headers.get("Authorization");
     if (!authHeader?.startsWith("Bearer ")) return json({ error: "Unauthorized" }, 401);
 
+    if (!FORM_BASE_URL) return json({ error: "CANDIDATE_FORM_BASE_URL não está configurada" }, 500);
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
     const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
     if (!RESEND_API_KEY) return json({ error: "RESEND_API_KEY não está configurada" }, 500);
@@ -90,7 +91,7 @@ Deno.serve(async (req) => {
     if (upErr) return json({ error: upErr.message }, 500);
 
     const isEN = String(lead.language ?? "").trim().toLowerCase() === "en";
-    const firstName = (lead.short_name || lead.full_name || "").split(" ")[0] || "";
+    const firstName = esc((lead.short_name || lead.full_name || "").split(" ")[0] || "");
     const link = `${FORM_BASE_URL}/candidatura/${token}/documentos`;
     const list = items.map((k) => `<li>${esc(kindLabel(k, lead.profile ?? "", isEN))}</li>`).join("");
     const c = isEN
@@ -103,8 +104,8 @@ Deno.serve(async (req) => {
         <p>${c.intro}</p>
         <ul style="padding-left:18px;">${list}</ul>
         ${message ? `<p><strong>${c.msg}</strong><br />${esc(message)}</p>` : ""}
-        <p><a href="${link}" style="display:inline-block;padding:12px 20px;background:#1f6f6b;color:#ffffff;border-radius:9999px;text-decoration:none;">${c.cta}</a></p>
-        <p style="font-size:13px;color:#6b7280;">${c.fb}<br />${link}</p>
+        <p><a href="${esc(link)}" style="display:inline-block;padding:12px 20px;background:#1f6f6b;color:#ffffff;border-radius:9999px;text-decoration:none;">${c.cta}</a></p>
+        <p style="font-size:13px;color:#6b7280;">${c.fb}<br />${esc(link)}</p>
         <p style="font-size:13px;color:#6b7280;">${c.val}</p>
         <p>${c.bye}</p>
       </div>`;
