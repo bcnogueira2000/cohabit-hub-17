@@ -552,16 +552,58 @@ export const useRequestLeadDocuments = () => {
 };
 
 /** Marca os documentos da lead como validados. */
-export const useValidateLeadDocuments = () => {
+export type LeadDocsStatusInfo = {
+  status: import("@/lib/leadDocsValidation").LeadDocsStatus;
+  docCount: number;
+  validatedAt: string | null;
+  validatedByName: string | null;
+};
+
+/** Estado dos documentos (regra única em lead_docs_status). */
+export const useLeadDocsStatus = (leadId: string | null, enabled = true) =>
+  useQuery({
+    queryKey: ["lead_docs_status", leadId],
+    enabled: !!leadId && enabled,
+    queryFn: async (): Promise<LeadDocsStatusInfo> => {
+      const { data, error } = await supabase.rpc("lead_docs_status" as any, { p_lead_id: leadId });
+      if (error) throw new Error(error.message);
+      const d: any = data ?? {};
+      return {
+        status: d.status ?? "none",
+        docCount: Number(d.doc_count ?? 0),
+        validatedAt: d.validated_at ?? null,
+        validatedByName: d.validated_by_name ?? null,
+      };
+    },
+  });
+
+const useDocsValidationRpc = (fn: "validate_lead_docs" | "unvalidate_lead_docs") => {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (leadId: string) => {
-      const { error } = await supabase.rpc("validate_lead_documents" as any, { p_lead_id: leadId });
+      const { error } = await supabase.rpc(fn as any, { p_lead_id: leadId });
       if (error) throw new Error(error.message);
     },
-    onSuccess: () => {
+    onSuccess: (_d, leadId) => {
       qc.invalidateQueries({ queryKey: ["leads"] });
       qc.invalidateQueries({ queryKey: ["lead_activity"] });
+      qc.invalidateQueries({ queryKey: ["lead_docs_status", leadId] });
     },
   });
+};
+
+export const useValidateLeadDocuments = () => useDocsValidationRpc("validate_lead_docs");
+export const useUnvalidateLeadDocuments = () => useDocsValidationRpc("unvalidate_lead_docs");
+
+/** Regista que se gerou acordo/contrato sem documentos validados. */
+export const logGeneratedWithoutValidatedDocs = async (leadId: string, docType: "reservation" | "contract") => {
+  const { data: { user } } = await supabase.auth.getUser();
+  const { data: prof } = await supabase.from("profiles").select("full_name").eq("user_id", user?.id ?? "").maybeSingle();
+  await supabase.from("lead_activity" as any).insert({
+    lead_id: leadId,
+    actor_user_id: user?.id ?? null,
+    actor_name: (prof as any)?.full_name ?? null,
+    kind: "generated_without_validated_docs",
+    payload: { doc_type: docType },
+  } as any);
 };
