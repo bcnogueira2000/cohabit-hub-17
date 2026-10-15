@@ -24,6 +24,7 @@ import { useRooms } from "@/hooks/useData";
 import { supabase } from "@/integrations/supabase/client";
 import { useAppSettings } from "@/hooks/useAppSettings";
 import { PendingAgreementWarning } from "@/components/leads/PendingAgreementWarning";
+import { useUnvalidatedDocsGuard } from "@/components/leads/UnvalidatedDocsGuard";
 import {
   CandidateDataSection,
   candidateDataFromLead,
@@ -71,6 +72,7 @@ export const ReservationAgreementDialog = ({ lead, open, onOpenChange }: Props) 
   const [reason, setReason] = useState("");
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [busy, setBusy] = useState(false);
+  const docsGuard = useUnvalidatedDocsGuard(lead, open, "reservation");
 
   useEffect(() => {
     if (!open) return;
@@ -170,6 +172,10 @@ export const ReservationAgreementDialog = ({ lead, open, onOpenChange }: Props) 
       return toast.error("Indica um valor de taxa de reserva válido (ou marca 'Sem taxa de reserva').");
     if (!candidate.address.trim() || !candidate.documentNumber.trim() || !candidate.documentValidity || !candidate.taxNumber.trim())
       return toast.error("Preenche morada, documento de identificação, validade e NIF.");
+    docsGuard.guard(() => doGenerate(feeNumber));
+  };
+
+  const doGenerate = async (feeNumber: number) => {
     setBusy(true);
     try {
       await saveLead({
@@ -216,6 +222,7 @@ export const ReservationAgreementDialog = ({ lead, open, onOpenChange }: Props) 
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-1">
+            {docsGuard.warning}
             <div className="grid grid-cols-2 gap-3">
               <Field label="Entrada" type="date" value={checkIn} onChange={(e) => setCheckIn(e.target.value)} />
               <Field label="Saída" type="date" value={checkOut} onChange={(e) => setCheckOut(e.target.value)} />
@@ -330,6 +337,7 @@ export const ReservationAgreementDialog = ({ lead, open, onOpenChange }: Props) 
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      {docsGuard.dialog}
     </>
   );
 };
