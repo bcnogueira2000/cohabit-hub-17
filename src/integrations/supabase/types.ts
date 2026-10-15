@@ -645,6 +645,7 @@ export type Database = {
           docs_requested_at: string | null
           docs_review_email_sent_at: string | null
           docs_validated_at: string | null
+          docs_validated_by: string | null
           document_number: string | null
           document_type: string | null
           document_validity: string | null
@@ -722,6 +723,7 @@ export type Database = {
           docs_requested_at?: string | null
           docs_review_email_sent_at?: string | null
           docs_validated_at?: string | null
+          docs_validated_by?: string | null
           document_number?: string | null
           document_type?: string | null
           document_validity?: string | null
@@ -799,6 +801,7 @@ export type Database = {
           docs_requested_at?: string | null
           docs_review_email_sent_at?: string | null
           docs_validated_at?: string | null
+          docs_validated_by?: string | null
           document_number?: string | null
           document_type?: string | null
           document_validity?: string | null
@@ -2277,6 +2280,7 @@ export type Database = {
         Returns: boolean
       }
       is_staff: { Args: { _user_id: string }; Returns: boolean }
+      lead_docs_status: { Args: { p_lead_id: string }; Returns: Json }
       lead_id_for_form_token: { Args: { p_token: string }; Returns: string }
       list_staff_users: {
         Args: never
@@ -2343,6 +2347,8 @@ export type Database = {
         Args: { p_data: Json; p_token: string }
         Returns: string
       }
+      unvalidate_lead_docs: { Args: { p_lead_id: string }; Returns: undefined }
+      validate_lead_docs: { Args: { p_lead_id: string }; Returns: string }
       validate_lead_documents: { Args: { p_lead_id: string }; Returns: string }
       void_extra_charge: {
         Args: { p_id: string; p_reason: string }
