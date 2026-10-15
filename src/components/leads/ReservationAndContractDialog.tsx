@@ -264,6 +264,7 @@ export const ReservationAndContractDialog = ({ lead, open, onOpenChange }: Props
           </Button>
         </DialogFooter>
       </DialogContent>
+      {docsGuard.dialog}
     </Dialog>
   );
 };

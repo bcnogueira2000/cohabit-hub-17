@@ -12,6 +12,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { generateContractDocxFromLead } from "@/lib/generateContractDocxFromLead";
 import type { Lead } from "@/hooks/useLeads";
 import { missingPersonalFields } from "@/lib/leadContractRules";
+import { useUnvalidatedDocsGuard } from "@/components/leads/UnvalidatedDocsGuard";
 
 const PROFILES = ["Estudante", "Profissional", "Nómada digital", "Outro"];
 const PROFILE_CODES: Record<string, string> = {
@@ -38,6 +39,7 @@ type Props = {
 export const LeadContractDialog = ({ lead, open, onOpenChange }: Props) => {
   const qc = useQueryClient();
   const [busy, setBusy] = useState(false);
+  const docsGuard = useUnvalidatedDocsGuard(lead, open, "contract");
   const [doc, setDoc] = useState<{ fileName: string; signedUrl: string } | null>(null);
 
   const [monthlyAmount, setMonthlyAmount] = useState("");
@@ -138,7 +140,7 @@ export const LeadContractDialog = ({ lead, open, onOpenChange }: Props) => {
       toast.error(`Faltam dados pessoais: ${missing.join(", ")}.`);
       return;
     }
-    doGenerate();
+    docsGuard.guard(doGenerate);
   };
 
   const doGenerate = async () => {
@@ -200,6 +202,7 @@ export const LeadContractDialog = ({ lead, open, onOpenChange }: Props) => {
         </DialogHeader>
 
         <div className="space-y-3">
+          {docsGuard.warning}
           {stayDates ? (
             <p className="text-xs text-muted-foreground">
               Quarto {stayDates.roomNumber || "—"} · {stayDates.checkIn} a {stayDates.checkOut}
