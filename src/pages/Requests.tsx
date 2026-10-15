@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { Plus, Search, Filter } from "lucide-react";
+import { Plus, Search, Filter, User } from "lucide-react";
+import { shortName } from "@/lib/shortName";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -19,6 +20,13 @@ const statusFilters: { value: RequestStatus | "all"; label: string }[] = [
   { value: "resolved", label: "Resolvidos" },
 ];
 
+const priorityBorder: Record<string, string> = {
+  urgent: "border-l-destructive",
+  high: "border-l-destructive/70",
+  medium: "border-l-warning",
+  low: "border-l-primary",
+};
+
 const Requests = () => {
   const { data: requests = [] } = useRequests();
   const { data: residents = [] } = useResidents();
@@ -33,16 +41,39 @@ const Requests = () => {
     return matchesFilter && matchesSearch;
   }), [requests, filter, search]);
 
+  const stats = useMemo(() => {
+    const open = requests.filter((r) => r.status === "open").length;
+    const inProgress = requests.filter((r) => ["in_progress", "waiting_resident", "waiting_supplier"].includes(r.status)).length;
+    const resolved = requests.filter((r) => r.status === "resolved").length;
+    const done = requests.filter((r) => r.status === "resolved" && r.updatedAt && r.createdAt);
+    const avg = done.length ? done.reduce((s, r) => s + (new Date(r.updatedAt).getTime() - new Date(r.createdAt).getTime()), 0) / done.length / 86400000 : null;
+    return { open, inProgress, resolved, avg };
+  }, [requests]);
+
   return (
     <div className="px-4 lg:px-10 2xl:px-14 py-6 lg:py-10 max-w-[1600px] mx-auto">
       <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-6">
         <div>
-          <h1 className="font-display text-3xl lg:text-4xl font-semibold">Requests</h1>
-          <p className="text-muted-foreground mt-1">Pedidos, avarias e incidentes da operação</p>
+          <h1 className="font-display text-3xl lg:text-4xl font-semibold">Manutenção</h1>
+          <p className="text-muted-foreground mt-1">Avarias, reparações e incidentes da operação</p>
         </div>
         <Button asChild className="rounded-full gradient-warm border-0 shadow-elegant">
           <Link to="/requests/new"><Plus className="h-4 w-4 mr-1.5" /> Novo pedido</Link>
         </Button>
+      </div>
+
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+        {[
+          { label: "Abertos", value: stats.open, cls: "text-warning" },
+          { label: "Em curso", value: stats.inProgress, cls: "text-primary" },
+          { label: "Resolvidos", value: stats.resolved, cls: "text-success" },
+          { label: "Resposta média", value: stats.avg == null ? "—" : `${stats.avg.toFixed(1)}d`, cls: "text-foreground" },
+        ].map((k) => (
+          <div key={k.label} className="rounded-2xl bg-muted/50 py-5 text-center">
+            <div className={cn("font-display text-2xl font-semibold", k.cls)}>{k.value}</div>
+            <div className="text-xs text-muted-foreground mt-1.5">{k.label}</div>
+          </div>
+        ))}
       </div>
 
       <div className="flex flex-col sm:flex-row gap-3 mb-5">
@@ -73,26 +104,25 @@ const Requests = () => {
           const resident = residents.find((p) => p.id === r.residentId);
           const room = rooms.find((rm) => rm.id === (r.roomId ?? resident?.roomId));
           return (
-            <Link key={r.id} to={`/requests/${r.id}`}>
-              <Card className="p-4 lg:p-5 hover:shadow-elegant transition-smooth border-border/60 cursor-pointer">
-                <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex flex-wrap items-center gap-2 mb-1.5">
-                      <span className="text-[11px] font-mono text-muted-foreground">{r.code}</span>
-                      <span className="text-[11px] text-muted-foreground">·</span>
-                      <span className="text-xs font-medium text-accent-foreground bg-accent px-2 py-0.5 rounded-full">{categoryLabels[r.category]}</span>
-                      <PriorityBadge priority={r.priority} />
-                    </div>
-                    <div className="font-medium text-base mb-1">
-                      {r.title}
-                      {room && <span className="ml-2 text-xs font-normal text-muted-foreground">· Quarto {room.number}</span>}
-                    </div>
-                    <div className="text-xs text-muted-foreground">
-                      {resident?.fullName || "—"}{r.location ? ` · ${r.location}` : ""}
-                      {r.assignedTo && <> · <span className="text-foreground/70">{r.assignedTo}</span></>}
-                    </div>
+            <Link key={r.id} to={`/requests/${r.id}`} className="block">
+              <Card className={cn("p-4 lg:p-5 border-l-4 rounded-xl hover:shadow-elegant transition-smooth border-border/60", priorityBorder[r.priority])}>
+                <div className="flex items-start justify-between gap-3">
+                  <div className="font-semibold text-base min-w-0">{r.title}</div>
+                  <div className="flex shrink-0 items-center gap-1.5">
+                    <PriorityBadge priority={r.priority} />
+                    <StatusBadge status={r.status} />
                   </div>
-                  <StatusBadge status={r.status} />
+                </div>
+                {r.description && <p className="text-sm text-muted-foreground mt-1.5 line-clamp-1">{r.description}</p>}
+                <div className="flex flex-wrap items-center justify-between gap-2 mt-3 text-xs text-muted-foreground">
+                  <span>
+                    <span className="font-mono">{r.code}</span> · {categoryLabels[r.category]}
+                    {room && <> · Quarto {room.number}</>}{r.location ? ` · ${r.location}` : ""}
+                  </span>
+                  <span className="flex items-center gap-3">
+                    {resident && <span className="flex items-center gap-1"><User className="h-3 w-3" />{shortName(resident.fullName)}</span>}
+                    <span>{new Date(r.createdAt).toLocaleDateString("pt-PT", { day: "numeric", month: "short" })}</span>
+                  </span>
                 </div>
               </Card>
             </Link>
