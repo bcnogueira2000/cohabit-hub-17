@@ -519,7 +519,7 @@ const Leads = () => {
                 </div>
               )}
             </div>
-            <div className="flex items-center gap-1 -mt-1">
+            <div className="flex items-center gap-1 -mt-1 pr-8">
               <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
                 <AlertDialogTrigger asChild>
                   <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive rounded-full">
