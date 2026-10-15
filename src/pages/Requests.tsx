@@ -116,12 +116,11 @@ const Requests = () => {
                     <StatusBadge status={r.status} />
                   </div>
                 </div>
-                {resident && <div className="text-xs text-muted-foreground mt-1">{shortName(resident.fullName)}</div>}
-                {r.description && <p className="text-sm text-muted-foreground mt-1.5 line-clamp-1">{r.description}</p>}
+                                {r.description && <p className="text-sm text-muted-foreground mt-1.5 line-clamp-1">{r.description}</p>}
                 <div className="flex flex-wrap items-center justify-between gap-2 mt-3 text-xs text-muted-foreground">
                   <span>
                     <span className="font-mono">{r.code}</span> · {categoryLabels[r.category]}
-                    {r.location ? ` · ${r.location}` : ""}
+                    {resident ? ` · ${shortName(resident.fullName)}` : ""}
                   </span>
                   <span className="flex items-center gap-3">
                     <span className="flex items-center gap-1" title="Responsável"><User className="h-3 w-3" />{r.assignedTo ? shortName(r.assignedTo) : "Sem responsável"}</span>
