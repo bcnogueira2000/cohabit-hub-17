@@ -331,6 +331,7 @@ export const LeadContractDialog = ({ lead, open, onOpenChange }: Props) => {
           </Button>
         </div>
       </DialogContent>
+      {docsGuard.dialog}
     </Dialog>
   );
 };
