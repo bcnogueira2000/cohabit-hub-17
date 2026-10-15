@@ -519,7 +519,7 @@ const Leads = () => {
                 </div>
               )}
             </div>
-            <div className="flex items-center gap-1 -mt-1">
+            <div className="flex items-center gap-1 -mt-1 pr-8">
               <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
                 <AlertDialogTrigger asChild>
                   <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive rounded-full">
@@ -562,9 +562,6 @@ const Leads = () => {
                   </AlertDialogFooter>
                 </AlertDialogContent>
               </AlertDialog>
-              <Button variant="ghost" size="sm" className="rounded-full" onClick={() => setSelected(null)}>
-                <X className="h-4 w-4 mr-1" strokeWidth={1.5} /> Fechar
-              </Button>
             </div>
           </DialogHeader>
           {selected && (
