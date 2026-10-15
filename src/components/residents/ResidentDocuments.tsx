@@ -95,7 +95,7 @@ export const ResidentDocuments = ({
     if (win) {
       win.opener = null;
       win.location.href = data.signedUrl;
-    } else window.location.href = data.signedUrl;
+    } else toast("Documento pronto", { action: { label: "Abrir", onClick: () => window.open(data.signedUrl, "_blank", "noopener") } });
   };
 
   const upload = async (file: File | undefined) => {

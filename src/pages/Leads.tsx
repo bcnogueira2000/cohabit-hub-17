@@ -1250,7 +1250,7 @@ const LeadDocuments = ({ lead }: { lead: Lead }) => {
       if (win) {
         win.opener = null;
         win.location.href = url;
-      } else window.location.href = url;
+      } else toast("Documento pronto", { action: { label: "Abrir", onClick: () => window.open(url, "_blank", "noopener") } });
     } catch (e) {
       win?.close();
       toast.error(e instanceof Error ? e.message : "Não foi possível abrir o documento");
