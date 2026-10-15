@@ -34,7 +34,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
-import { useLeadDocuments, downloadLeadDocument, useLeads, useUpdateLead, useDeleteLead, useLeadActivity, useCancelRoomReservation, usePromoteReservationToContract, useSignLeadContract, useGiveUpLead, useSendCandidateForm, useRequestLeadDocuments, useValidateLeadDocuments, type Lead, type LeadStatus } from "@/hooks/useLeads";
+import { useLeadDocuments, downloadLeadDocument, useLeads, useUpdateLead, useDeleteLead, useLeadActivity, useCancelRoomReservation, usePromoteReservationToContract, useSignLeadContract, useGiveUpLead, useSendCandidateForm, useRequestLeadDocuments, useValidateLeadDocuments, useUnvalidateLeadDocuments, useLeadDocsStatus, type Lead, type LeadStatus } from "@/hooks/useLeads";
 import { useStaffUsers } from "@/hooks/useStaffUsers";
 import { NewLeadDialog } from "@/components/leads/NewLeadDialog";
 import {
@@ -58,6 +58,15 @@ import { DailyBrief } from "@/components/leads/DailyBrief";
 import { LeadPendingProvider } from "@/components/leads/LeadPendingContext";
 import { isFlowLockedStatus } from "@/lib/leadContractRules";
 import { paymentKindLabel } from "@/hooks/usePayments";
+import { LEAD_DOCS_STATUS_LABEL, type LeadDocsStatus } from "@/lib/leadDocsValidation";
+
+const docsStatusTone: Record<LeadDocsStatus, string> = {
+  none: "bg-muted text-muted-foreground",
+  requested: "bg-info/10 text-info border-info/30",
+  received: "bg-warning/10 text-warning border-warning/30",
+  validated: "bg-success/10 text-success border-success/30",
+  stale: "bg-warning/15 text-warning border-warning/40",
+};
 import { leadStatusLabels, leadSourceLabels, leadProfileLabels } from "@/lib/labels";
 import { NewContractDialog } from "@/components/contracts/NewContractDialog";
 import { ReservationAgreementDialog } from "@/components/leads/ReservationAgreementDialog";
