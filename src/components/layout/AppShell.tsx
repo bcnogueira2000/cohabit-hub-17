@@ -38,7 +38,7 @@ const baseSections: NavSection[] = [
   {
     label: "Operações",
     items: [
-      { to: "/requests", label: "Pedidos", icon: Inbox },
+      { to: "/requests", label: "Manutenção", icon: Inbox },
       { to: "/cleaning", label: "Limpezas", icon: Sparkles },
       { to: "/tasks", label: "Tarefas", icon: ListChecks },
     ],
@@ -82,7 +82,7 @@ const adminItem: NavItem = { to: "/users", label: "Utilizadores", icon: Shield }
 
 const mobileBottom: NavItem[] = [
   { to: "/my-day", label: "Hoje", icon: Sun },
-  { to: "/requests", label: "Pedidos", icon: Inbox },
+  { to: "/requests", label: "Manutenção", icon: Inbox },
   { to: "/cleaning", label: "Limpezas", icon: Sparkles },
   { to: "/tasks", label: "Tarefas", icon: ListChecks },
 ];
