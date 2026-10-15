@@ -12,6 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAppSettings } from "@/hooks/useAppSettings";
 import { monthsBetween } from "@/components/leads/ReservationAgreementDialog";
 import { PendingAgreementWarning } from "@/components/leads/PendingAgreementWarning";
+import { useUnvalidatedDocsGuard } from "@/components/leads/UnvalidatedDocsGuard";
 import { generateReservationDocx } from "@/lib/generateReservationDocx";
 import { generateContractDocxFromLead } from "@/lib/generateContractDocxFromLead";
 import { missingPersonalFields } from "@/lib/leadContractRules";
@@ -54,6 +55,7 @@ export const ReservationAndContractDialog = ({ lead, open, onOpenChange }: Props
   const [deposit, setDeposit] = useState("");
   const [p, setP] = useState<CandidateData>(candidateDataFromLead(lead));
   const [busy, setBusy] = useState(false);
+  const docsGuard = useUnvalidatedDocsGuard(lead, open, "contract");
   const [docs, setDocs] = useState<{ agreement?: Doc; contract?: Doc }>({});
 
   useEffect(() => {
@@ -115,7 +117,10 @@ export const ReservationAndContractDialog = ({ lead, open, onOpenChange }: Props
     if (!rentNumber || rentNumber <= 0) return toast.error("Indica a renda mensal.");
     const missing = missingPersonalFields({ fullName: lead.fullName, email: lead.email, ...p });
     if (missing.length) return toast.error(`Faltam dados pessoais: ${missing.join(", ")}.`);
+    docsGuard.guard(() => doGenerate(feeNumber, rentNumber));
+  };
 
+  const doGenerate = async (feeNumber: number, rentNumber: number) => {
     setBusy(true);
     const result: { agreement?: Doc; contract?: Doc } = {};
     try {
@@ -184,6 +189,7 @@ export const ReservationAndContractDialog = ({ lead, open, onOpenChange }: Props
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-1">
+          {docsGuard.warning}
           <div className="grid grid-cols-2 gap-3">
             <Field label="Entrada" type="date" value={checkIn} onChange={(e) => setCheckIn(e.target.value)} />
             <Field label="Saída" type="date" value={checkOut} onChange={(e) => setCheckOut(e.target.value)} />
@@ -258,6 +264,7 @@ export const ReservationAndContractDialog = ({ lead, open, onOpenChange }: Props
           </Button>
         </DialogFooter>
       </DialogContent>
+      {docsGuard.dialog}
     </Dialog>
   );
 };
