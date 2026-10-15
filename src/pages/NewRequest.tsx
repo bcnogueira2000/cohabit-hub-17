@@ -44,7 +44,7 @@ const NewRequest = () => {
   return (
     <div className="px-4 lg:px-10 py-6 lg:py-10 max-w-2xl mx-auto">
       <Button asChild variant="ghost" size="sm" className="mb-4 -ml-2">
-        <Link to="/requests"><ArrowLeft className="h-4 w-4 mr-1.5" /> Requests</Link>
+        <Link to="/requests"><ArrowLeft className="h-4 w-4 mr-1.5" /> Manutenção</Link>
       </Button>
 
       <h1 className="font-display text-3xl lg:text-4xl font-semibold mb-2">Novo pedido</h1>
