@@ -508,7 +508,10 @@ const Leads = () => {
 
 
       <Dialog open={!!selected} onOpenChange={(o) => !o && setSelected(null)}>
-        <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
+        <DialogContent className="max-w-lg lg:max-w-6xl max-h-[85vh] lg:max-h-[92vh] overflow-y-auto overflow-x-hidden">
+          {selected && (
+            <p className="hidden lg:block absolute left-6 top-14 text-sm text-muted-foreground">{selected.fullName}</p>
+          )}
           <DialogHeader className="flex-row items-start justify-between gap-4 space-y-0">
             <DialogTitle className="font-display">Detalhes do lead</DialogTitle>
             <div className="flex items-center gap-1 -mt-1">
@@ -676,6 +679,12 @@ const Leads = () => {
                 </Section>
               )}
 
+              <CandidateFormData lead={selected} />
+
+              <LeadDocuments lead={selected} />
+              </div>
+
+              <div className="space-y-5 lg:sticky lg:top-0 lg:self-start lg:rounded-2xl lg:border lg:border-border lg:bg-muted/30 lg:p-5">
               <Section title="Seguimento">
                 <div className="space-y-3">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -1033,11 +1042,8 @@ const Leads = () => {
                 </div>
               </Section>
 
-              <CandidateFormData lead={selected} />
-
-              {selected && <LeadDocuments lead={selected} />}
-
-              {selected && <LeadHistory leadId={selected.id} />}
+              <LeadHistory leadId={selected.id} />
+              </div>
             </div>
           )}
         </DialogContent>
