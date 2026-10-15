@@ -197,11 +197,11 @@ const Payments = () => {
       </div>
 
       <Tabs defaultValue="rent" className="space-y-6">
-        <TabsList className="rounded-full max-w-full overflow-x-auto justify-start">
-          <TabsTrigger value="rent" className="rounded-full">Rendas</TabsTrigger>
-          <TabsTrigger value="deposits" className="rounded-full">Cauções</TabsTrigger>
-          <TabsTrigger value="reservation" className="rounded-full">Taxa de Reserva</TabsTrigger>
-          <TabsTrigger value="other" className="rounded-full">Outras receitas</TabsTrigger>
+        <TabsList className="grid h-auto w-full grid-cols-2 gap-1 rounded-2xl p-1 sm:inline-flex sm:w-auto sm:rounded-full">
+          <TabsTrigger value="rent" className="rounded-xl sm:rounded-full">Rendas</TabsTrigger>
+          <TabsTrigger value="deposits" className="rounded-xl sm:rounded-full">Cauções</TabsTrigger>
+          <TabsTrigger value="reservation" className="rounded-xl sm:rounded-full">Taxa de Reserva</TabsTrigger>
+          <TabsTrigger value="other" className="rounded-xl sm:rounded-full">Outras receitas</TabsTrigger>
         </TabsList>
 
         <TabsContent value="rent" className="mt-0">
