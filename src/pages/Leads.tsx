@@ -509,11 +509,16 @@ const Leads = () => {
 
       <Dialog open={!!selected} onOpenChange={(o) => !o && setSelected(null)}>
         <DialogContent className="max-w-lg lg:max-w-6xl max-h-[85vh] lg:max-h-[92vh] overflow-y-auto overflow-x-hidden">
-          {selected && (
-            <p className="hidden lg:block absolute left-6 top-14 text-sm text-muted-foreground">{selected.fullName}</p>
-          )}
           <DialogHeader className="flex-row items-start justify-between gap-4 space-y-0">
-            <DialogTitle className="font-display">Detalhes do lead</DialogTitle>
+            <div className="min-w-0">
+              <DialogTitle className="font-display">Detalhes do lead</DialogTitle>
+              {selected && (
+                <div className="mt-1.5 flex flex-wrap items-center gap-1.5 text-sm text-muted-foreground">
+                  <span className="truncate">{selected.fullName}</span>
+                  <Badge variant="outline" className={statusTone[selected.status]}>{leadStatusLabels[selected.status]}</Badge>
+                </div>
+              )}
+            </div>
             <div className="flex items-center gap-1 -mt-1">
               <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
                 <AlertDialogTrigger asChild>
@@ -563,7 +568,8 @@ const Leads = () => {
             </div>
           </DialogHeader>
           {selected && (
-            <div className="space-y-5">
+            <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] gap-5 lg:gap-8 items-start">
+              <div className="space-y-5 min-w-0">
               <Section title="Dados pessoais">
                 <div className="space-y-3">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
