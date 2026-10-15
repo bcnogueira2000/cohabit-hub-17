@@ -70,7 +70,7 @@ const RequestDetail = () => {
   return (
     <div className="px-4 lg:px-10 py-6 lg:py-10 max-w-4xl mx-auto">
       <Button asChild variant="ghost" size="sm" className="mb-4 -ml-2">
-        <Link to="/requests"><ArrowLeft className="h-4 w-4 mr-1.5" /> Requests</Link>
+        <Link to="/requests"><ArrowLeft className="h-4 w-4 mr-1.5" /> Manutenção</Link>
       </Button>
 
       <div className="flex flex-wrap items-center gap-2 mb-3">
