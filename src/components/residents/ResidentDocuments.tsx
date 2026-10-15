@@ -85,9 +85,17 @@ export const ResidentDocuments = ({
   })).filter((g) => g.docs.length);
 
   const open = async (d: Doc) => {
+    // Abre a janela já no clique: no telemóvel, janelas abertas depois de esperar são bloqueadas.
+    const win = window.open("", "_blank");
     const { data, error } = await supabase.storage.from(d.bucket).createSignedUrl(d.path, 300);
-    if (error || !data) return toast.error(error?.message ?? "Não foi possível abrir o documento");
-    window.open(data.signedUrl, "_blank", "noopener");
+    if (error || !data) {
+      win?.close();
+      return toast.error(error?.message ?? "Não foi possível abrir o documento");
+    }
+    if (win) {
+      win.opener = null;
+      win.location.href = data.signedUrl;
+    } else window.location.href = data.signedUrl;
   };
 
   const upload = async (file: File | undefined) => {

@@ -1243,10 +1243,16 @@ const LeadDocuments = ({ lead }: { lead: Lead }) => {
   const pendingRequest = badge === "requested";
 
   const open = async (path: string) => {
+    // Abre a janela já no clique: no telemóvel, janelas abertas depois de esperar são bloqueadas.
+    const win = window.open("", "_blank");
     try {
       const url = await downloadLeadDocument(path);
-      window.open(url, "_blank", "noopener");
+      if (win) {
+        win.opener = null;
+        win.location.href = url;
+      } else window.location.href = url;
     } catch (e) {
+      win?.close();
       toast.error(e instanceof Error ? e.message : "Não foi possível abrir o documento");
     }
   };
