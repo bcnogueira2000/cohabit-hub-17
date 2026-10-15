@@ -1219,6 +1219,12 @@ const LeadDocuments = ({ lead }: { lead: Lead }) => {
   const { data: docs } = useLeadDocuments(lead.id);
   const requestDocs = useRequestLeadDocuments();
   const validateDocs = useValidateLeadDocuments();
+  const unvalidateDocs = useUnvalidateLeadDocuments();
+  const { data: docsStatus } = useLeadDocsStatus(lead.id);
+  const qcDocs = useQueryClient();
+  useEffect(() => {
+    qcDocs.invalidateQueries({ queryKey: ["lead_docs_status", lead.id] });
+  }, [docs, lead.docsReceivedAt, qcDocs, lead.id]);
   const [reqOpen, setReqOpen] = useState(false);
   const [items, setItems] = useState<string[]>([]);
   const [message, setMessage] = useState("");
@@ -1251,6 +1257,11 @@ const LeadDocuments = ({ lead }: { lead: Lead }) => {
 
   return (
     <Section title="Documentos do candidato">
+      {docsStatus && (
+        <Badge variant="outline" className={`mb-2 ${docsStatusTone[docsStatus.status]}`}>
+          {LEAD_DOCS_STATUS_LABEL[docsStatus.status]}
+        </Badge>
+      )}
       {groups.length === 0 ? (
         <div className="text-sm text-muted-foreground">Sem documentos anexados.</div>
       ) : (
@@ -1313,12 +1324,33 @@ const LeadDocuments = ({ lead }: { lead: Lead }) => {
             <Mail className="h-3.5 w-3.5 mr-1.5" strokeWidth={1.5} /> Pedir documentos
           </Button>
         )}
-        {(docs?.length ?? 0) > 0 && (
+        {docsStatus?.status === "validated" ? (
+          <div className="flex flex-wrap items-center gap-2 text-xs text-success">
+            <CheckCircle2 className="h-3.5 w-3.5" strokeWidth={1.5} />
+            Validado{docsStatus.validatedByName ? ` por ${docsStatus.validatedByName}` : ""}
+            {docsStatus.validatedAt ? ` em ${fmt(docsStatus.validatedAt)}` : ""}
+            <button
+              type="button"
+              className="text-muted-foreground underline underline-offset-2 hover:text-foreground disabled:opacity-50"
+              disabled={unvalidateDocs.isPending}
+              onClick={async () => {
+                try {
+                  await unvalidateDocs.mutateAsync(lead.id);
+                  toast.success("Validação anulada");
+                } catch (e) {
+                  toast.error(e instanceof Error ? e.message : "Não foi possível anular");
+                }
+              }}
+            >
+              Anular validação
+            </button>
+          </div>
+        ) : (
           <Button
             size="sm"
-            variant={badge === "to_validate" ? "default" : "outline"}
+            variant={docsStatus && docsStatus.docCount > 0 ? "default" : "outline"}
             className="rounded-full"
-            disabled={validateDocs.isPending}
+            disabled={validateDocs.isPending || !docsStatus || docsStatus.docCount === 0}
             onClick={async () => {
               try {
                 await validateDocs.mutateAsync(lead.id);
@@ -1328,7 +1360,7 @@ const LeadDocuments = ({ lead }: { lead: Lead }) => {
               }
             }}
           >
-            <CheckCircle2 className="h-3.5 w-3.5 mr-1.5" strokeWidth={1.5} /> Documentos validados
+            <CheckCircle2 className="h-3.5 w-3.5 mr-1.5" strokeWidth={1.5} /> Validar documentos
           </Button>
         )}
       </div>
@@ -1441,6 +1473,13 @@ const LeadHistory = ({ leadId }: { leadId: string }) => {
                   <>Documentos pedidos recebidos do candidato</>
                 ) : entry.kind === "docs_validated" ? (
                   <>Documentos validados{entry.actorName ? ` por ${entry.actorName}` : ""}</>
+                ) : entry.kind === "docs_unvalidated" ? (
+                  <>Validação dos documentos anulada{entry.actorName ? ` por ${entry.actorName}` : ""}</>
+                ) : entry.kind === "generated_without_validated_docs" ? (
+                  <>
+                    {(entry.payload as any)?.doc_type === "reservation" ? "Acordo de reserva" : "Contrato"} gerado sem documentos validados
+                    {entry.actorName ? ` por ${entry.actorName}` : ""}
+                  </>
                 ) : entry.kind === "form_submitted" ? (
                   <>Formulário de candidatura preenchido pelo candidato</>
                 ) : entry.kind === "form_bypassed" ? (
