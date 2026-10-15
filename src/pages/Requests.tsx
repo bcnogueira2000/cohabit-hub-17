@@ -107,20 +107,24 @@ const Requests = () => {
             <Link key={r.id} to={`/requests/${r.id}`} className="block">
               <Card className={cn("p-4 lg:p-5 border-l-4 rounded-xl hover:shadow-elegant transition-smooth border-border/60", priorityBorder[r.priority])}>
                 <div className="flex items-start justify-between gap-3">
-                  <div className="font-semibold text-base min-w-0">{r.title}</div>
+                  <div className="flex flex-wrap items-center gap-2 min-w-0">
+                    <span className="font-semibold text-base">{r.title}</span>
+                    {room && <span className="rounded-md bg-accent text-accent-foreground px-2 py-0.5 text-xs font-semibold">Quarto {room.number}</span>}
+                  </div>
                   <div className="flex shrink-0 items-center gap-1.5">
                     <PriorityBadge priority={r.priority} />
                     <StatusBadge status={r.status} />
                   </div>
                 </div>
+                {resident && <div className="text-xs text-muted-foreground mt-1">{shortName(resident.fullName)}</div>}
                 {r.description && <p className="text-sm text-muted-foreground mt-1.5 line-clamp-1">{r.description}</p>}
                 <div className="flex flex-wrap items-center justify-between gap-2 mt-3 text-xs text-muted-foreground">
                   <span>
                     <span className="font-mono">{r.code}</span> · {categoryLabels[r.category]}
-                    {room && <> · Quarto {room.number}</>}{r.location ? ` · ${r.location}` : ""}
+                    {r.location ? ` · ${r.location}` : ""}
                   </span>
                   <span className="flex items-center gap-3">
-                    {resident && <span className="flex items-center gap-1"><User className="h-3 w-3" />{shortName(resident.fullName)}</span>}
+                    <span className="flex items-center gap-1" title="Responsável"><User className="h-3 w-3" />{r.assignedTo ? shortName(r.assignedTo) : "Sem responsável"}</span>
                     <span>{new Date(r.createdAt).toLocaleDateString("pt-PT", { day: "numeric", month: "short" })}</span>
                   </span>
                 </div>
