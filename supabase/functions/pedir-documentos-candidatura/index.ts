@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.4";
+import { isPortugueseRecipient } from "../_shared/leadLanguage.ts";
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 
 const FORM_BASE_URL = (Deno.env.get("CANDIDATE_FORM_BASE_URL") ?? "").trim().replace(/\/+$/, "");
@@ -63,7 +64,7 @@ Deno.serve(async (req) => {
 
     const { data: lead, error: leadErr } = await admin
       .from("leads")
-      .select("id, full_name, short_name, email, language, profile, public_token, public_token_expires_at")
+      .select("id, full_name, short_name, email, language, nationality, phone, profile, public_token, public_token_expires_at")
       .eq("id", leadId)
       .maybeSingle();
     if (leadErr) return json({ error: leadErr.message }, 500);
@@ -90,7 +91,7 @@ Deno.serve(async (req) => {
       .eq("id", leadId);
     if (upErr) return json({ error: upErr.message }, 500);
 
-    const isEN = String(lead.language ?? "").trim().toLowerCase() === "en";
+    const isEN = !isPortugueseRecipient(lead);
     const firstName = esc((lead.short_name || lead.full_name || "").split(" ")[0] || "");
     const link = `${FORM_BASE_URL}/candidatura/${token}/documentos`;
     const list = items.map((k) => `<li>${esc(kindLabel(k, lead.profile ?? "", isEN))}</li>`).join("");
