@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.4";
+import { isPortugueseRecipient } from "../_shared/leadLanguage.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -71,7 +72,7 @@ Deno.serve(async (req) => {
 
     const { data: lead, error: leadErr } = await admin
       .from("leads")
-      .select("id, full_name, short_name, email, language")
+      .select("id, full_name, short_name, email, language, nationality, phone")
       .eq("id", leadId)
       .maybeSingle();
     if (leadErr) return json({ error: leadErr.message }, 500);
@@ -89,7 +90,7 @@ Deno.serve(async (req) => {
 
     const link = `${FORM_BASE_URL}/candidatura/${token}`;
     const firstName = esc((lead.short_name || lead.full_name || "").split(" ")[0] || "");
-    const isEN = String(lead.language ?? "").trim().toLowerCase() === "en";
+    const isEN = !isPortugueseRecipient(lead);
 
     const copy = isEN
       ? {
