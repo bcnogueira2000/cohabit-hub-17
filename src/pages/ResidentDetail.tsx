@@ -31,6 +31,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useSyncMoloniCustomer, MoloniDuplicateError } from "@/hooks/useMoloni";
 import type { ChecklistItem, ResidentLegalFields } from "@/lib/types";
+import { profileGroup } from "@/lib/leadDocuments";
 
 const DOC_TYPES = ["Cartão de Cidadão", "Passaporte", "Título de Residência", "Outro"];
 const NONE = "__none__";
@@ -69,7 +70,8 @@ const ResidentDetail = () => {
   const [showMoloniConfirm, setShowMoloniConfirm] = useState(false);
   const isStaff = roles.some((r) => r === "staff" || r === "manager" || r === "admin");
 
-  const [legal, setLegal] = useState<ResidentLegalFields>({
+  const [legal, setLegal] = useState<ResidentLegalFields & { profile: string | null }>({
+    profile: null,
     phone: null,
     email: null,
     internalNotes: null,
@@ -93,6 +95,7 @@ const ResidentDetail = () => {
   useEffect(() => {
     if (!resident) return;
     setLegal({
+      profile: resident.profile,
       phone: resident.phone || null,
       email: resident.email || null,
       internalNotes: resident.internalNotes,
@@ -112,7 +115,7 @@ const ResidentDetail = () => {
       city: resident.city,
       expectedArrivalDate: resident.expectedArrivalDate ? resident.expectedArrivalDate.slice(0, 10) : null,
     });
-  }, [resident?.id, resident?.phone, resident?.email, resident?.internalNotes, resident?.emergencyContactInvoiceCopy, resident?.nationality, resident?.documentType, resident?.documentNumber, resident?.taxNumber, resident?.employerOrSchool, resident?.dateOfBirth, resident?.emergencyContactName, resident?.emergencyContactPhone, resident?.emergencyContactEmail, resident?.specialNeeds, resident?.address, resident?.postalCode, resident?.city, resident?.expectedArrivalDate]);
+  }, [resident?.id, resident?.profile, resident?.phone, resident?.email, resident?.internalNotes, resident?.emergencyContactInvoiceCopy, resident?.nationality, resident?.documentType, resident?.documentNumber, resident?.taxNumber, resident?.employerOrSchool, resident?.dateOfBirth, resident?.emergencyContactName, resident?.emergencyContactPhone, resident?.emergencyContactEmail, resident?.specialNeeds, resident?.address, resident?.postalCode, resident?.city, resident?.expectedArrivalDate]);
 
   useEffect(() => {
     if (syncMoloni.error instanceof MoloniDuplicateError && syncMoloni.error.kind === "already_linked") {
@@ -130,6 +133,7 @@ const ResidentDetail = () => {
       {
         id: resident.id,
         values: {
+          profile: legal.profile,
           phone: clean(legal.phone) ?? "",
           email: clean(legal.email) ?? resident.email,
           internalNotes: clean(legal.internalNotes),
@@ -329,6 +333,10 @@ const ResidentDetail = () => {
               <div>
                 <div className="text-xs text-muted-foreground mb-0.5">Empresa / escola</div>
                 <div className="font-medium">{resident.employerOrSchool || <span className="text-muted-foreground">—</span>}</div>
+              </div>
+              <div>
+                <div className="text-xs text-muted-foreground mb-0.5">Perfil</div>
+                <div className="font-medium">{profileGroup(resident.profile) === "student" ? "Estudante" : profileGroup(resident.profile) === "worker" ? "Trabalhador" : resident.profile?.trim() ? resident.profile : "—"}</div>
               </div>
             </div>
 

@@ -55,7 +55,7 @@ export const useUpdateResidentChecklist = () => {
 export const useUpdateResidentLegal = () => {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ id, values }: { id: string; values: ResidentLegalFields }) => {
+    mutationFn: async ({ id, values }: { id: string; values: ResidentLegalFields & { profile?: string | null } }) => {
       const { error } = await supabase
         .from("residents")
         .update({
@@ -66,6 +66,7 @@ export const useUpdateResidentLegal = () => {
           document_number: values.documentNumber,
           tax_number: values.taxNumber,
           employer_or_school: values.employerOrSchool,
+          ...(values.profile !== undefined ? { profile: values.profile } : {}),
           date_of_birth: values.dateOfBirth,
           emergency_contact_name: values.emergencyContactName,
           emergency_contact_phone: values.emergencyContactPhone,
