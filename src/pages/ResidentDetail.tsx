@@ -494,6 +494,20 @@ const ResidentDetail = () => {
                       onChange={(e) => setLegal((s) => ({ ...s, employerOrSchool: e.target.value }))}
                     />
                   </div>
+                  <div>
+                    <Label htmlFor="legal-profile">Perfil</Label>
+                    <Select value={legal.profile ?? ""} onValueChange={(value) => setLegal((s) => ({ ...s, profile: value }))}>
+                      <SelectTrigger id="legal-profile" className="mt-1.5"><SelectValue placeholder="Escolher" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="student">Estudante</SelectItem>
+                        <SelectItem value="professional">Trabalhador</SelectItem>
+                        <SelectItem value="other">Outro</SelectItem>
+                        {legal.profile && !["student", "professional", "other"].includes(legal.profile) && (
+                          <SelectItem value={legal.profile}>{profileGroup(legal.profile) === "student" ? "Estudante" : profileGroup(legal.profile) === "worker" ? "Trabalhador" : legal.profile}</SelectItem>
+                        )}
+                      </SelectContent>
+                    </Select>
+                  </div>
                   <div className="sm:col-span-2">
                     <Label htmlFor="legal-special">Notas e comentários do residente</Label>
                     <Textarea
@@ -567,7 +581,7 @@ const ResidentDetail = () => {
             )}
           </Card>
 
-          <ResidentDocuments residentId={resident.id} profile={resident.profile ?? null} legacyPath={documentPath} />
+          <ResidentDocuments residentId={resident.id} profile={resident.profile ?? null} legacyPath={documentPath} residentName={resident.fullName} roomCode={room?.number} />
 
           <Card className="p-4 border-border/60 shadow-card">
             <h3 className="font-display text-lg font-semibold mb-2">Notas internas</h3>
