@@ -1,2 +1,2 @@
-- [ ] Mostrar e editar o perfil do residente com os valores existentes.
-- [ ] Exportar todos os documentos do residente em ZIP e verificar o resultado.
+- [x] Mostrar e editar o perfil do residente com os valores existentes.
+- [x] Exportar todos os documentos do residente em ZIP e verificar o resultado.
