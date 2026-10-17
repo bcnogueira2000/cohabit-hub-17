@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { FileText, Upload, Loader2 } from "lucide-react";
+import { FileText, Upload, Loader2, Download } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { docKindLabel } from "@/lib/leadDocuments";
+import { createResidentDocumentZip, deliverResidentZip, residentZipName } from "@/lib/residentDocumentZip";
 
 const MAX_BYTES = 10 * 1024 * 1024;
 const STAFF_KINDS = ["signed_contract", "id_document", "iban_proof", "enrollment_or_work_proof", "other"] as const;
@@ -34,15 +35,21 @@ export const ResidentDocuments = ({
   residentId,
   profile,
   legacyPath,
+  residentName,
+  roomCode,
 }: {
   residentId: string;
   profile: string | null;
   legacyPath?: string | null;
+  residentName?: string;
+  roomCode?: string;
 }) => {
   const qc = useQueryClient();
   const input = useRef<HTMLInputElement>(null);
   const [kind, setKind] = useState<string>("signed_contract");
   const [busy, setBusy] = useState(false);
+  const [preparing, setPreparing] = useState(false);
+  const [prepared, setPrepared] = useState<{ blob: Blob; filename: string } | null>(null);
 
   const { data: docs = [] } = useQuery({
     queryKey: ["resident-documents", residentId],
@@ -98,6 +105,37 @@ export const ResidentDocuments = ({
     } else toast("Documento pronto", { action: { label: "Abrir", onClick: () => window.open(data.signedUrl, "_blank", "noopener") } });
   };
 
+  const downloadAll = async () => {
+    if (preparing) return;
+    setPreparing(true);
+    setPrepared(null);
+    let failures = 0;
+    try {
+      const result = await createResidentDocumentZip(all, (d) => kindLabel(d.kind, profile), async (d) => {
+        const { data, error } = await supabase.storage.from(d.bucket).createSignedUrl(d.path, 300);
+        if (error || !data) throw error ?? new Error("Documento indisponível");
+        const response = await fetch(data.signedUrl);
+        if (!response.ok) throw new Error("Não foi possível descarregar o documento");
+        return response.blob();
+      });
+      failures = result.failed;
+      if (!result.blob) {
+        toast.error(`Não foi possível preparar o ZIP: ${result.failed} ficheiro(s) falharam.`);
+        return;
+      }
+      const filename = residentZipName(residentName, roomCode);
+      // Uma nova ação de toque preserva a ativação exigida pelo Safari após a preparação.
+      if (matchMedia("(pointer: coarse)").matches) setPrepared({ blob: result.blob, filename });
+      else await deliverResidentZip(result.blob, filename);
+      if (result.failed) toast.error(`ZIP preparado com ${result.included} ficheiro(s); ${result.failed} ficheiro(s) falharam.`);
+      else toast.success(`ZIP preparado com ${result.included} ficheiro(s).`);
+    } catch {
+      toast.error(`Não foi possível preparar o ZIP.${failures ? ` ${failures} ficheiro(s) falharam.` : ""}`);
+    } finally {
+      setPreparing(false);
+    }
+  };
+
   const upload = async (file: File | undefined) => {
     if (!file) return;
     const ext = file.name.split(".").pop()?.toLowerCase() ?? "";
@@ -131,7 +169,16 @@ export const ResidentDocuments = ({
 
   return (
     <Card className="p-4 border-border/60 shadow-card space-y-3">
-      <h3 className="font-display text-lg font-semibold">Documentos</h3>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <h3 className="font-display text-lg font-semibold">Documentos</h3>
+        {all.length > 0 && (
+          <Button size="sm" variant="outline" disabled={preparing} onClick={downloadAll}>
+            {preparing ? <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" /> : <Download className="h-3.5 w-3.5 mr-1.5" />}
+            {preparing ? "A preparar…" : "Descarregar tudo (ZIP)"}
+          </Button>
+        )}
+        {prepared && <Button size="sm" onClick={() => { void deliverResidentZip(prepared.blob, prepared.filename).catch(() => toast.error("Não foi possível descarregar o ZIP.")); }}><Download className="h-3.5 w-3.5 mr-1.5" />Descarregar ZIP preparado</Button>}
+      </div>
       {groups.length === 0 ? (
         <p className="text-sm text-muted-foreground">Sem documentos.</p>
       ) : (
