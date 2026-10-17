@@ -15,7 +15,13 @@ describe("resident document ZIP", () => {
     expect(failed).toBe(0);
     expect(blob).not.toBeNull();
     if (!blob) throw new Error("Missing ZIP");
-    const zip = await JSZip.loadAsync(await blob.arrayBuffer());
+    const bytes = await new Promise<ArrayBuffer>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => reader.result instanceof ArrayBuffer ? resolve(reader.result) : reject(new Error("Invalid ZIP"));
+      reader.onerror = () => reject(reader.error);
+      reader.readAsArrayBuffer(blob);
+    });
+    const zip = await JSZip.loadAsync(bytes);
     expect(Object.keys(zip.files).filter((n) => !zip.files[n].dir)).toEqual([
       "Documento de identificação/identificação.pdf",
       "Documento de identificação/identificação (2).pdf",
