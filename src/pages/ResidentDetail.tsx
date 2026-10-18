@@ -32,6 +32,7 @@ import { toast } from "sonner";
 import { useSyncMoloniCustomer, MoloniDuplicateError } from "@/hooks/useMoloni";
 import type { ChecklistItem, ResidentLegalFields } from "@/lib/types";
 import { profileGroup } from "@/lib/leadDocuments";
+import { residentProfileValue } from "@/lib/residentProfile";
 
 const DOC_TYPES = ["Cartão de Cidadão", "Passaporte", "Título de Residência", "Outro"];
 const NONE = "__none__";
@@ -496,14 +497,21 @@ const ResidentDetail = () => {
                   </div>
                   <div>
                     <Label htmlFor="legal-profile">Perfil</Label>
-                    <Select value={legal.profile ?? ""} onValueChange={(value) => setLegal((s) => ({ ...s, profile: value }))}>
-                      <SelectTrigger id="legal-profile" className="mt-1.5"><SelectValue placeholder="Escolher" /></SelectTrigger>
+                    <Select value={residentProfileValue(legal.profile)} onValueChange={(value) => setLegal((s) => ({ ...s, profile: value }))}>
+                      <SelectTrigger id="legal-profile" className="mt-1.5">
+                        <SelectValue placeholder="Escolher">
+                          {residentProfileValue(legal.profile) === "student" ? "Estudante"
+                            : residentProfileValue(legal.profile) === "professional" ? "Trabalhador"
+                            : residentProfileValue(legal.profile) === "other" ? "Outro"
+                            : legal.profile?.trim() || undefined}
+                        </SelectValue>
+                      </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="student">Estudante</SelectItem>
                         <SelectItem value="professional">Trabalhador</SelectItem>
                         <SelectItem value="other">Outro</SelectItem>
-                        {legal.profile && !["student", "professional", "other"].includes(legal.profile) && (
-                          <SelectItem value={legal.profile}>{profileGroup(legal.profile) === "student" ? "Estudante" : profileGroup(legal.profile) === "worker" ? "Trabalhador" : legal.profile}</SelectItem>
+                        {residentProfileValue(legal.profile) && !["student", "professional", "other"].includes(residentProfileValue(legal.profile)) && (
+                          <SelectItem value={residentProfileValue(legal.profile)}>{legal.profile}</SelectItem>
                         )}
                       </SelectContent>
                     </Select>

@@ -1,2 +1,3 @@
 - [x] Mostrar e editar o perfil do residente com os valores existentes.
 - [x] Exportar todos os documentos do residente em ZIP e verificar o resultado.
+- [x] Corrigir e verificar o pré-preenchimento do perfil existente no residente.
