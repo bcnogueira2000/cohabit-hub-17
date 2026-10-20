@@ -752,11 +752,19 @@ const Leads = () => {
                     </div>
                     <div className="space-y-1">
                       <label className="text-[11px] uppercase tracking-wide text-muted-foreground">Data da próxima ação</label>
-                      <Input
-                        type="date"
-                        value={editNextActionDate}
-                        onChange={(e) => setEditNextActionDate(e.target.value)}
-                      />
+                      <div className="flex gap-2">
+                        <Input
+                          type="date"
+                          className="flex-1"
+                          value={editNextActionDate}
+                          onChange={(e) => setEditNextActionDate(e.target.value)}
+                        />
+                        {editNextActionDate && (
+                          <Button type="button" variant="outline" onClick={() => setEditNextActionDate("")}>
+                            Limpar
+                          </Button>
+                        )}
+                      </div>
                     </div>
                   </div>
                   <div className="space-y-1">
