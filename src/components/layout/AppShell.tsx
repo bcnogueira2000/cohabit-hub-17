@@ -82,8 +82,8 @@ const adminItem: NavItem = { to: "/users", label: "Utilizadores", icon: Shield }
 
 const mobileBottom: NavItem[] = [
   { to: "/my-day", label: "Hoje", icon: Sun },
+  { to: "/leads", label: "Leads", icon: UserPlus },
   { to: "/requests", label: "Manutenção", icon: Inbox },
-  { to: "/cleaning", label: "Limpezas", icon: Sparkles },
   { to: "/tasks", label: "Tarefas", icon: ListChecks },
 ];
 
@@ -157,7 +157,8 @@ export const AppShell = () => {
   };
 
   const flatItems = sections.flatMap((s) => s.items);
-  const moreItems = flatItems.slice(5); // mobile "more"
+  const bottomPaths = new Set(["/", ...mobileBottom.map((i) => i.to)]);
+  const moreItems = flatItems.filter((i) => !bottomPaths.has(i.to)); // mobile "more"
 
   const displayName = profile?.full_name || user?.email || "";
   const displayEmail = user?.email ?? "";
@@ -255,14 +256,14 @@ export const AppShell = () => {
       </header>
 
       {/* Main */}
-      <main className="lg:pl-64 pb-[calc(5rem+env(safe-area-inset-bottom))] lg:pb-0">
+      <main className="lg:pl-64 pb-[calc(6rem+max(env(safe-area-inset-bottom),1rem))] lg:pb-0">
         <div key={location.pathname} className="animate-fade-in">
           <Outlet />
         </div>
       </main>
 
       {/* Mobile bottom nav */}
-      <nav className="lg:hidden fixed bottom-0 inset-x-0 z-30 bg-background/95 backdrop-blur border-t border-border pb-[env(safe-area-inset-bottom)]">
+      <nav className="lg:hidden fixed bottom-0 inset-x-0 z-30 bg-background/95 backdrop-blur border-t border-border pb-[max(env(safe-area-inset-bottom),1rem)]">
         <div className="grid grid-cols-5 h-16">
           {mobileBottom.map(({ to, label, icon: Icon, end }) => (
             <NavLink
