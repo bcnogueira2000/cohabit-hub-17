@@ -263,8 +263,8 @@ export const AppShell = () => {
       </main>
 
       {/* Mobile bottom nav */}
-      <nav className="lg:hidden fixed bottom-0 inset-x-0 z-30 bg-background/95 backdrop-blur border-t border-border">
-        <div className="grid grid-cols-5 h-14">
+      <nav className="lg:hidden fixed bottom-0 inset-x-0 z-30 bg-background/95 backdrop-blur border-t border-border pb-[max(calc(env(safe-area-inset-bottom)-0.5rem),0.5rem)]">
+        <div className="grid grid-cols-5 h-16">
           {mobileBottom.map(({ to, label, icon: Icon, end }) => (
             <NavLink
               key={to}
