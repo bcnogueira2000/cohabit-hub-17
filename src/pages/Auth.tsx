@@ -39,40 +39,13 @@ const Auth = () => {
     const isResident = list.includes("resident");
     if (isStaff) navigate("/", { replace: true });
     else if (isResident) navigate("/app/home", { replace: true });
-    else if ((profile as any)?.account_status === "pending_approval")
-      navigate("/app/pending-approval", { replace: true });
-    else navigate("/app/pending-approval", { replace: true });
-  };
-
-  useEffect(() => { if (!loading && user) routeAfterLogin(); /* eslint-disable-next-line */ }, [user, loading]);
-
-  const signIn = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setBusy(true);
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    setBusy(false);
-    if (error) toast.error(error.message);
-    else routeAfterLogin();
-  };
-
-  const signUp = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setBusy(true);
-    const { error } = await supabase.auth.signUp({
-      email, password,
-      options: {
-        emailRedirectTo: window.location.origin,
-        data: {
-          full_name: fullName,
-          phone,
-          requested_room_number: room,
-          expected_move_in: moveIn || null,
-        },
-      },
-    });
-    setBusy(false);
-    if (error) { toast.error(error.message); return; }
-    toast.success(lang === "pt" ? "Conta criada — verifica o email se precisar de confirmação." : "Account created — check your email if confirmation is required.");
+    else {
+      // Closed app: accounts without an assigned role are not allowed in.
+      await supabase.auth.signOut();
+      toast.error(lang === "pt"
+        ? "Acesso reservado à equipa Living Colours. Contacta a gestão para teres acesso."
+        : "Access restricted to the Living Colours team. Contact management for access.");
+    }
   };
 
   const google = async () => {
@@ -101,35 +74,15 @@ const Auth = () => {
           <p className="text-sm text-muted-foreground mt-1">{lang === "pt" ? "Bem-vindo a casa" : "Welcome home"}</p>
         </div>
         <Card className="p-6 border-border/60 shadow-elegant">
-          <Tabs defaultValue="signin">
-            <TabsList className="w-full grid grid-cols-2 bg-muted/60 rounded-lg p-1 mb-5">
-              <TabsTrigger value="signin" className="rounded-md data-[state=active]:bg-card">{t("auth.signin")}</TabsTrigger>
-              <TabsTrigger value="signup" className="rounded-md data-[state=active]:bg-card">{t("auth.signup")}</TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="signin">
-              <form onSubmit={signIn} className="space-y-3">
-                <div><Label>{t("auth.email")}</Label><Input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} className="mt-1.5" /></div>
-                <div><Label>{t("auth.password")}</Label><Input type="password" required value={password} onChange={(e) => setPassword(e.target.value)} className="mt-1.5" /></div>
-                <Button type="submit" disabled={busy} className="w-full">{t("auth.signin")}</Button>
-              </form>
-              <button onClick={forgot} className="block mx-auto mt-3 text-xs text-muted-foreground hover:text-foreground">{t("auth.forgot")}</button>
-            </TabsContent>
-
-            <TabsContent value="signup">
-              <form onSubmit={signUp} className="space-y-3">
-                <div><Label>{t("auth.fullname")}</Label><Input required value={fullName} onChange={(e) => setFullName(e.target.value)} className="mt-1.5" /></div>
-                <div><Label>{t("auth.email")}</Label><Input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} className="mt-1.5" /></div>
-                <div><Label>{t("auth.password")}</Label><Input type="password" required minLength={8} value={password} onChange={(e) => setPassword(e.target.value)} className="mt-1.5" /></div>
-                <div><Label>{t("auth.phone")}</Label><div className="mt-1.5"><PhoneInput value={phone} onChange={setPhone} /></div></div>
-                <div className="grid grid-cols-2 gap-2">
-                  <div><Label>{t("auth.room")}</Label><Input value={room} onChange={(e) => setRoom(e.target.value)} className="mt-1.5" /></div>
-                  <div><Label>{t("auth.move_in")}</Label><Input type="date" value={moveIn} onChange={(e) => setMoveIn(e.target.value)} className="mt-1.5" /></div>
-                </div>
-                <Button type="submit" disabled={busy} className="w-full">{t("auth.signup")}</Button>
-              </form>
-            </TabsContent>
-          </Tabs>
+          <form onSubmit={signIn} className="space-y-3">
+            <div><Label>{t("auth.email")}</Label><Input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} className="mt-1.5" /></div>
+            <div><Label>{t("auth.password")}</Label><Input type="password" required value={password} onChange={(e) => setPassword(e.target.value)} className="mt-1.5" /></div>
+            <Button type="submit" disabled={busy} className="w-full">{t("auth.signin")}</Button>
+          </form>
+          <button onClick={forgot} className="block mx-auto mt-3 text-xs text-muted-foreground hover:text-foreground">{t("auth.forgot")}</button>
+          <p className="mt-4 text-center text-xs text-muted-foreground">
+            {lang === "pt" ? "Acesso reservado à equipa e residentes Living Colours." : "Access restricted to Living Colours team and residents."}
+          </p>
 
           <div className="relative my-5">
             <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-border" /></div>
