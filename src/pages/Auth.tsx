@@ -48,6 +48,18 @@ const Auth = () => {
     }
   };
 
+  useEffect(() => { if (!loading && user) routeAfterLogin(); /* eslint-disable-next-line */ }, [user, loading]);
+
+  const signIn = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setBusy(true);
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    setBusy(false);
+    if (error) toast.error(error.message);
+    else routeAfterLogin();
+  };
+
+
   const google = async () => {
     setBusy(true);
     const result = await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin });
