@@ -255,14 +255,14 @@ export const AppShell = () => {
       </header>
 
       {/* Main */}
-      <main className="lg:pl-64 pb-20 lg:pb-0">
+      <main className="lg:pl-64 pb-[calc(5rem+env(safe-area-inset-bottom))] lg:pb-0">
         <div key={location.pathname} className="animate-fade-in">
           <Outlet />
         </div>
       </main>
 
       {/* Mobile bottom nav */}
-      <nav className="lg:hidden fixed bottom-0 inset-x-0 z-30 bg-background/95 backdrop-blur border-t border-border">
+      <nav className="lg:hidden fixed bottom-0 inset-x-0 z-30 bg-background/95 backdrop-blur border-t border-border pb-[env(safe-area-inset-bottom)]">
         <div className="grid grid-cols-5 h-16">
           {mobileBottom.map(({ to, label, icon: Icon, end }) => (
             <NavLink
