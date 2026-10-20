@@ -134,6 +134,13 @@
       "when": 1792072869054,
       "tag": "0018_lead_docs_validation_state",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1792496876483,
+      "tag": "0019_lead_status_change_actor_name",
+      "breakpoints": true
     }
   ]
 }
