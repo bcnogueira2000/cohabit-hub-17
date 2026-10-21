@@ -148,6 +148,13 @@
       "when": 1792612975722,
       "tag": "0020_fix_cost_invoice_access",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1792614343689,
+      "tag": "0021_cost_invoice_files_admin_delete",
+      "breakpoints": true
     }
   ]
 }
