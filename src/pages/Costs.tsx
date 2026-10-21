@@ -1,5 +1,6 @@
-import { useMemo, useRef, useState } from "react";
-import { ChevronLeft, ChevronRight, Upload, Loader2, TrendingUp, TrendingDown, Info, AlertTriangle, Receipt, X } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { ChevronLeft, ChevronRight, Upload, Loader2, TrendingUp, TrendingDown, Info, AlertTriangle, CheckCircle2, XCircle, Copy, Receipt, X, Play } from "lucide-react";
 import { Bar, BarChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -9,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/hooks/use-toast";
 import { useLocations } from "@/hooks/useLocations";
-import { useCostCategories, useCostInvoices, useUploadCostInvoice, ALLOWED_COST_TYPES, type CostInvoice, type CostStatus } from "@/hooks/useCosts";
+import { useCostCategories, useCostInvoices, uploadAndReadCostInvoice, ALLOWED_COST_TYPES, type CostInvoice, type CostStatus } from "@/hooks/useCosts";
 import { CostInvoiceSheet } from "@/components/costs/CostInvoiceSheet";
 import { categoryDeviations, monthKey, monthlySeries, pctChange, shiftMonth, sumBy, type CostLineFact } from "@/lib/costInsights";
 
@@ -30,17 +31,19 @@ const statusLabel: Record<CostStatus, string> = { to_classify: "Por classificar"
 const statusVariant = (s: CostStatus): "secondary" | "outline" | "default" => (s === "paid" ? "default" : s === "classified" ? "outline" : "secondary");
 
 type Filter = { kind: "group" | "location" | "supplier"; value: string } | null;
+type FileProgress = { name: string; state: "uploading" | "reading" | "done" | "duplicate" | "failed"; message?: string };
 
 const Costs = () => {
+  const qc = useQueryClient();
   const { data: invoices = [], isLoading } = useCostInvoices();
   const { data: categories = [] } = useCostCategories();
   const { data: locations = [] } = useLocations({ excludeRooms: true });
-  const upload = useUploadCostInvoice();
   const fileRef = useRef<HTMLInputElement>(null);
 
   const [month, setMonth] = useState(todayKey());
-  const [withVat, setWithVat] = useState(true);
-  const [tab, setTab] = useState<"month" | "inbox" | "due">("month");
+  const [withVat, setWithVat] = useState(false);
+  const [tab, setTab] = useState<"inbox" | "month" | "due">("month");
+  const [tabTouched, setTabTouched] = useState(false);
   const [filter, setFilter] = useState<Filter>(null);
   const [open, setOpen] = useState<{ id: string; auto: boolean } | null>(null);
 
@@ -70,15 +73,14 @@ const Costs = () => {
     !filter ? true : filter.kind === "group" ? f.groupName === filter.value : filter.kind === "location" ? f.locationName === filter.value : f.supplierName === filter.value,
   );
   const sum = (ls: CostLineFact[]) => ls.reduce((s, l) => s + l.net + (withVat ? l.vat : 0), 0);
-  const total = sum(filtered);
-  const prevTotal = sum(facts.filter((f) => monthKey(f.invoiceDate) === shiftMonth(month, -1)));
-  const change = pctChange(sum(monthFacts), prevTotal);
   const opex = sum(filtered.filter((f) => (f.kind ?? "opex") === "opex"));
   const capex = sum(filtered.filter((f) => f.kind === "capex"));
   const stock = sum(filtered.filter((f) => f.kind === "stock"));
+  const prevOpex = sum(facts.filter((f) => monthKey(f.invoiceDate) === shiftMonth(month, -1) && (f.kind ?? "opex") === "opex"));
+  const change = pctChange(opex, prevOpex);
 
   const series = monthlySeries(facts, month, 6, withVat).map((r) => ({ ...r, label: monthName(r.month, true) }));
-  const byGroup = sumBy(filtered, (l) => l.groupName, withVat);
+  const byGroup = sumBy(filtered.filter((f) => (f.kind ?? "opex") === "opex"), (l) => l.groupName, withVat);
   const byLocation = sumBy(filtered, (l) => l.locationName, withVat).slice(0, 8);
   const bySupplier = sumBy(filtered, (l) => l.supplierName, withVat).slice(0, 5);
   const insights = categoryDeviations(facts, month, withVat).slice(0, 4);
@@ -87,7 +89,14 @@ const Costs = () => {
   const overdue = unpaid.filter((i) => i.dueDate && i.dueDate < today());
   const unpaidTotal = unpaid.reduce((s, i) => s + (i.totalGross ?? 0), 0);
   const overdueTotal = overdue.reduce((s, i) => s + (i.totalGross ?? 0), 0);
-  const inbox = invoices.filter((i) => i.status === "to_classify");
+  const inbox = useMemo(
+    () => invoices.filter((i) => i.status === "to_classify").sort((a, b) => a.createdAt.localeCompare(b.createdAt)),
+    [invoices],
+  );
+
+  useEffect(() => {
+    if (!tabTouched && inbox.length > 0) setTab("inbox");
+  }, [inbox.length, tabTouched]);
 
   const monthInvoiceIds = new Set(filtered.map((f) => f.invoiceId));
   const listRows: CostInvoice[] =
@@ -96,26 +105,37 @@ const Costs = () => {
     : invoices.filter((i) => monthInvoiceIds.has(i.id));
 
   const current = open ? invoices.find((i) => i.id === open.id) ?? null : null;
+  const nextInbox = current ? inbox.find((i) => i.id !== current.id) : undefined;
 
-  const [progress, setProgress] = useState<{ done: number; total: number } | null>(null);
+  const [files, setFiles] = useState<FileProgress[]>([]);
   const [dragging, setDragging] = useState(false);
   const dragDepth = useRef(0);
+  const busy = files.some((f) => f.state === "uploading" || f.state === "reading");
 
   const onFiles = async (list: FileList | File[] | null) => {
-    const files = list ? Array.from(list) : [];
+    const incoming = list ? Array.from(list) : [];
     if (fileRef.current) fileRef.current.value = "";
-    if (!files.length || progress) return;
-    let lastId: string | null = null;
-    let ok = 0;
-    setProgress({ done: 0, total: files.length });
-    for (const [i, file] of files.entries()) {
-      try { lastId = await upload.mutateAsync(file); ok++; }
-      catch (e: any) { toast({ title: file.name, description: e?.message ?? "Falhou o carregamento", variant: "destructive" }); }
-      setProgress({ done: i + 1, total: files.length });
+    if (!incoming.length || busy) return;
+    setFiles(incoming.map((f) => ({ name: f.name, state: "uploading" })));
+    let done = 0, dups = 0, failed = 0;
+    let firstId: string | null = null;
+    for (const [i, file] of incoming.entries()) {
+      const patch = (p: Partial<FileProgress>) =>
+        setFiles((fs) => fs.map((x, j) => (j === i ? { ...x, ...p } : x)));
+      const res = await uploadAndReadCostInvoice(file, (phase) => patch({ state: phase }));
+      if (res.state === "done") { done++; firstId ??= res.id; patch({ state: "done" }); }
+      else if (res.state === "duplicate") { dups++; patch({ state: "duplicate" }); }
+      else { failed++; patch({ state: "failed", message: res.message }); }
     }
-    setProgress(null);
-    if (lastId && files.length === 1) setOpen({ id: lastId, auto: true });
-    else if (ok > 0) { setTab("inbox"); toast({ title: `${ok} de ${files.length} faturas na caixa de entrada` }); }
+    qc.invalidateQueries({ queryKey: ["cost-invoices"] });
+    if (done > 0) {
+      setTabTouched(true);
+      setTab("inbox");
+      if (incoming.length === 1 && firstId) setOpen({ id: firstId, auto: false });
+      else toast({ title: `${done} fatura(s) lidas e prontas a classificar` });
+    }
+    if (dups > 0) toast({ title: `${dups} ficheiro(s) já tinham sido carregados`, variant: "destructive" });
+    if (failed > 0) toast({ title: `${failed} ficheiro(s) falharam`, variant: "destructive" });
   };
 
   const hasFiles = (e: React.DragEvent) => Array.from(e.dataTransfer.types).includes("Files");
@@ -128,6 +148,8 @@ const Costs = () => {
 
   const toggle = (kind: NonNullable<Filter>["kind"], value: string) =>
     setFilter((f) => (f && f.kind === kind && f.value === value ? null : { kind, value }));
+
+  const vatNote = withVat ? "com IVA" : "sem IVA";
 
   return (
     <div className="px-4 lg:px-10 py-6 lg:py-10 max-w-7xl mx-auto min-h-[80vh]" {...dropHandlers}>
@@ -151,12 +173,47 @@ const Costs = () => {
             <Label htmlFor="vat" className="text-sm">Com IVA</Label>
           </div>
           <input ref={fileRef} type="file" multiple accept={[...ALLOWED_COST_TYPES, ".pdf", ".jpg", ".jpeg", ".png"].join(",")} className="hidden" onChange={(e) => onFiles(e.target.files)} />
-          <Button onClick={() => fileRef.current?.click()} disabled={!!progress}>
-            {progress ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : <Upload className="h-4 w-4 mr-1.5" />}
-            {progress ? `A carregar ${progress.done}/${progress.total}` : "Carregar faturas"}
+          <Button onClick={() => fileRef.current?.click()} disabled={busy}>
+            {busy ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : <Upload className="h-4 w-4 mr-1.5" />}
+            {busy ? "A processar…" : "Carregar faturas"}
           </Button>
         </div>
       </div>
+
+      {files.length > 0 && (
+        <Card className="mb-6 p-4 border-border/60 shadow-card">
+          <div className="flex items-center justify-between mb-2">
+            <div className="text-sm font-medium">Carregamento</div>
+            {!busy && <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setFiles([])} aria-label="Fechar"><X className="h-4 w-4" /></Button>}
+          </div>
+          <div className="space-y-1.5">
+            {files.map((f, i) => (
+              <div key={i} className="flex items-center gap-2 text-sm">
+                {f.state === "uploading" && <><Loader2 className="h-4 w-4 animate-spin text-muted-foreground shrink-0" /><span className="truncate flex-1">{f.name}</span><span className="text-xs text-muted-foreground">A carregar…</span></>}
+                {f.state === "reading" && <><Loader2 className="h-4 w-4 animate-spin text-primary shrink-0" /><span className="truncate flex-1">{f.name}</span><span className="text-xs text-muted-foreground">A ler…</span></>}
+                {f.state === "done" && <><CheckCircle2 className="h-4 w-4 text-primary shrink-0" /><span className="truncate flex-1">{f.name}</span><span className="text-xs text-muted-foreground">Lida · na caixa de entrada</span></>}
+                {f.state === "duplicate" && <><Copy className="h-4 w-4 text-amber-600 shrink-0" /><span className="truncate flex-1">{f.name}</span><span className="text-xs text-amber-600">Já tinha sido carregada</span></>}
+                {f.state === "failed" && <><XCircle className="h-4 w-4 text-destructive shrink-0" /><span className="truncate flex-1">{f.name}</span><span className="text-xs text-destructive">{f.message ?? "Falhou"}</span></>}
+              </div>
+            ))}
+          </div>
+        </Card>
+      )}
+
+      {inbox.length > 0 && (
+        <Card className="mb-6 p-4 sm:p-5 border-primary/40 bg-primary/5 shadow-card flex flex-col sm:flex-row sm:items-center gap-3">
+          <div className="flex items-center gap-3 flex-1">
+            <Receipt className="h-6 w-6 text-primary shrink-0" />
+            <div>
+              <div className="font-display text-lg font-semibold">{inbox.length} fatura(s) por classificar</div>
+              <p className="text-sm text-muted-foreground">Estão lidas e prontas a confirmar — classifica uma a seguir à outra.</p>
+            </div>
+          </div>
+          <Button onClick={() => inbox[0] && setOpen({ id: inbox[0].id, auto: false })}>
+            <Play className="h-4 w-4 mr-1.5" /> Começar a classificar
+          </Button>
+        </Card>
+      )}
 
       <div className="flex items-center justify-center gap-2 mb-5">
         <Button variant="ghost" size="icon" onClick={() => setMonth(shiftMonth(month, -1))} aria-label="Mês anterior"><ChevronLeft className="h-5 w-5" /></Button>
@@ -172,16 +229,17 @@ const Costs = () => {
         </div>
       )}
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
-        <Kpi label="Custo do mês" value={eur(total)} hint={change == null ? "Sem mês anterior" : `${change > 0 ? "+" : ""}${change}% vs. mês anterior`} tone={change != null && change > 0 ? "warn" : undefined} />
-        <Kpi label="Operação (Opex)" value={eur(opex)} hint={`Investimento ${eur(capex)}${stock ? ` · Stock ${eur(stock)}` : ""}`} />
-        <Kpi label="A pagar" value={eur(unpaidTotal)} hint={`${unpaid.length} fatura(s)`} onClick={() => setTab("due")} />
-        <Kpi label="Vencido" value={eur(overdueTotal)} hint={`${overdue.length} fatura(s)`} tone={overdue.length ? "danger" : undefined} onClick={() => setTab("due")} />
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 mb-6">
+        <Kpi label="Operação do mês" value={eur(opex)} hint={`${vatNote}${change == null ? " · sem mês anterior" : ` · ${change > 0 ? "+" : ""}${change}% vs. mês anterior`}`} tone={change != null && change > 0 ? "warn" : undefined} />
+        <Kpi label="Investimento" value={eur(capex)} hint={vatNote} />
+        <Kpi label="Stock" value={eur(stock)} hint={vatNote} />
+        <Kpi label="A pagar" value={eur(unpaidTotal)} hint={`${unpaid.length} fatura(s)`} onClick={() => { setTabTouched(true); setTab("due"); }} />
+        <Kpi label="Vencido" value={eur(overdueTotal)} hint={`${overdue.length} fatura(s)`} tone={overdue.length ? "danger" : undefined} onClick={() => { setTabTouched(true); setTab("due"); }} />
       </div>
 
       <div className="grid lg:grid-cols-3 gap-4 mb-6">
         <Card className="p-4 border-border/60 shadow-card lg:col-span-2">
-          <div className="text-sm font-medium mb-3">Últimos 6 meses</div>
+          <div className="text-sm font-medium mb-3">Últimos 6 meses <span className="text-xs font-normal text-muted-foreground">({vatNote})</span></div>
           <div className="h-56">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={series} onClick={(e: any) => e?.activePayload?.[0] && setMonth(e.activePayload[0].payload.month)}>
@@ -197,7 +255,7 @@ const Costs = () => {
           </div>
         </Card>
         <Card className="p-4 border-border/60 shadow-card">
-          <div className="text-sm font-medium mb-3">Insights</div>
+          <div className="text-sm font-medium mb-3">Insights <span className="text-xs font-normal text-muted-foreground">({vatNote})</span></div>
           <div className="space-y-2.5">
             {insights.length === 0 && bySupplier.length === 0 && <p className="text-sm text-muted-foreground">Ainda sem dados suficientes neste mês.</p>}
             {insights.map((i, k) => (
@@ -216,18 +274,13 @@ const Costs = () => {
                 <span>{overdue.length} fatura(s) vencida(s) por pagar.</span>
               </div>
             )}
-            {inbox.length > 0 && (
-              <button className="flex gap-2 text-sm text-left hover:underline" onClick={() => setTab("inbox")}>
-                <Receipt className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" /><span>{inbox.length} fatura(s) por classificar.</span>
-              </button>
-            )}
           </div>
         </Card>
       </div>
 
       <div className="grid lg:grid-cols-3 gap-4 mb-8">
         <Card className="p-4 border-border/60 shadow-card">
-          <div className="text-sm font-medium mb-1">Por categoria</div>
+          <div className="text-sm font-medium mb-1">Por categoria <span className="text-xs font-normal text-muted-foreground">(operação, {vatNote})</span></div>
           {byGroup.length === 0 ? <Empty /> : (
             <>
               <div className="h-40">
@@ -240,7 +293,7 @@ const Costs = () => {
                   </PieChart>
                 </ResponsiveContainer>
               </div>
-              <RankList rows={byGroup} total={sum(filtered)} onPick={(k) => toggle("group", k)} active={filter?.kind === "group" ? filter.value : null} />
+              <RankList rows={byGroup} total={opex} onPick={(k) => toggle("group", k)} active={filter?.kind === "group" ? filter.value : null} />
             </>
           )}
         </Card>
@@ -254,10 +307,10 @@ const Costs = () => {
         </Card>
       </div>
 
-      <Tabs value={tab} onValueChange={(v) => setTab(v as any)} className="mb-3">
+      <Tabs value={tab} onValueChange={(v) => { setTabTouched(true); setTab(v as any); }} className="mb-3">
         <TabsList>
-          <TabsTrigger value="month">Faturas do mês</TabsTrigger>
           <TabsTrigger value="inbox">Por classificar{inbox.length ? ` (${inbox.length})` : ""}</TabsTrigger>
+          <TabsTrigger value="month">Faturas do mês</TabsTrigger>
           <TabsTrigger value="due">A pagar{unpaid.length ? ` (${unpaid.length})` : ""}</TabsTrigger>
         </TabsList>
       </Tabs>
@@ -276,6 +329,7 @@ const Costs = () => {
                     <div className="text-xs text-muted-foreground truncate">
                       {i.invoiceNumber || "Sem número"} · {fmtDate(i.invoiceDate)}
                       {i.lines[0]?.categoryCode ? ` · ${catByCode.get(i.lines[0].categoryCode)?.name ?? ""}` : ""}
+                      {i.status === "to_classify" && i.createdByName ? ` · carregada por ${i.createdByName}` : ""}
                     </div>
                   </div>
                   <div className="text-right shrink-0">
@@ -292,7 +346,14 @@ const Costs = () => {
         )}
       </Card>
 
-      <CostInvoiceSheet invoice={current} autoExtract={open?.auto} onClose={() => setOpen(null)} />
+      <CostInvoiceSheet
+        invoice={current}
+        autoExtract={open?.auto}
+        hasNext={!!nextInbox}
+        onNext={() => nextInbox && setOpen({ id: nextInbox.id, auto: false })}
+        onOpenInvoice={(id) => setOpen({ id, auto: false })}
+        onClose={() => setOpen(null)}
+      />
     </div>
   );
 };
