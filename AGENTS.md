@@ -16,3 +16,5 @@
 - Tipos em uso: form_submitted, docs_received, request_new, request_comment, request_status, contract_ending, deposit_pending (os dois últimos uma única vez por utilizador e contrato).
 - Estados financeiros como rendas em atraso vêem-se no portal de pagamentos e não geram notificações.
 - Supplier costs (/finance/costs) read cost_invoices + cost_invoice_lines with DB triggers enforcing classification/payment rules; dashboard maths lives in src/lib/costInsights.ts (unit-tested) and invoice reading goes through the staff-only extract-cost-invoice function, so the client never trusts its own totals.
+
+- Leitura de faturas de custo: o QR fiscal é extraído no browser (src/lib/invoiceQr.ts, pdfjs-dist + jsQR, com polyfill de Map.getOrInsertComputed exigido pelo pdf.js v6) e enviado como qr_text à função extract-cost-invoice, que faz merge QR+IA em _shared/ptQr.ts; a pré-visualização de PDF na gaveta usa renderização pdf.js (CostFilePreview), nunca iframe, para funcionar no telemóvel.
