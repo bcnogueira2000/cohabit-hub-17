@@ -2522,6 +2522,7 @@ export type Database = {
         Args: { p_count?: number; p_schedule_id: string }
         Returns: number
       }
+      generate_cost_alerts: { Args: never; Returns: number }
       generate_finance_alerts: { Args: never; Returns: number }
       generate_lead_form_token: {
         Args: { p_lead_id: string }
@@ -2640,6 +2641,16 @@ export type Database = {
       }
       reserve_room_without_fee: {
         Args: { p_lead_id: string; p_reason: string }
+        Returns: string
+      }
+      save_cost_invoice: {
+        Args: {
+          p_expected_updated_at: string
+          p_header: Json
+          p_id: string
+          p_lines: Json
+          p_status?: string
+        }
         Returns: string
       }
       sign_lead_contract: {
