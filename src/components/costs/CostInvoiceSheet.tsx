@@ -21,7 +21,7 @@ import { extractInvoiceQrText } from "@/lib/invoiceQr";
 import { SupplierCombobox } from "@/components/SupplierCombobox";
 import { LocationCombobox } from "@/components/LocationCombobox";
 import {
-  costFileUrl, extractCostInvoice, findDuplicateInvoice, useCostCategories, useCostInvoiceEvents,
+  costFileDownloadUrl, costFileUrl, extractCostInvoice, findDuplicateInvoice, useCostCategories, useCostInvoiceEvents,
   useFindOrCreateSupplier, useSaveCostInvoice, useSetCostStatus,
   type CostInvoice, type CostLine, type CostStatus,
 } from "@/hooks/useCosts";
