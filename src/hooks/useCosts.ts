@@ -223,10 +223,6 @@ export const useSaveCostInvoice = () => {
         atcud: input.atcud, notes: input.notes, total_net: totalNet, total_vat: totalVat, total_gross: r2(totalNet + totalVat),
         ...(input.extractionSource ? { extraction_source: input.extractionSource } : {}),
       };
-      // Header and lines are saved while unclassified; the status change is a separate step so the DB validation sees the final lines.
-      if (current?.status !== "to_classify" && current?.status !== input.status) {
-        // reopen first (e.g. classified -> to_classify) before editing
-      }
       const { error: hErr } = await db.from("cost_invoices").update(header).eq("id", input.id);
       if (hErr) throw hErr;
       const { error: dErr } = await db.from("cost_invoice_lines").delete().eq("invoice_id", input.id);
