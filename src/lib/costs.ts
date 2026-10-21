@@ -17,5 +17,5 @@ export function parseATQR(raw:string) {
  const lines:CostLine[]=[];
  for(const region of ['I','J','K']) {if(!fields[region+'1'])continue; const rates=region==='I'?[6,13,23]:region==='J'?[4,9,16]:[5,12,22]; const exempt=amount(region+'2'); if(exempt!=null&&exempt!==0)lines.push({...emptyCostLine(),description:'Isento de IVA',net:exempt,vat_rate:0,vat_amount:0});for(let j=0;j<3;j++){const net=amount(region+(3+j*2));const vat=amount(region+(4+j*2)); if(net!=null&&(net!==0||vat))lines.push({...emptyCostLine(),description:`IVA ${rates[j]}%`,net,vat_rate:rates[j],vat_amount:vat??lineVAT(net,rates[j])});}}
  const vat=amount('N');const gross=amount('O');const date=`${fields.F.slice(0,4)}-${fields.F.slice(4,6)}-${fields.F.slice(6,8)}`; if(Number.isNaN(Date.parse(date))||new Date(date).toISOString().slice(0,10)!==date)return null;
- return {supplier_nif:fields.A,invoice_number:fields.G,invoice_date:date,atcud:fields.H??null,total_net:gross!=null&&vat!=null?round(gross-vat):null,total_vat:vat,total_gross:gross,lines};
+ return {supplier_name:null as string|null,due_date:null as string|null,supplier_nif:fields.A,invoice_number:fields.G,invoice_date:date,atcud:fields.H??null,total_net:gross!=null&&vat!=null?round(gross-vat):null,total_vat:vat,total_gross:gross,lines};
 }
