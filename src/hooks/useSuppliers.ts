@@ -33,6 +33,10 @@ export const useSupplier = (id: string | undefined) =>
 
 export interface SupplierInput {
   name: string;
+  nif?: string | null;
+  defaultCategoryCode?: string | null;
+  defaultVatRate?: number | null;
+  defaultLocationId?: string | null;
   category: SupplierCategory;
   contactName?: string | null;
   phone?: string | null;
@@ -45,6 +49,10 @@ export interface SupplierInput {
 
 const toDbPatch = (input: Partial<SupplierInput>) => {
   const p: any = {};
+  if (input.nif !== undefined) p.nif = input.nif;
+  if (input.defaultCategoryCode !== undefined) p.default_category_code = input.defaultCategoryCode;
+  if (input.defaultVatRate !== undefined) p.default_vat_rate = input.defaultVatRate;
+  if (input.defaultLocationId !== undefined) p.default_location_id = input.defaultLocationId;
   if (input.name !== undefined) p.name = input.name;
   if (input.category !== undefined) p.category = input.category;
   if (input.contactName !== undefined) p.contact_name = input.contactName;
