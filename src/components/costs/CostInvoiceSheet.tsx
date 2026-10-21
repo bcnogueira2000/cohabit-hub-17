@@ -293,7 +293,7 @@ export const CostInvoiceSheet = ({ invoice, autoExtract, hasNext, onNext, onOpen
                             ))}
                           </SelectContent>
                         </Select>
-                        <LocationCombobox value={l.locationId} onChange={(v) => updLine(i, { locationId: v })} placeholder="Espaço" />
+                        <LocationCombobox value={computed[i]?.locationId ?? l.locationId} onChange={(v) => updLine(i, { locationId: v })} placeholder="Espaço" />
                       </div>
                       <Input placeholder="Descrição" value={l.description ?? ""} onChange={(e) => updLine(i, { description: e.target.value || null })} />
                       <div className="grid grid-cols-[1fr_90px_1fr_auto] gap-2 items-center">
