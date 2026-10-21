@@ -1,10 +1,12 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.4";
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
+import { mergeQrWithAi, parsePtQr } from "../_shared/ptQr.ts";
 
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
 const PATH_RE = /^[0-9]{4}\/(0[1-9]|1[0-2])\/[0-9a-f-]{36}-[A-Za-z0-9][A-Za-z0-9._-]*\.(pdf|jpg|jpeg|png)$/;
+const QR_RE = /^[A-Z0-9:*\/ .-]{20,1000}$/i;
 
 const toBase64 = (buf: ArrayBuffer) => {
   const bytes = new Uint8Array(buf);
@@ -30,6 +32,7 @@ Deno.serve(async (req) => {
     const body = await req.json().catch(() => ({}));
     const path = String(body?.path ?? "");
     const categories = Array.isArray(body?.categories) ? body.categories.slice(0, 80).map(String) : [];
+    const qrText = typeof body?.qr_text === "string" && QR_RE.test(body.qr_text) ? body.qr_text : null;
     if (!PATH_RE.test(path)) return json({ error: "Ficheiro inválido" }, 400);
 
     const { data: file, error: dlErr } = await userClient.storage.from("cost-invoices").download(path);
@@ -71,7 +74,7 @@ Deno.serve(async (req) => {
         store: false,
         reasoning: { effort: "low" },
         instructions:
-          "Extrais dados de faturas portuguesas de fornecedores. Usa o QR code fiscal se legível. Datas em YYYY-MM-DD, valores em euros com ponto decimal. Não inventes: usa null no que não vês. Para category_code escolhe o código mais provável da lista dada.",
+          "Extrais dados de faturas portuguesas de fornecedores. Datas em YYYY-MM-DD, valores em euros com ponto decimal. Não inventes: usa null no que não vês. Para category_code escolhe o código mais provável da lista dada.",
         input: [{ role: "user", content: userContent }],
         text: {
           format: {
@@ -109,8 +112,10 @@ Deno.serve(async (req) => {
         } catch { /* ignore */ }
       }
     }
-    const data = text ? JSON.parse(text) : {};
-    return json({ data });
+    const ai = text ? JSON.parse(text) : {};
+    const qr = qrText ? parsePtQr(qrText) : null;
+    const merged = mergeQrWithAi(qr, ai);
+    return json({ data: merged.data, uncertain: merged.uncertain, source: merged.source });
   } catch (e) {
     console.error(e);
     return json({ error: "Erro inesperado" }, 500);
