@@ -97,17 +97,33 @@ const Costs = () => {
 
   const current = open ? invoices.find((i) => i.id === open.id) ?? null : null;
 
-  const onFiles = async (files: FileList | null) => {
-    if (!files?.length) return;
-    let lastId: string | null = null;
-    let failed = 0;
-    for (const file of Array.from(files)) {
-      try { lastId = await upload.mutateAsync(file); }
-      catch (e: any) { failed++; toast({ title: file.name, description: e?.message ?? "Falhou o carregamento", variant: "destructive" }); }
-    }
+  const [progress, setProgress] = useState<{ done: number; total: number } | null>(null);
+  const [dragging, setDragging] = useState(false);
+  const dragDepth = useRef(0);
+
+  const onFiles = async (list: FileList | File[] | null) => {
+    const files = list ? Array.from(list) : [];
     if (fileRef.current) fileRef.current.value = "";
+    if (!files.length || progress) return;
+    let lastId: string | null = null;
+    let ok = 0;
+    setProgress({ done: 0, total: files.length });
+    for (const [i, file] of files.entries()) {
+      try { lastId = await upload.mutateAsync(file); ok++; }
+      catch (e: any) { toast({ title: file.name, description: e?.message ?? "Falhou o carregamento", variant: "destructive" }); }
+      setProgress({ done: i + 1, total: files.length });
+    }
+    setProgress(null);
     if (lastId && files.length === 1) setOpen({ id: lastId, auto: true });
-    else if (files.length > 1) { setTab("inbox"); toast({ title: `${files.length - failed} faturas na caixa de entrada` }); }
+    else if (ok > 0) { setTab("inbox"); toast({ title: `${ok} de ${files.length} faturas na caixa de entrada` }); }
+  };
+
+  const hasFiles = (e: React.DragEvent) => Array.from(e.dataTransfer.types).includes("Files");
+  const dropHandlers = {
+    onDragEnter: (e: React.DragEvent) => { if (!hasFiles(e)) return; e.preventDefault(); dragDepth.current++; setDragging(true); },
+    onDragOver: (e: React.DragEvent) => { if (!hasFiles(e)) return; e.preventDefault(); e.dataTransfer.dropEffect = "copy"; },
+    onDragLeave: (e: React.DragEvent) => { if (!hasFiles(e)) return; dragDepth.current = Math.max(0, dragDepth.current - 1); if (!dragDepth.current) setDragging(false); },
+    onDrop: (e: React.DragEvent) => { if (!hasFiles(e)) return; e.preventDefault(); dragDepth.current = 0; setDragging(false); onFiles(e.dataTransfer.files); },
   };
 
   const toggle = (kind: NonNullable<Filter>["kind"], value: string) =>
