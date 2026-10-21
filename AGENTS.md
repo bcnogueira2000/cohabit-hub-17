@@ -15,3 +15,4 @@
 - Só se notifica o que exige uma ação humana e não é visível noutra página da app.
 - Tipos em uso: form_submitted, docs_received, request_new, request_comment, request_status, contract_ending, deposit_pending (os dois últimos uma única vez por utilizador e contrato).
 - Estados financeiros como rendas em atraso vêem-se no portal de pagamentos e não geram notificações.
+- Supplier costs (/finance/costs) read cost_invoices + cost_invoice_lines with DB triggers enforcing classification/payment rules; dashboard maths lives in src/lib/costInsights.ts (unit-tested) and invoice reading goes through the staff-only extract-cost-invoice function, so the client never trusts its own totals.

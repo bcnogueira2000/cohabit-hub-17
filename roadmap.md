@@ -1,3 +1,3 @@
 - [x] Mostrar e editar o perfil do residente com os valores existentes.
 - [x] Exportar todos os documentos do residente em ZIP e verificar o resultado.
-- [x] Corrigir e verificar o pré-preenchimento do perfil existente no residente.
+- [x] Corrigir e verificar o pré-preenchimento do perfil existente no residente.- [ ] Custos: testar carregamento e leitura automática com faturas reais (aguarda faturas do Bernardo); criar rascunho no Moloni (fase seguinte).
