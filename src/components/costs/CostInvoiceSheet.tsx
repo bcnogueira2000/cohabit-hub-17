@@ -205,11 +205,7 @@ export const CostInvoiceSheet = ({ invoice, autoExtract, hasNext, onNext, onOpen
 
   const busy = save.isPending || setStatus.isPending || findSupplier.isPending;
 
-  const preview = invoice && fileUrl && (
-    invoice.fileType === "application/pdf"
-      ? <iframe src={fileUrl} title="Fatura" className="w-full h-full min-h-[420px] rounded-lg border border-border/60 bg-muted/30" />
-      : <img src={fileUrl} alt="Fatura" className="w-full rounded-lg border border-border/60 object-contain" />
-  );
+  const preview = invoice && fileUrl && <CostFilePreview fileUrl={fileUrl} fileType={invoice.fileType} />;
 
   return (
     <Sheet open={!!invoice} onOpenChange={(o) => !o && onClose()}>
