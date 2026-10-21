@@ -163,9 +163,10 @@ export type UploadOutcome =
   | { state: "failed"; message: string };
 
 /** Carrega o ficheiro, cria a fatura e lê-a automaticamente (QR + leitura inteligente). */
-export const uploadAndReadCostInvoice = async (file: File): Promise<UploadOutcome> => {
+export const uploadAndReadCostInvoice = async (file: File, onPhase?: (p: "uploading" | "reading") => void): Promise<UploadOutcome> => {
   if (!ALLOWED_COST_TYPES.includes(file.type)) return { state: "failed", message: "Formato não permitido. Usa PDF, JPG ou PNG." };
   if (file.size > 10 * 1024 * 1024) return { state: "failed", message: "Ficheiro acima de 10 MB." };
+  onPhase?.("uploading");
   const hash = await sha256(file);
   const { data: dup } = await db.from("cost_invoices").select("id").eq("file_hash", hash).maybeSingle();
   if (dup) return { state: "duplicate" };
@@ -184,6 +185,7 @@ export const uploadAndReadCostInvoice = async (file: File): Promise<UploadOutcom
     .single();
   if (error) return { state: "failed", message: error.message };
   // Leitura automática: falhas aqui não impedem o carregamento — a fatura fica para leitura manual.
+  onPhase?.("reading");
   try {
     await autoReadInvoice(data.id as string, path, file);
   } catch { /* fica por ler */ }
