@@ -7,6 +7,16 @@ import { findQrText } from "../../supabase/functions/_shared/ptQr";
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = workerUrl;
 
+// Polyfill para browsers sem Map.prototype.getOrInsertComputed (usado internamente pelo pdf.js v6).
+if (typeof (Map.prototype as any).getOrInsertComputed !== "function") {
+  (Map.prototype as any).getOrInsertComputed = function (key: unknown, callback: (k: unknown) => unknown) {
+    if (this.has(key)) return this.get(key);
+    const value = callback(key);
+    this.set(key, value);
+    return value;
+  };
+}
+
 const scanCanvas = (canvas: HTMLCanvasElement): string | null => {
   const ctx = canvas.getContext("2d", { willReadFrequently: true });
   if (!ctx) return null;
