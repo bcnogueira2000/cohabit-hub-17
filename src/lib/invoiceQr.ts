@@ -26,7 +26,8 @@ const scanImage = async (file: File): Promise<string | null> => {
 };
 
 const scanPdf = async (file: File): Promise<string | null> => {
-  const doc = await pdfjsLib.getDocument({ data: await file.arrayBuffer() }).promise;
+  const task = pdfjsLib.getDocument({ data: await file.arrayBuffer() });
+  const doc = await task.promise;
   try {
     for (let p = 1; p <= Math.min(doc.numPages, 3); p++) {
       const page = await doc.getPage(p);
@@ -40,7 +41,7 @@ const scanPdf = async (file: File): Promise<string | null> => {
     }
     return null;
   } finally {
-    await doc.destroy();
+    await task.destroy();
   }
 };
 
