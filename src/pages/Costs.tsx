@@ -130,21 +130,30 @@ const Costs = () => {
     setFilter((f) => (f && f.kind === kind && f.value === value ? null : { kind, value }));
 
   return (
-    <div className="px-4 lg:px-10 py-6 lg:py-10 max-w-7xl mx-auto">
+    <div className="px-4 lg:px-10 py-6 lg:py-10 max-w-7xl mx-auto min-h-[80vh]" {...dropHandlers}>
+      {dragging && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm pointer-events-none">
+          <div className="rounded-2xl border-2 border-dashed border-primary bg-card px-10 py-12 text-center shadow-card">
+            <Upload className="h-10 w-10 mx-auto text-primary mb-3" />
+            <p className="font-display text-xl font-semibold">Larga aqui as faturas</p>
+            <p className="text-sm text-muted-foreground mt-1">PDF, JPG ou PNG · podes largar várias de uma vez</p>
+          </div>
+        </div>
+      )}
       <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-6">
         <div>
           <h1 className="font-display text-3xl lg:text-4xl font-semibold">Custos</h1>
-          <p className="text-muted-foreground mt-1">Faturas de fornecedores, por mês, categoria e espaço.</p>
+          <p className="text-muted-foreground mt-1">Faturas de fornecedores, por mês, categoria e espaço. Arrasta faturas para aqui para as carregar.</p>
         </div>
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2">
             <Switch id="vat" checked={withVat} onCheckedChange={setWithVat} />
             <Label htmlFor="vat" className="text-sm">Com IVA</Label>
           </div>
-          <input ref={fileRef} type="file" multiple accept={ALLOWED_COST_TYPES.join(",")} className="hidden" onChange={(e) => onFiles(e.target.files)} />
-          <Button onClick={() => fileRef.current?.click()} disabled={upload.isPending}>
-            {upload.isPending ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : <Upload className="h-4 w-4 mr-1.5" />}
-            Carregar faturas
+          <input ref={fileRef} type="file" multiple accept={[...ALLOWED_COST_TYPES, ".pdf", ".jpg", ".jpeg", ".png"].join(",")} className="hidden" onChange={(e) => onFiles(e.target.files)} />
+          <Button onClick={() => fileRef.current?.click()} disabled={!!progress}>
+            {progress ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : <Upload className="h-4 w-4 mr-1.5" />}
+            {progress ? `A carregar ${progress.done}/${progress.total}` : "Carregar faturas"}
           </Button>
         </div>
       </div>
