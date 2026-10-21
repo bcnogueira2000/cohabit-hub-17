@@ -42,6 +42,8 @@ import ContractDetail from "./pages/ContractDetail";
 import Payments from "./pages/Payments";
 import Pricing from "./pages/Pricing";
 import MoloniSettings from "./pages/MoloniSettings";
+import Costs from './pages/Costs';
+import CostDetail from './pages/CostDetail';
 
 import Suppliers from "./pages/Suppliers";
 import SupplierDetail from "./pages/SupplierDetail";
@@ -121,6 +123,10 @@ const App = () => (
             </Route>
 
             {/* Modo Financeiro — manager/admin */}
+            <Route element={<ProtectedRoute requireRole={["staff", "manager", "admin"]}><FinanceShell /></ProtectedRoute>}>
+              <Route path="/finance/costs" element={<Costs />} />
+              <Route path="/finance/costs/:id" element={<CostDetail />} />
+            </Route>
             <Route element={<ProtectedRoute requireRole={["manager", "admin"]}><FinanceShell /></ProtectedRoute>}>
               <Route path="/finance/contracts" element={<Contracts />} />
               <Route path="/finance/contracts/:id" element={<ContractDetail />} />
