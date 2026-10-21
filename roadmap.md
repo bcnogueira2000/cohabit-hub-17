@@ -1,11 +1,11 @@
 - [x] Mostrar e editar o perfil do residente com os valores existentes.
 - [x] Exportar todos os documentos do residente em ZIP e verificar o resultado.
 - [x] Corrigir e verificar o pré-preenchimento do perfil existente no residente.
-- [ ] Custos: caixa de entrada como centro da página (contagem, começar a classificar, inbox sempre visível).
-- [ ] Custos: leitura automática em lote no carregamento, com progresso por ficheiro (a ler, lida, duplicada, falhou).
-- [ ] Custos: QR fiscal lido de forma fiável no browser + parser na função; IA complementa; campos divergentes/incertos assinalados.
-- [ ] Custos: gaveta de classificação com ficheiro ao lado, classificar e seguinte, fornecedor/espaço com pesquisa, predefinições do fornecedor, ATCUD escondido.
-- [ ] Custos: hierarquia de botões; pagar exige data (defeito hoje); reabrir/pagar com confirmação.
-- [ ] Custos: duplicados por ficheiro e por NIF+número com aviso; histórico visível por fatura.
-- [ ] Custos: painel — operação sem investimento/stock, valores s/ IVA por defeito com opção c/ IVA.
-- [ ] Apagar as 6 faturas por classificar (pedido do Bernardo) e ficheiros associados.
+- [x] Custos: caixa de entrada como centro da página (contagem, começar a classificar, inbox sempre visível).
+- [x] Custos: leitura automática em lote no carregamento, com progresso por ficheiro (a ler, lida, duplicada, falhou).
+- [x] Custos: QR fiscal lido de forma fiável no browser + parser na função; IA complementa; campos divergentes/incertos assinalados.
+- [x] Custos: gaveta de classificação com ficheiro ao lado, classificar e seguinte, fornecedor/espaço com pesquisa, predefinições do fornecedor, ATCUD escondido.
+- [x] Custos: hierarquia de botões; pagar exige data (defeito hoje); reabrir/pagar com confirmação.
+- [x] Custos: duplicados por ficheiro e por NIF+número com aviso; histórico visível por fatura.
+- [x] Custos: painel — operação sem investimento/stock, valores s/ IVA por defeito com opção c/ IVA.
+- [x] Apagar as 6 faturas por classificar (pedido do Bernardo) e ficheiros associados.
