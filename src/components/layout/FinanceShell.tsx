@@ -1,7 +1,5 @@
 import { NavLink, Outlet, useLocation, useNavigate, Link } from "react-router-dom";
-import { FileText, Wallet, Tag, LogOut, ArrowLeft, Undo2, Receipt, MoreHorizontal } from "lucide-react";
-import { Button } from '@/components/ui/button';
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import { FileText, Wallet, Tag, LogOut, ArrowLeft, Undo2, Receipt } from "lucide-react";
 import { useMyRoles, useProfile } from "@/hooks/useProfile";
 import { cn, getInitials } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
@@ -12,7 +10,6 @@ import logo from "@/assets/logo.png";
 type NavItem = { to: string; label: string; icon: any; end?: boolean };
 
 const financeItems: NavItem[] = [
-  { to: '/finance/costs', label: 'Custos', icon: Receipt },
   { to: "/finance/contracts", label: "Contratos", icon: FileText },
   { to: "/finance/payments", label: "Pagamentos", icon: Wallet },
   { to: "/finance/pricing", label: "Tipologias e preços", icon: Tag },
@@ -20,7 +17,7 @@ const financeItems: NavItem[] = [
 ];
 
 const Brand = ({ compact = false }: { compact?: boolean }) => (
-  <Link to="/finance/costs" className="flex items-center gap-2.5 hover:opacity-80 transition-opacity">
+  <Link to="/finance/contracts" className="flex items-center gap-2.5 hover:opacity-80 transition-opacity">
     <img src={logo} alt="Living Colours" className={compact ? "h-8 w-8 object-contain" : "h-10 w-10 object-contain"} />
     <span className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">Financeiro</span>
   </Link>
@@ -31,8 +28,7 @@ export const FinanceShell = () => {
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
   const { data: profile } = useProfile();
-  const {data: roles=[]} = useMyRoles();
-  const items = roles.includes('manager') || roles.includes('admin') ? financeItems : financeItems.filter(i=>i.to==='/finance/costs');
+  useMyRoles();
 
   const handleSignOut = async () => { await signOut(); navigate("/auth", { replace: true }); };
 
@@ -47,7 +43,7 @@ export const FinanceShell = () => {
           <Brand />
         </div>
         <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-0.5">
-          {items.map(({ to, label, icon: Icon, end }) => (
+          {financeItems.map(({ to, label, icon: Icon, end }) => (
             <NavLink
               key={to}
               to={to}
@@ -121,7 +117,7 @@ export const FinanceShell = () => {
       {/* Mobile bottom nav */}
       <nav className="lg:hidden fixed bottom-0 inset-x-0 z-30 bg-background/95 backdrop-blur border-t border-border">
         <div className="grid grid-cols-5 h-16">
-          {items.filter(i=>i.to!=='/finance/moloni').map(({ to, label, icon: Icon, end }) => (
+          {financeItems.map(({ to, label, icon: Icon, end }) => (
             <NavLink
               key={to}
               to={to}
@@ -137,7 +133,13 @@ export const FinanceShell = () => {
               {label}
             </NavLink>
           ))}
-          <Sheet><SheetTrigger asChild><Button variant="ghost" className="h-full flex-col gap-0.5 text-[11px]"><MoreHorizontal className="h-5 w-5"/>Mais</Button></SheetTrigger><SheetContent side="bottom"><SheetHeader><SheetTitle>Financeiro</SheetTitle></SheetHeader><div className="grid gap-3 py-4">{items.filter(i=>i.to==='/finance/moloni').map(i=><Button key={i.to} variant="outline" asChild><Link to={i.to}>Moloni</Link></Button>)}<Button variant="outline" asChild><Link to="/">Voltar à operação</Link></Button></div></SheetContent></Sheet>
+          <Link
+            to="/"
+            className="flex flex-col items-center justify-center gap-0.5 text-[11px] font-medium text-muted-foreground px-1 text-center"
+          >
+            <Undo2 className="h-5 w-5" strokeWidth={1.5} />
+            Operação
+          </Link>
         </div>
       </nav>
     </div>

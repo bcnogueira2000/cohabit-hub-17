@@ -102,7 +102,6 @@ export const AppShell = () => {
   const { data: myRoles = [] } = useMyRoles();
   const isAdmin = myRoles.includes("admin");
   const isFinance = myRoles.includes("admin") || myRoles.includes("manager");
-  const financeEntry = isFinance ? '/finance/contracts' : '/finance/costs';
 
   const sections: NavSection[] = (() => {
     const list: NavSection[] = [...baseSections];
@@ -218,9 +217,9 @@ export const AppShell = () => {
             </div>
             <NotificationBell />
           </div>
-          {myRoles.some(r=>['staff','manager','admin'].includes(r)) && (
+          {isFinance && (
             <NavLink
-              to={financeEntry}
+              to="/finance/contracts"
               className={({ isActive }) =>
                 cn(
                   "flex items-center gap-2 px-3 py-2 rounded-lg text-[13px] font-medium transition-smooth",
@@ -300,9 +299,9 @@ export const AppShell = () => {
                     <span className="text-sm font-medium">{label}</span>
                   </NavLink>
                 ))}
-                {myRoles.some(r=>['staff','manager','admin'].includes(r)) && (
+                {isFinance && (
                   <NavLink
-                    to={financeEntry}
+                    to="/finance/contracts"
                     onClick={() => setMoreOpen(false)}
                     className="flex items-center gap-3 rounded-lg p-3 bg-primary/10 hover:bg-primary/15 transition-smooth"
                   >

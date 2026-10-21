@@ -141,27 +141,6 @@
       "when": 1792496876483,
       "tag": "0019_lead_status_change_actor_name",
       "breakpoints": true
-    },
-    {
-      "idx": 20,
-      "version": "7",
-      "when": 1792605069375,
-      "tag": "0020_costs_workflow",
-      "breakpoints": true
-    },
-    {
-      "idx": 21,
-      "version": "7",
-      "when": 1792605284015,
-      "tag": "0021_costs_reopen",
-      "breakpoints": true
-    },
-    {
-      "idx": 22,
-      "version": "7",
-      "when": 1792605322244,
-      "tag": "0022_costs_classification_guard",
-      "breakpoints": true
     }
   ]
 }

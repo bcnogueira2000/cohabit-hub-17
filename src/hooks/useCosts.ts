@@ -1,8 +1,0 @@
-import {useQuery,useQueryClient} from '@tanstack/react-query';
-import {supabase} from '@/integrations/supabase/client';
-import type {CostInvoice,CostLine} from '@/lib/costs';
-export function useCosts(){return useQuery({queryKey:['costs'],queryFn:async()=>{const results:CostInvoice[]=[];for(let offset=0;;offset+=500){const {data,error}=await supabase.from('cost_invoices').select('*,cost_invoice_lines(*)').order('created_at',{ascending:false}).range(offset,offset+499);if(error)throw error;results.push(...data);if(data.length<500)break;}return results;}});}
-export function useCostCategories(){return useQuery({queryKey:['cost-categories'],queryFn:async()=>{const {data,error}=await supabase.from('cost_categories').select('*').order('sort');if(error)throw error;return data;}});}
-export function useCostEvents(id:string){return useQuery({queryKey:['cost-events',id],queryFn:async()=>{const {data,error}=await supabase.from('cost_invoice_events').select('*').eq('invoice_id',id).order('created_at',{ascending:false});if(error)throw error;return data;}});}
-export function useRefreshCosts(){const qc=useQueryClient();return async()=>{await qc.invalidateQueries({queryKey:['costs']});await qc.invalidateQueries({queryKey:['cost-events']});};}
-export async function saveCost(invoice:CostInvoice,header:Record<string,string|number|null>,lines:CostLine[],status:string){const {error}=await supabase.rpc('save_cost_invoice',{p_id:invoice.id,p_expected_updated_at:invoice.updated_at,p_header:header,p_lines:lines,p_status:status});if(error)throw error;}

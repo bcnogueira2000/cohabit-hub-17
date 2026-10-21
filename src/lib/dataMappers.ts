@@ -150,10 +150,6 @@ export const mapStay = (s: any): Stay => ({
 
 export const mapSupplier = (s: any): Supplier => ({
   id: s.id,
-  nif: s.nif ?? null,
-  defaultCategoryCode: s.default_category_code ?? null,
-  defaultVatRate: s.default_vat_rate ?? null,
-  defaultLocationId: s.default_location_id ?? null,
   name: s.name,
   category: s.category,
   contactName: s.contact_name ?? null,

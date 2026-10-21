@@ -437,284 +437,6 @@ export type Database = {
           },
         ]
       }
-      cost_categories: {
-        Row: {
-          active: boolean
-          code: string
-          group_code: string
-          group_name: string
-          kind: string
-          name: string
-          sort: number
-        }
-        Insert: {
-          active?: boolean
-          code: string
-          group_code: string
-          group_name: string
-          kind?: string
-          name: string
-          sort?: number
-        }
-        Update: {
-          active?: boolean
-          code?: string
-          group_code?: string
-          group_name?: string
-          kind?: string
-          name?: string
-          sort?: number
-        }
-        Relationships: []
-      }
-      cost_invoice_alerts: {
-        Row: {
-          invoice_id: string
-          sent_at: string
-          type: string
-        }
-        Insert: {
-          invoice_id: string
-          sent_at?: string
-          type: string
-        }
-        Update: {
-          invoice_id?: string
-          sent_at?: string
-          type?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "cost_invoice_alerts_invoice_id_fkey"
-            columns: ["invoice_id"]
-            isOneToOne: false
-            referencedRelation: "cost_invoices"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      cost_invoice_events: {
-        Row: {
-          action: string
-          created_at: string
-          details: Json
-          id: string
-          invoice_id: string
-          user_id: string
-          user_name: string | null
-        }
-        Insert: {
-          action: string
-          created_at?: string
-          details?: Json
-          id?: string
-          invoice_id: string
-          user_id?: string
-          user_name?: string | null
-        }
-        Update: {
-          action?: string
-          created_at?: string
-          details?: Json
-          id?: string
-          invoice_id?: string
-          user_id?: string
-          user_name?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "cost_invoice_events_invoice_id_fkey"
-            columns: ["invoice_id"]
-            isOneToOne: false
-            referencedRelation: "cost_invoices"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      cost_invoice_lines: {
-        Row: {
-          category_code: string | null
-          description: string | null
-          id: string
-          invoice_id: string
-          location_id: string | null
-          net: number | null
-          sort: number
-          vat_amount: number | null
-          vat_rate: number | null
-        }
-        Insert: {
-          category_code?: string | null
-          description?: string | null
-          id?: string
-          invoice_id: string
-          location_id?: string | null
-          net?: number | null
-          sort?: number
-          vat_amount?: number | null
-          vat_rate?: number | null
-        }
-        Update: {
-          category_code?: string | null
-          description?: string | null
-          id?: string
-          invoice_id?: string
-          location_id?: string | null
-          net?: number | null
-          sort?: number
-          vat_amount?: number | null
-          vat_rate?: number | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "cost_invoice_lines_category_code_fkey"
-            columns: ["category_code"]
-            isOneToOne: false
-            referencedRelation: "cost_categories"
-            referencedColumns: ["code"]
-          },
-          {
-            foreignKeyName: "cost_invoice_lines_invoice_id_fkey"
-            columns: ["invoice_id"]
-            isOneToOne: false
-            referencedRelation: "cost_invoices"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "cost_invoice_lines_location_id_fkey"
-            columns: ["location_id"]
-            isOneToOne: false
-            referencedRelation: "locations"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      cost_invoices: {
-        Row: {
-          atcud: string | null
-          classified_at: string | null
-          classified_by: string | null
-          classified_by_name: string | null
-          created_at: string
-          created_by: string
-          created_by_name: string | null
-          currency: string
-          due_date: string | null
-          duplicate_of: string | null
-          extraction_confidence: Json | null
-          extraction_source: string | null
-          file_hash: string
-          file_name: string
-          file_path: string
-          file_type: string
-          id: string
-          invoice_date: string | null
-          invoice_number: string | null
-          moloni_document_id: number | null
-          moloni_document_number: string | null
-          moloni_sent_at: string | null
-          moloni_status: string
-          notes: string | null
-          paid_at: string | null
-          paid_by: string | null
-          status: string
-          supplier_id: string | null
-          supplier_name: string | null
-          supplier_nif: string | null
-          total_gross: number | null
-          total_net: number | null
-          total_vat: number | null
-          updated_at: string
-        }
-        Insert: {
-          atcud?: string | null
-          classified_at?: string | null
-          classified_by?: string | null
-          classified_by_name?: string | null
-          created_at?: string
-          created_by?: string
-          created_by_name?: string | null
-          currency?: string
-          due_date?: string | null
-          duplicate_of?: string | null
-          extraction_confidence?: Json | null
-          extraction_source?: string | null
-          file_hash: string
-          file_name: string
-          file_path: string
-          file_type: string
-          id?: string
-          invoice_date?: string | null
-          invoice_number?: string | null
-          moloni_document_id?: number | null
-          moloni_document_number?: string | null
-          moloni_sent_at?: string | null
-          moloni_status?: string
-          notes?: string | null
-          paid_at?: string | null
-          paid_by?: string | null
-          status?: string
-          supplier_id?: string | null
-          supplier_name?: string | null
-          supplier_nif?: string | null
-          total_gross?: number | null
-          total_net?: number | null
-          total_vat?: number | null
-          updated_at?: string
-        }
-        Update: {
-          atcud?: string | null
-          classified_at?: string | null
-          classified_by?: string | null
-          classified_by_name?: string | null
-          created_at?: string
-          created_by?: string
-          created_by_name?: string | null
-          currency?: string
-          due_date?: string | null
-          duplicate_of?: string | null
-          extraction_confidence?: Json | null
-          extraction_source?: string | null
-          file_hash?: string
-          file_name?: string
-          file_path?: string
-          file_type?: string
-          id?: string
-          invoice_date?: string | null
-          invoice_number?: string | null
-          moloni_document_id?: number | null
-          moloni_document_number?: string | null
-          moloni_sent_at?: string | null
-          moloni_status?: string
-          notes?: string | null
-          paid_at?: string | null
-          paid_by?: string | null
-          status?: string
-          supplier_id?: string | null
-          supplier_name?: string | null
-          supplier_nif?: string | null
-          total_gross?: number | null
-          total_net?: number | null
-          total_vat?: number | null
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "cost_invoices_duplicate_of_fkey"
-            columns: ["duplicate_of"]
-            isOneToOne: false
-            referencedRelation: "cost_invoices"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "cost_invoices_supplier_id_fkey"
-            columns: ["supplier_id"]
-            isOneToOne: false
-            referencedRelation: "suppliers"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       extra_charges: {
         Row: {
           amount: number | null
@@ -2277,13 +1999,9 @@ export type Database = {
           category: Database["public"]["Enums"]["supplier_category"]
           contact_name: string | null
           created_at: string
-          default_category_code: string | null
-          default_location_id: string | null
-          default_vat_rate: number | null
           email: string | null
           id: string
           name: string
-          nif: string | null
           notes: string | null
           phone: string | null
           tags: string[]
@@ -2295,13 +2013,9 @@ export type Database = {
           category?: Database["public"]["Enums"]["supplier_category"]
           contact_name?: string | null
           created_at?: string
-          default_category_code?: string | null
-          default_location_id?: string | null
-          default_vat_rate?: number | null
           email?: string | null
           id?: string
           name: string
-          nif?: string | null
           notes?: string | null
           phone?: string | null
           tags?: string[]
@@ -2313,35 +2027,16 @@ export type Database = {
           category?: Database["public"]["Enums"]["supplier_category"]
           contact_name?: string | null
           created_at?: string
-          default_category_code?: string | null
-          default_location_id?: string | null
-          default_vat_rate?: number | null
           email?: string | null
           id?: string
           name?: string
-          nif?: string | null
           notes?: string | null
           phone?: string | null
           tags?: string[]
           updated_at?: string
           website?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "suppliers_default_category_code_fkey"
-            columns: ["default_category_code"]
-            isOneToOne: false
-            referencedRelation: "cost_categories"
-            referencedColumns: ["code"]
-          },
-          {
-            foreignKeyName: "suppliers_default_location_id_fkey"
-            columns: ["default_location_id"]
-            isOneToOne: false
-            referencedRelation: "locations"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       typology_prices: {
         Row: {
@@ -2522,7 +2217,6 @@ export type Database = {
         Args: { p_count?: number; p_schedule_id: string }
         Returns: number
       }
-      generate_cost_alerts: { Args: never; Returns: number }
       generate_finance_alerts: { Args: never; Returns: number }
       generate_lead_form_token: {
         Args: { p_lead_id: string }
@@ -2630,10 +2324,6 @@ export type Database = {
         }
         Returns: string
       }
-      reopen_cost_invoice: {
-        Args: { p_expected_updated_at: string; p_id: string; p_reason: string }
-        Returns: undefined
-      }
       reserve_room_for_lead: {
         Args: {
           p_check_in: string
@@ -2647,16 +2337,6 @@ export type Database = {
         Args: { p_lead_id: string; p_reason: string }
         Returns: string
       }
-      save_cost_invoice: {
-        Args: {
-          p_expected_updated_at: string
-          p_header: Json
-          p_id: string
-          p_lines: Json
-          p_status?: string
-        }
-        Returns: string
-      }
       sign_lead_contract: {
         Args: { p_contract_data: Json; p_lead_id: string }
         Returns: Json
@@ -2668,11 +2348,6 @@ export type Database = {
         Returns: string
       }
       unvalidate_lead_docs: { Args: { p_lead_id: string }; Returns: undefined }
-      valid_cost_extraction_confidence: {
-        Args: { p_confidence: Json }
-        Returns: boolean
-      }
-      valid_cost_file_path: { Args: { p_path: string }; Returns: boolean }
       validate_lead_docs: { Args: { p_lead_id: string }; Returns: string }
       validate_lead_documents: { Args: { p_lead_id: string }; Returns: string }
       void_extra_charge: {

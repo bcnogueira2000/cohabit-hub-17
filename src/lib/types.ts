@@ -211,10 +211,6 @@ export type SupplierCategory =
 
 export interface Supplier {
   id: string;
-  nif?: string | null;
-  defaultCategoryCode?: string | null;
-  defaultVatRate?: number | null;
-  defaultLocationId?: string | null;
   name: string;
   category: SupplierCategory;
   contactName: string | null;

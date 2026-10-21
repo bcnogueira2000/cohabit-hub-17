@@ -19,7 +19,6 @@ interface Props {
 
 const empty = {
   name: "",
-  nif: "",
   category: "other" as SupplierCategory,
   contactName: "",
   phone: "",
@@ -39,7 +38,6 @@ export const SupplierDialog = ({ trigger, supplier, onSaved }: Props) => {
     if (open && supplier) {
       setForm({
         name: supplier.name,
-        nif: supplier.nif ?? "",
         category: supplier.category,
         contactName: supplier.contactName ?? "",
         phone: supplier.phone ?? "",
@@ -60,7 +58,6 @@ export const SupplierDialog = ({ trigger, supplier, onSaved }: Props) => {
     }
     const payload = {
       name: form.name.trim(),
-      nif: form.nif || null,
       category: form.category,
       contactName: form.contactName || null,
       phone: form.phone || null,
@@ -96,10 +93,6 @@ export const SupplierDialog = ({ trigger, supplier, onSaved }: Props) => {
           <div>
             <Label>Nome *</Label>
             <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Ex: Canalizações Silva" />
-          </div>
-          <div>
-            <Label>NIF</Label>
-            <Input value={form.nif} onChange={(e) => setForm({ ...form, nif: e.target.value })} />
           </div>
           <div>
             <Label>Categoria</Label>
