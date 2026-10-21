@@ -41,6 +41,7 @@ import Contracts from "./pages/Contracts";
 import ContractDetail from "./pages/ContractDetail";
 import Payments from "./pages/Payments";
 import Pricing from "./pages/Pricing";
+import Costs from "./pages/Costs";
 import MoloniSettings from "./pages/MoloniSettings";
 
 import Suppliers from "./pages/Suppliers";
@@ -126,6 +127,7 @@ const App = () => (
               <Route path="/finance/contracts/:id" element={<ContractDetail />} />
               <Route path="/finance/payments" element={<Payments />} />
               <Route path="/finance/pricing" element={<Pricing />} />
+              <Route path="/finance/costs" element={<Costs />} />
               <Route path="/finance/moloni" element={<MoloniSettings />} />
             </Route>
 
