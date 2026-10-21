@@ -113,7 +113,17 @@ export const CostInvoiceSheet = ({ invoice, autoExtract, hasNext, onNext, onOpen
     return [...m.entries()];
   }, [categories]);
 
-  const computed = lines.map((l) => ({ ...l, vatAmount: l.vatAmount ?? (l.net != null && l.vatRate != null ? r2((l.net * l.vatRate) / 100) : null) }));
+  // Utilities e seguros associam-se por defeito ao edifício.
+  const buildingId = useMemo(() => locations.find((l) => l.name === "Edifício")?.id ?? null, [locations]);
+  const buildingGroup = (code: string | null) => {
+    const g = categories.find((c) => c.code === code)?.groupCode;
+    return g === "UTI" || g === "INS";
+  };
+  const computed = lines.map((l) => ({
+    ...l,
+    locationId: l.locationId ?? (buildingGroup(l.categoryCode) ? buildingId : null),
+    vatAmount: l.vatAmount ?? (l.net != null && l.vatRate != null ? r2((l.net * l.vatRate) / 100) : null),
+  }));
   const total = r2(computed.reduce((s, l) => s + (l.net ?? 0) + (l.vatAmount ?? 0), 0));
   const mismatch = expectedTotal != null && Math.abs(expectedTotal - total) > 0.02;
 
