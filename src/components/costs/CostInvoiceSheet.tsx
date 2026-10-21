@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { AlertTriangle, ChevronDown, FileText, History, Loader2, Plus, Sparkles, Trash2 } from "lucide-react";
+import { AlertTriangle, ChevronDown, Download, FileText, History, Loader2, Plus, Sparkles, Trash2 } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,7 +21,7 @@ import { extractInvoiceQrText } from "@/lib/invoiceQr";
 import { SupplierCombobox } from "@/components/SupplierCombobox";
 import { LocationCombobox } from "@/components/LocationCombobox";
 import {
-  costFileUrl, extractCostInvoice, findDuplicateInvoice, useCostCategories, useCostInvoiceEvents,
+  costFileDownloadUrl, costFileUrl, extractCostInvoice, findDuplicateInvoice, useCostCategories, useCostInvoiceEvents,
   useFindOrCreateSupplier, useSaveCostInvoice, useSetCostStatus,
   type CostInvoice, type CostLine, type CostStatus,
 } from "@/hooks/useCosts";
@@ -214,6 +214,26 @@ export const CostInvoiceSheet = ({ invoice, autoExtract, hasNext, onNext, onOpen
   const updLine = (i: number, patch: Partial<CostLine>) =>
     setLines((ls) => ls.map((l, j) => (j === i ? { ...l, ...patch, ...(patch.net !== undefined || patch.vatRate !== undefined ? { vatAmount: null } : {}) } : l)));
 
+  const [downloading, setDownloading] = useState(false);
+
+  const downloadFile = async () => {
+    if (!invoice) return;
+    setDownloading(true);
+    try {
+      const url = await costFileDownloadUrl(invoice.filePath, invoice.fileName);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = invoice.fileName;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    } catch (e: any) {
+      toast({ title: "Não foi possível descarregar", description: e?.message, variant: "destructive" });
+    } finally {
+      setDownloading(false);
+    }
+  };
+
   const busy = save.isPending || setStatus.isPending || findSupplier.isPending;
 
   const preview = invoice && fileUrl && <CostFilePreview fileUrl={fileUrl} fileType={invoice.fileType} />;
@@ -232,6 +252,10 @@ export const CostInvoiceSheet = ({ invoice, autoExtract, hasNext, onNext, onOpen
             <div className="mt-3 flex flex-wrap gap-2">
               <Button variant="outline" size="sm" className="lg:hidden" onClick={() => setShowFile((v) => !v)}>
                 <FileText className="h-4 w-4 mr-1.5" /> {showFile ? "Ver formulário" : "Ver ficheiro"}
+              </Button>
+              <Button variant="outline" size="sm" disabled={downloading} onClick={downloadFile}>
+                {downloading ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : <Download className="h-4 w-4 mr-1.5" />}
+                {downloading ? "A descarregar…" : "Descarregar"}
               </Button>
               {!locked && (
                 <Button variant="outline" size="sm" disabled={extracting} onClick={() => runExtract(invoice)}>
