@@ -19,7 +19,8 @@ export function CostUpload(){
    const stored=await supabase.storage.from('cost-invoices').upload(path,file,{contentType:file.type,upsert:false});if(stored.error)throw stored.error;
    const created=await supabase.from('cost_invoices').insert({id,file_name:file.name,file_path:path,file_hash:hash,file_type:file.type,status:'to_classify'}).select('*,cost_invoice_lines(*)').single();if(created.error)throw created.error;
    count++;lastId=id;await refresh();
-   try{setProgress(`A ler ${file.name}…`);const read=await costDocumentImages(file);const suggestion=read.qr??await extractCost(id,read.images);
+   try{setProgress(`A ler ${file.name}…`);const read=await costDocumentImages(file);let suggestion;
+    try {const ai=await extractCost(id,read.images);suggestion=read.qr?{...ai,...read.qr,supplier_name:ai.supplier_name,due_date:ai.due_date,lines:ai.lines.length?ai.lines:read.qr.lines}:ai;} catch(e){if(!read.qr)throw e;suggestion=read.qr;toast.warning('QR lido; não foi possível completar os restantes campos automaticamente.');}
     const latest=await supabase.from('cost_invoices').select('*,cost_invoice_lines(*)').eq('id',id).single();if(latest.error)throw latest.error;
     if(latest.data.updated_at!==created.data.updated_at){toast.info('Leitura concluída; os dados editados manualmente foram preservados.');continue;}
     const {lines,...header}=suggestion;

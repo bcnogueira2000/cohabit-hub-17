@@ -98,9 +98,11 @@ export const SupplierDialog = ({ trigger, supplier, onSaved }: Props) => {
             <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Ex: Canalizações Silva" />
           </div>
           <div>
-            <Label>Categoria</Label>
             <Label>NIF</Label>
             <Input value={form.nif} onChange={(e) => setForm({ ...form, nif: e.target.value })} />
+          </div>
+          <div>
+            <Label>Categoria</Label>
             <Select value={form.category} onValueChange={(v) => setForm({ ...form, category: v as SupplierCategory })}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>

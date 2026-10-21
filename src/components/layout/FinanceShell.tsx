@@ -20,7 +20,7 @@ const financeItems: NavItem[] = [
 ];
 
 const Brand = ({ compact = false }: { compact?: boolean }) => (
-  <Link to="/finance/contracts" className="flex items-center gap-2.5 hover:opacity-80 transition-opacity">
+  <Link to="/finance/costs" className="flex items-center gap-2.5 hover:opacity-80 transition-opacity">
     <img src={logo} alt="Living Colours" className={compact ? "h-8 w-8 object-contain" : "h-10 w-10 object-contain"} />
     <span className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">Financeiro</span>
   </Link>
