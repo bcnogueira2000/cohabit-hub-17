@@ -40,63 +40,76 @@ Deno.serve(async (req) => {
     const apiKey = Deno.env.get("LOVABLE_API_KEY");
     if (!apiKey) return json({ error: "Leitura automática indisponível" }, 500);
 
-    const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const props: Record<string, unknown> = {
+      supplier_name: { type: ["string", "null"] },
+      supplier_nif: { type: ["string", "null"] },
+      buyer_nif: { type: ["string", "null"] },
+      invoice_number: { type: ["string", "null"] },
+      atcud: { type: ["string", "null"] },
+      invoice_date: { type: ["string", "null"], description: "YYYY-MM-DD" },
+      due_date: { type: ["string", "null"], description: "YYYY-MM-DD" },
+      total_net: { type: ["number", "null"] },
+      total_vat: { type: ["number", "null"] },
+      total_gross: { type: ["number", "null"] },
+      vat_rate: { type: ["number", "null"], description: "Taxa principal de IVA, ex. 23" },
+      category_code: { type: ["string", "null"] },
+      description: { type: ["string", "null"] },
+      confidence: { type: "string", enum: ["low", "high"] },
+    };
+    const userContent: unknown[] = [
+      { type: "input_text", text: `Categorias possíveis (código: nome):\n${categories.join("\n")}` },
+      mime === "application/pdf"
+        ? { type: "input_file", filename: "fatura.pdf", file_data: dataUrl }
+        : { type: "input_image", image_url: dataUrl },
+    ];
+    const res = await fetch("https://ai.gateway.lovable.dev/v1/responses", {
       method: "POST",
-      headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+      headers: { "Lovable-API-Key": apiKey, Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json", "X-Lovable-AIG-SDK": "fetch" },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
-        messages: [
-          {
-            role: "system",
-            content:
-              "Extrais dados de faturas portuguesas de fornecedores. Usa o QR code fiscal se legível. Datas em YYYY-MM-DD, valores em euros com ponto decimal. Não inventes: deixa vazio o que não vês. Para a categoria escolhe o código mais provável da lista dada.",
+        model: "openai/gpt-6-astra",
+        stream: true,
+        store: false,
+        reasoning: { effort: "low" },
+        instructions:
+          "Extrais dados de faturas portuguesas de fornecedores. Usa o QR code fiscal se legível. Datas em YYYY-MM-DD, valores em euros com ponto decimal. Não inventes: usa null no que não vês. Para category_code escolhe o código mais provável da lista dada.",
+        input: [{ role: "user", content: userContent }],
+        text: {
+          format: {
+            type: "json_schema",
+            name: "invoice",
+            strict: true,
+            schema: { type: "object", properties: props, required: Object.keys(props), additionalProperties: false },
           },
-          {
-            role: "user",
-            content: [
-              { type: "text", text: `Categorias possíveis (código: nome):\n${categories.join("\n")}` },
-              { type: "image_url", image_url: { url: dataUrl } },
-            ],
-          },
-        ],
-        tools: [
-          {
-            type: "function",
-            function: {
-              name: "invoice",
-              parameters: {
-                type: "object",
-                properties: {
-                  supplier_name: { type: "string" },
-                  supplier_nif: { type: "string" },
-                  buyer_nif: { type: "string" },
-                  invoice_number: { type: "string" },
-                  atcud: { type: "string" },
-                  invoice_date: { type: "string" },
-                  due_date: { type: "string" },
-                  total_net: { type: "number" },
-                  total_vat: { type: "number" },
-                  total_gross: { type: "number" },
-                  vat_rate: { type: "number", description: "Taxa principal de IVA, ex. 23" },
-                  category_code: { type: "string" },
-                  description: { type: "string", description: "Descrição curta do serviço/produto" },
-                  confidence: { type: "string", enum: ["low", "high"] },
-                },
-                required: ["confidence"],
-                additionalProperties: false,
-              },
-            },
-          },
-        ],
-        tool_choice: { type: "function", function: { name: "invoice" } },
+        },
       }),
     });
     if (res.status === 429) return json({ error: "Muitos pedidos, tenta daqui a pouco" }, 429);
     if (res.status === 402) return json({ error: "Créditos de IA esgotados" }, 402);
-    if (!res.ok) return json({ error: "Falha na leitura automática" }, 502);
-    const out = await res.json();
-    const args = out?.choices?.[0]?.message?.tool_calls?.[0]?.function?.arguments;
-    const data = args ? JSON.parse(args) : {};
+    if (!res.ok || !res.body) {
+      console.error("AI error", res.status, await res.text().catch(() => ""));
+      return json({ error: "Falha na leitura automática" }, 502);
+    }
+    let text = "";
+    const reader = res.body.pipeThrough(new TextDecoderStream()).getReader();
+    let buf = "";
+    for (;;) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      buf += value;
+      let i;
+      while ((i = buf.indexOf("\n")) >= 0) {
+        const lineStr = buf.slice(0, i).trim();
+        buf = buf.slice(i + 1);
+        if (!lineStr.startsWith("data:")) continue;
+        const payload = lineStr.slice(5).trim();
+        if (!payload || payload === "[DONE]") continue;
+        try {
+          const ev = JSON.parse(payload);
+          if (ev.type === "response.output_text.delta") text += ev.delta ?? "";
+        } catch { /* ignore */ }
+      }
+    }
+    const data = text ? JSON.parse(text) : {};
     return json({ data });
   } catch (e) {
     console.error(e);
