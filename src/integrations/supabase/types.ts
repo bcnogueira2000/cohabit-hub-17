@@ -2630,6 +2630,10 @@ export type Database = {
         }
         Returns: string
       }
+      reopen_cost_invoice: {
+        Args: { p_expected_updated_at: string; p_id: string; p_reason: string }
+        Returns: undefined
+      }
       reserve_room_for_lead: {
         Args: {
           p_check_in: string
