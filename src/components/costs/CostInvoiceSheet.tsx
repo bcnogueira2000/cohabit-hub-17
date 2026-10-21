@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { AlertTriangle, ChevronDown, FileText, History, Loader2, Plus, Sparkles, Trash2 } from "lucide-react";
+import { AlertTriangle, ChevronDown, Download, FileText, History, Loader2, Plus, Sparkles, Trash2 } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";

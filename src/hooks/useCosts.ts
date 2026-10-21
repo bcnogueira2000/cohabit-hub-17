@@ -391,3 +391,12 @@ export const costFileUrl = async (path: string) => {
   if (error) throw error;
   return data.signedUrl;
 };
+
+/** URL assinada com Content-Disposition: attachment, para descarregar o ficheiro. */
+export const costFileDownloadUrl = async (path: string, fileName: string) => {
+  const { data, error } = await supabase.storage
+    .from("cost-invoices")
+    .createSignedUrl(path, 60, { download: fileName });
+  if (error) throw error;
+  return data.signedUrl;
+};
