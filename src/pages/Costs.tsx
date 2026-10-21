@@ -97,38 +97,63 @@ const Costs = () => {
 
   const current = open ? invoices.find((i) => i.id === open.id) ?? null : null;
 
-  const onFiles = async (files: FileList | null) => {
-    if (!files?.length) return;
-    let lastId: string | null = null;
-    let failed = 0;
-    for (const file of Array.from(files)) {
-      try { lastId = await upload.mutateAsync(file); }
-      catch (e: any) { failed++; toast({ title: file.name, description: e?.message ?? "Falhou o carregamento", variant: "destructive" }); }
-    }
+  const [progress, setProgress] = useState<{ done: number; total: number } | null>(null);
+  const [dragging, setDragging] = useState(false);
+  const dragDepth = useRef(0);
+
+  const onFiles = async (list: FileList | File[] | null) => {
+    const files = list ? Array.from(list) : [];
     if (fileRef.current) fileRef.current.value = "";
+    if (!files.length || progress) return;
+    let lastId: string | null = null;
+    let ok = 0;
+    setProgress({ done: 0, total: files.length });
+    for (const [i, file] of files.entries()) {
+      try { lastId = await upload.mutateAsync(file); ok++; }
+      catch (e: any) { toast({ title: file.name, description: e?.message ?? "Falhou o carregamento", variant: "destructive" }); }
+      setProgress({ done: i + 1, total: files.length });
+    }
+    setProgress(null);
     if (lastId && files.length === 1) setOpen({ id: lastId, auto: true });
-    else if (files.length > 1) { setTab("inbox"); toast({ title: `${files.length - failed} faturas na caixa de entrada` }); }
+    else if (ok > 0) { setTab("inbox"); toast({ title: `${ok} de ${files.length} faturas na caixa de entrada` }); }
+  };
+
+  const hasFiles = (e: React.DragEvent) => Array.from(e.dataTransfer.types).includes("Files");
+  const dropHandlers = {
+    onDragEnter: (e: React.DragEvent) => { if (!hasFiles(e)) return; e.preventDefault(); dragDepth.current++; setDragging(true); },
+    onDragOver: (e: React.DragEvent) => { if (!hasFiles(e)) return; e.preventDefault(); e.dataTransfer.dropEffect = "copy"; },
+    onDragLeave: (e: React.DragEvent) => { if (!hasFiles(e)) return; dragDepth.current = Math.max(0, dragDepth.current - 1); if (!dragDepth.current) setDragging(false); },
+    onDrop: (e: React.DragEvent) => { if (!hasFiles(e)) return; e.preventDefault(); dragDepth.current = 0; setDragging(false); onFiles(e.dataTransfer.files); },
   };
 
   const toggle = (kind: NonNullable<Filter>["kind"], value: string) =>
     setFilter((f) => (f && f.kind === kind && f.value === value ? null : { kind, value }));
 
   return (
-    <div className="px-4 lg:px-10 py-6 lg:py-10 max-w-7xl mx-auto">
+    <div className="px-4 lg:px-10 py-6 lg:py-10 max-w-7xl mx-auto min-h-[80vh]" {...dropHandlers}>
+      {dragging && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm pointer-events-none">
+          <div className="rounded-2xl border-2 border-dashed border-primary bg-card px-10 py-12 text-center shadow-card">
+            <Upload className="h-10 w-10 mx-auto text-primary mb-3" />
+            <p className="font-display text-xl font-semibold">Larga aqui as faturas</p>
+            <p className="text-sm text-muted-foreground mt-1">PDF, JPG ou PNG · podes largar várias de uma vez</p>
+          </div>
+        </div>
+      )}
       <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-6">
         <div>
           <h1 className="font-display text-3xl lg:text-4xl font-semibold">Custos</h1>
-          <p className="text-muted-foreground mt-1">Faturas de fornecedores, por mês, categoria e espaço.</p>
+          <p className="text-muted-foreground mt-1">Faturas de fornecedores, por mês, categoria e espaço. Arrasta faturas para aqui para as carregar.</p>
         </div>
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2">
             <Switch id="vat" checked={withVat} onCheckedChange={setWithVat} />
             <Label htmlFor="vat" className="text-sm">Com IVA</Label>
           </div>
-          <input ref={fileRef} type="file" multiple accept={ALLOWED_COST_TYPES.join(",")} className="hidden" onChange={(e) => onFiles(e.target.files)} />
-          <Button onClick={() => fileRef.current?.click()} disabled={upload.isPending}>
-            {upload.isPending ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : <Upload className="h-4 w-4 mr-1.5" />}
-            Carregar faturas
+          <input ref={fileRef} type="file" multiple accept={[...ALLOWED_COST_TYPES, ".pdf", ".jpg", ".jpeg", ".png"].join(",")} className="hidden" onChange={(e) => onFiles(e.target.files)} />
+          <Button onClick={() => fileRef.current?.click()} disabled={!!progress}>
+            {progress ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : <Upload className="h-4 w-4 mr-1.5" />}
+            {progress ? `A carregar ${progress.done}/${progress.total}` : "Carregar faturas"}
           </Button>
         </div>
       </div>
