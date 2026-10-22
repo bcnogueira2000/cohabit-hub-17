@@ -7,13 +7,13 @@ import { NotificationBell } from "@/components/NotificationBell";
 import { BrandAvatar } from "@/components/ui/BrandAvatar";
 import logo from "@/assets/logo.png";
 
-type NavItem = { to: string; label: string; icon: any; end?: boolean };
+type NavItem = { to: string; label: string; shortLabel?: string; icon: any; end?: boolean };
 
 const financeItems: NavItem[] = [
   { to: "/finance/contracts", label: "Contratos", icon: FileText },
   { to: "/finance/payments", label: "Pagamentos", icon: Wallet },
   { to: "/finance/costs", label: "Custos", icon: PieChart },
-  { to: "/finance/pricing", label: "Tipologias e preços", icon: Tag },
+  { to: "/finance/pricing", label: "Tipologias e preços", shortLabel: "Preços", icon: Tag },
   { to: "/finance/moloni", label: "Moloni", icon: Receipt },
 ];
 
@@ -118,7 +118,7 @@ export const FinanceShell = () => {
       {/* Mobile bottom nav */}
       <nav className="lg:hidden fixed bottom-0 inset-x-0 z-30 bg-background/95 backdrop-blur border-t border-border">
         <div className="grid grid-cols-6 h-16">
-          {financeItems.map(({ to, label, icon: Icon, end }) => (
+          {financeItems.map(({ to, label, shortLabel, icon: Icon, end }) => (
             <NavLink
               key={to}
               to={to}
@@ -131,7 +131,7 @@ export const FinanceShell = () => {
               }
             >
               <Icon className="h-5 w-5" strokeWidth={1.5} />
-              {label}
+              <span className="whitespace-nowrap leading-tight">{shortLabel ?? label}</span>
             </NavLink>
           ))}
           <Link

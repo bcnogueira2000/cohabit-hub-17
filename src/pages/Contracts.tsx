@@ -64,13 +64,13 @@ const Contracts = () => {
 
   const today = new Date().toISOString().slice(0, 10);
 
-  /** contratos não cancelados que ainda não terminaram (mesmo com início no futuro) */
+  /** contratos a decorrer hoje (igual ao Dashboard e Mapa de Ocupação) */
   const activeByDates = useMemo(
     () =>
       contracts.filter((c) => {
         if (c.status === "cancelled") return false;
         const end = c.actualEndDate ?? c.endDate;
-        return end >= today;
+        return c.startDate <= today && end >= today;
       }),
     [contracts, today]
   );
