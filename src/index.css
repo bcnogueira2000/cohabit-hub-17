@@ -133,6 +133,12 @@
     @apply bg-background text-foreground;
   }
 
+  /* iOS Safari gives inputs (esp. type=date) an intrinsic min-width that
+     overflows grids/flex on narrow screens; allow them to shrink. */
+  input, select, textarea {
+    min-width: 0;
+  }
+
   h1, h2, h3, h4, .font-display {
     font-family: 'Syne', system-ui, sans-serif;
     font-weight: 800;
