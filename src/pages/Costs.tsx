@@ -279,7 +279,7 @@ const Costs = () => {
       </div>
 
       <div className="grid lg:grid-cols-3 gap-4 mb-8">
-        <Card className="p-4 border-border/60 shadow-card">
+        <Card className="p-4 border-border/60 shadow-card min-w-0 overflow-hidden">
           <div className="text-sm font-medium mb-1">Por categoria <span className="text-xs font-normal text-muted-foreground">(operação, {vatNote})</span></div>
           {byGroup.length === 0 ? <Empty /> : (
             <>
@@ -297,11 +297,11 @@ const Costs = () => {
             </>
           )}
         </Card>
-        <Card className="p-4 border-border/60 shadow-card">
+        <Card className="p-4 border-border/60 shadow-card min-w-0 overflow-hidden">
           <div className="text-sm font-medium mb-3">Por espaço</div>
           {byLocation.length === 0 ? <Empty /> : <RankList rows={byLocation} total={sum(filtered)} onPick={(k) => toggle("location", k)} active={filter?.kind === "location" ? filter.value : null} bars />}
         </Card>
-        <Card className="p-4 border-border/60 shadow-card">
+        <Card className="p-4 border-border/60 shadow-card min-w-0 overflow-hidden">
           <div className="text-sm font-medium mb-3">Top fornecedores</div>
           {bySupplier.length === 0 ? <Empty /> : <RankList rows={bySupplier} total={sum(filtered)} onPick={(k) => toggle("supplier", k)} active={filter?.kind === "supplier" ? filter.value : null} bars />}
         </Card>
@@ -376,9 +376,9 @@ const RankList = ({ rows, total, onPick, active, bars }: { rows: { key: string; 
         <button key={r.key} onClick={() => onPick(r.key)} className={`w-full text-left rounded-md px-2 py-1.5 transition-smooth ${active === r.key ? "bg-accent" : "hover:bg-muted/50"}`}>
           <div className="flex items-center gap-2 text-sm">
             {!bars && <span className="h-2.5 w-2.5 rounded-full shrink-0" style={{ background: CHART[i % CHART.length] }} />}
-            <span className="flex-1 truncate">{r.key}</span>
-            <span className="text-muted-foreground text-xs">{pct}%</span>
-            <span className="font-medium">{eur(r.total)}</span>
+            <span className="flex-1 min-w-0 truncate">{r.key}</span>
+            <span className="text-muted-foreground text-xs shrink-0">{pct}%</span>
+            <span className="font-medium shrink-0 whitespace-nowrap">{eur(r.total)}</span>
           </div>
           {bars && <div className="mt-1 h-1.5 rounded-full bg-muted overflow-hidden"><div className="h-full bg-primary rounded-full" style={{ width: `${pct}%` }} /></div>}
         </button>

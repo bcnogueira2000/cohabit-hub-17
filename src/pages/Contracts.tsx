@@ -203,13 +203,13 @@ const Contracts = () => {
             </SelectContent>
           </Select>
         </div>
-        <div>
+        <div className="min-w-0">
           <Label className="text-xs text-muted-foreground">De</Label>
-          <Input type="date" value={from} onChange={(e) => setFrom(e.target.value)} className="mt-1 w-full sm:w-[160px] rounded-full" />
+          <Input type="date" value={from} onChange={(e) => setFrom(e.target.value)} className="mt-1 w-full min-w-0 max-w-full sm:w-[160px] rounded-full" />
         </div>
-        <div>
+        <div className="min-w-0">
           <Label className="text-xs text-muted-foreground">Até</Label>
-          <Input type="date" value={to} onChange={(e) => setTo(e.target.value)} className="mt-1 w-full sm:w-[160px] rounded-full" />
+          <Input type="date" value={to} onChange={(e) => setTo(e.target.value)} className="mt-1 w-full min-w-0 max-w-full sm:w-[160px] rounded-full" />
         </div>
       </div>
 
