@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { AlertTriangle, ChevronDown, Download, FileText, History, Loader2, Plus, Sparkles, Trash2 } from "lucide-react";
+import { AlertTriangle, ChevronDown, Download, FileText, History, Loader2, Plus, Send, Sparkles, Trash2 } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,6 +17,9 @@ import { toast } from "@/hooks/use-toast";
 import { CostFilePreview } from "./CostFilePreview";
 import { useLocations } from "@/hooks/useLocations";
 import { supabase } from "@/integrations/supabase/client";
+import { FunctionsHttpError } from "@supabase/supabase-js";
+import { useQueryClient } from "@tanstack/react-query";
+import { useMyRoles } from "@/hooks/useProfile";
 import { extractInvoiceQrText } from "@/lib/invoiceQr";
 import { SupplierCombobox } from "@/components/SupplierCombobox";
 import { LocationCombobox } from "@/components/LocationCombobox";
@@ -38,7 +41,7 @@ const eventLabel = (a: string) =>
   a === "created" || a === "uploaded" ? "Carregada" : a === "edited" ? "Alterada"
   : a === "classified" ? "Classificada" : a === "paid" ? "Marcada como paga"
   : a === "reopened" ? "Reaberta" : a === "duplicate_confirmed" ? "Duplicado confirmado"
-  : a === "file_replaced" ? "Ficheiro substituído" : a;
+  : a === "file_replaced" ? "Ficheiro substituído" : a === "moloni_sent" ? "Enviada para o Moloni (rascunho)" : a;
 
 interface Props {
   invoice: CostInvoice | null;
@@ -107,6 +110,30 @@ export const CostInvoiceSheet = ({ invoice, autoExtract, hasNext, onNext, onOpen
   }, [invoice?.id]);
 
   const locked = invoice?.status === "paid";
+  const qc = useQueryClient();
+  const { data: myRoles = [] } = useMyRoles();
+  const canSendMoloni = myRoles.includes("admin" as any) || myRoles.includes("manager" as any);
+  const [moloniDialog, setMoloniDialog] = useState(false);
+  const [sendingMoloni, setSendingMoloni] = useState(false);
+  const sentToMoloni = !!invoice?.moloniSentAt;
+  const editedAfterSend = sentToMoloni && new Date(invoice!.updatedAt).getTime() - new Date(invoice!.moloniSentAt!).getTime() > 60_000;
+  const sendToMoloni = async () => {
+    if (!invoice) return;
+    setSendingMoloni(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("moloni-supplier-invoice", { body: { action: "send", invoice_id: invoice.id } });
+      if (error) {
+        let msg = error.message;
+        if (error instanceof FunctionsHttpError) { try { msg = (await error.context.json()).error ?? msg; } catch { /* ignore */ } }
+        throw new Error(msg);
+      }
+      toast({ title: "Rascunho criado no Moloni", description: `Referência ${data.reference}. A Marta pode conferir e aprovar no Moloni.` });
+      qc.invalidateQueries({ queryKey: ["cost-invoices"] });
+      qc.invalidateQueries({ queryKey: ["cost-invoice-events", invoice.id] });
+    } catch (e) {
+      toast({ title: "O Moloni não aceitou o envio", description: (e as Error).message, variant: "destructive" });
+    } finally { setSendingMoloni(false); setMoloniDialog(false); }
+  };
   const groups = useMemo(() => {
     const m = new Map<string, typeof categories>();
     categories.filter((c) => c.active).forEach((c) => m.set(c.groupName, [...(m.get(c.groupName) ?? []), c]));
@@ -378,7 +405,20 @@ export const CostInvoiceSheet = ({ invoice, autoExtract, hasNext, onNext, onOpen
               </CollapsibleContent>
             </Collapsible>
 
+            {sentToMoloni && (
+              <div className={`mt-4 rounded-lg border p-3 text-sm ${editedAfterSend ? "border-amber-500/40 bg-amber-500/10" : "border-border/60 bg-muted/40"}`}>
+                <p className="font-medium">No Moloni: {invoice.moloniDocumentNumber ?? "rascunho"} · enviada a {fmtTs(invoice.moloniSentAt!)}</p>
+                {editedAfterSend && <p className="mt-1 flex items-start gap-1.5"><AlertTriangle className="h-4 w-4 mt-0.5 shrink-0" /> Esta fatura foi alterada depois do envio. O rascunho no Moloni não se atualiza sozinho — confirma-o lá manualmente.</p>}
+              </div>
+            )}
+
             <div className="mt-6 flex flex-wrap gap-2 justify-end">
+              {canSendMoloni && !sentToMoloni && invoice.status !== "to_classify" && (
+                <Button variant="outline" disabled={sendingMoloni} onClick={() => setMoloniDialog(true)} className="mr-auto">
+                  {sendingMoloni ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : <Send className="h-4 w-4 mr-1.5" />}
+                  Enviar para o Moloni
+                </Button>
+              )}
               {locked ? (
                 <Button variant="outline" disabled={busy} onClick={() => setReopenDialog(true)}>Reabrir</Button>
               ) : (
@@ -403,6 +443,21 @@ export const CostInvoiceSheet = ({ invoice, autoExtract, hasNext, onNext, onOpen
                 <AlertDialogFooter>
                   <AlertDialogCancel>Cancelar</AlertDialogCancel>
                   <AlertDialogAction disabled={!paidAt} onClick={() => doSave("paid", paidAt)}>Confirmar pagamento</AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+
+            <AlertDialog open={moloniDialog} onOpenChange={setMoloniDialog}>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Enviar para o Moloni?</AlertDialogTitle>
+                  <AlertDialogDescription>Cria a fatura de fornecedor em rascunho na série FORN, com o fornecedor, datas e linhas desta fatura. Nada é fechado nem comunicado às Finanças; a aprovação é feita no Moloni. Uma fatura só pode ser enviada uma vez.</AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                  <AlertDialogAction disabled={sendingMoloni} onClick={(e) => { e.preventDefault(); sendToMoloni(); }}>
+                    {sendingMoloni && <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />}Enviar rascunho
+                  </AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
