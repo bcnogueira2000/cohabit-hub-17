@@ -111,7 +111,7 @@ Deno.serve(async (req) => {
     let supplierCreated = false;
 
     // Duplicado: mesma referência do mesmo fornecedor
-    if (supplierId) {
+    if (supplierId && action !== "link") {
       const existing = await getAllPaged(sb, "supplierInvoices/getAll", { company_id: companyId, supplier_id: supplierId }, 500).catch(() => []);
       const dup = existing.find((d) => String(d.your_reference ?? "").trim().toUpperCase() === ref.toUpperCase()
         || String(d.our_reference ?? "").trim().toUpperCase() === ref.toUpperCase());
