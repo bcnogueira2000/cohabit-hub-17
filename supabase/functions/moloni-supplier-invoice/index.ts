@@ -5,6 +5,7 @@
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { adminClient, logSync, moloniCall, requireManager } from "../_shared/moloni.ts";
 import { loadCredentials } from "../_shared/moloni.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
@@ -26,6 +27,22 @@ async function getAllPaged(sb: any, endpoint: string, body: Record<string, unkno
     if (page.length < 50) break;
   }
   return out;
+}
+
+/** Grava o envio com a sessão do utilizador (os triggers exigem staff). */
+async function recordSent(req: Request, userId: string, invoiceId: string, documentId: number, number: string | null, details: Record<string, unknown>) {
+  const jwt = (req.headers.get("Authorization") ?? "").replace(/^Bearer\s+/i, "");
+  const us = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_ANON_KEY")!, { global: { headers: { Authorization: `Bearer ${jwt}` } } });
+  const { error: e1 } = await us.from("cost_invoices").update({
+    moloni_document_id: documentId, moloni_document_number: number ?? `Rascunho #${documentId}`,
+    moloni_status: "draft", moloni_sent_at: new Date().toISOString(),
+  }).eq("id", invoiceId);
+  if (e1) throw new Error(`Rascunho criado no Moloni (id ${documentId}), mas não foi possível registá-lo na app: ${e1.message}`);
+  const { data: prof } = await us.from("profiles").select("full_name").eq("user_id", userId).maybeSingle();
+  const { error: e2 } = await us.from("cost_invoice_events").insert({
+    invoice_id: invoiceId, user_id: userId, user_name: prof?.full_name ?? null, action: "moloni_sent", details: { document_id: documentId, number, ...details },
+  });
+  if (e2) console.error("event insert failed", e2.message);
 }
 
 Deno.serve(async (req) => {
@@ -158,17 +175,7 @@ Deno.serve(async (req) => {
       number = Number(rawDoc?.number) > 0 ? `${rawDoc.document_set_name ?? "FORN"}/${rawDoc.number}` : null;
     } catch { /* informativo */ }
 
-    const now = new Date().toISOString();
-    await sb.from("cost_invoices").update({
-      moloni_document_id: documentId, moloni_document_number: number ?? `Rascunho #${documentId}`,
-      moloni_status: "draft", moloni_sent_at: now,
-    }).eq("id", invoiceId);
-
-    const { data: prof } = await sb.from("profiles").select("full_name").eq("user_id", userId).maybeSingle();
-    await sb.from("cost_invoice_events").insert({
-      invoice_id: invoiceId, user_id: userId, user_name: prof?.full_name ?? null, action: "moloni_sent",
-      details: { document_id: documentId, number, reference: ref, supplier_created: supplierCreated, test: !!body?.test },
-    });
+    await recordSent(req, userId, invoiceId, documentId, number, { reference: ref, supplier_created: supplierCreated, test: !!body?.test });
     await logSync(sb, { entity: "cost_invoice", entity_id: invoiceId, action: "supplier_invoice_draft", success: true,
       payload: { document_id: documentId, number, status: rawDoc?.status, raw_number: rawDoc?.number } });
 
