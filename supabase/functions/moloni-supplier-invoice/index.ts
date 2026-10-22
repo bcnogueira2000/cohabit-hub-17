@@ -5,17 +5,11 @@
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { adminClient, logSync, moloniCall, requireManager } from "../_shared/moloni.ts";
 import { loadCredentials } from "../_shared/moloni.ts";
+import { supplierReference } from "../_shared/moloniRef.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-
-/** "2600/000405" -> "LCCOM-405"; "FT 148" -> "LCCOM-148". Regra: último bloco numérico, sem zeros à esquerda. */
-export function supplierReference(invoiceNumber: string | null): string | null {
-  if (!invoiceNumber) return null;
-  const m = invoiceNumber.match(/(\d+)\D*$/);
-  if (!m) return null;
-  return `LCCOM-${String(Number(m[1]))}`;
-}
 
 async function getAllPaged(sb: any, endpoint: string, body: Record<string, unknown>, max = 2000) {
   const out: any[] = [];
@@ -26,6 +20,22 @@ async function getAllPaged(sb: any, endpoint: string, body: Record<string, unkno
     if (page.length < 50) break;
   }
   return out;
+}
+
+/** Grava o envio com a sessão do utilizador (os triggers exigem staff). */
+async function recordSent(req: Request, userId: string, invoiceId: string, documentId: number, number: string | null, details: Record<string, unknown>) {
+  const jwt = (req.headers.get("Authorization") ?? "").replace(/^Bearer\s+/i, "");
+  const us = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_ANON_KEY")!, { global: { headers: { Authorization: `Bearer ${jwt}` } } });
+  const { error: e1 } = await us.from("cost_invoices").update({
+    moloni_document_id: documentId, moloni_document_number: number ?? `Rascunho #${documentId}`,
+    moloni_status: "draft", moloni_sent_at: new Date().toISOString(),
+  }).eq("id", invoiceId);
+  if (e1) throw new Error(`Rascunho criado no Moloni (id ${documentId}), mas não foi possível registá-lo na app: ${e1.message}`);
+  const { data: prof } = await us.from("profiles").select("full_name").eq("user_id", userId).maybeSingle();
+  const { error: e2 } = await us.from("cost_invoice_events").insert({
+    invoice_id: invoiceId, user_id: userId, user_name: prof?.full_name ?? null, action: "moloni_sent", details: { document_id: documentId, number, ...details },
+  });
+  if (e2) console.error("event insert failed", e2.message);
 }
 
 Deno.serve(async (req) => {
@@ -42,9 +52,9 @@ Deno.serve(async (req) => {
 
   let body: any;
   try { body = await req.json(); } catch { return json({ error: "JSON inválido" }, 400); }
-  const action = body?.action === "send" ? "send" : "discover";
+  const action = ["send", "check", "link"].includes(body?.action) ? body.action : "discover";
   const invoiceId = String(body?.invoice_id ?? "");
-  if (action === "send" && !/^[0-9a-f-]{36}$/i.test(invoiceId)) return json({ error: "invoice_id inválido" }, 400);
+  if (action !== "discover" && !/^[0-9a-f-]{36}$/i.test(invoiceId)) return json({ error: "invoice_id inválido" }, 400);
 
   const sb = adminClient();
   const creds = await loadCredentials(sb);
@@ -74,7 +84,7 @@ Deno.serve(async (req) => {
 
     const { data: inv } = await sb.from("cost_invoices").select("*").eq("id", invoiceId).maybeSingle();
     if (!inv) return json({ error: "Fatura não encontrada." }, 404);
-    if (inv.status === "pending_classification") return json({ error: "Classifique a fatura antes de a enviar para o Moloni." }, 400);
+    if (inv.status === "to_classify") return json({ error: "Classifique a fatura antes de a enviar para o Moloni." }, 400);
     if (inv.moloni_document_id) return json({ error: `Esta fatura já foi enviada (${inv.moloni_document_number ?? inv.moloni_document_id}).` }, 409);
     const nif = String(inv.supplier_nif ?? "").replace(/\D/g, "");
     if (!nif) return json({ error: "A fatura não tem NIF do fornecedor." }, 400);
@@ -94,7 +104,7 @@ Deno.serve(async (req) => {
     let supplierCreated = false;
 
     // Duplicado: mesma referência do mesmo fornecedor
-    if (supplierId) {
+    if (supplierId && action !== "link") {
       const existing = await getAllPaged(sb, "supplierInvoices/getAll", { company_id: companyId, supplier_id: supplierId }, 500).catch(() => []);
       const dup = existing.find((d) => String(d.your_reference ?? "").trim().toUpperCase() === ref.toUpperCase()
         || String(d.our_reference ?? "").trim().toUpperCase() === ref.toUpperCase());
@@ -103,7 +113,17 @@ Deno.serve(async (req) => {
         await logSync(sb, { entity: "cost_invoice", entity_id: invoiceId, action: "supplier_invoice_duplicate", success: false, message: number, payload: { document_id: dup.document_id } });
         return json({ error: `Já existe no Moloni uma fatura deste fornecedor com a referência ${ref} (${number}). Não foi criada outra.`, duplicate: { document_id: dup.document_id, number } }, 409);
       }
-    } else {
+    }
+    if (action === "link") {
+      // Associa um rascunho já criado pela app (confirma fornecedor e referência no Moloni).
+      const docId = Number(body?.document_id);
+      const d = await moloniCall<any>(sb, "supplierInvoices/getOne", { company_id: companyId, document_id: docId });
+      if (String(d?.entity_vat) !== nif || String(d?.your_reference) !== ref) return json({ error: "O documento não corresponde a esta fatura." }, 400);
+      await recordSent(req, userId, invoiceId, docId, Number(d.number) > 0 ? `FORN/${d.number}` : null, { reference: ref, linked: true });
+      return json({ ok: true, document_id: docId, status: d.status, number: d.number });
+    }
+    if (action === "check") return json({ ok: true, duplicate: null, supplier_found: !!supplierId, reference: ref });
+    if (!supplierId) {
       const supPayload = {
         company_id: companyId, vat: nif, number: nif, name: inv.supplier_name || `Fornecedor ${nif}`,
         language_id: 1, address: "Desconhecida", zip_code: "0000-000", city: "Desconhecida", country_id: 1,
@@ -153,20 +173,10 @@ Deno.serve(async (req) => {
     let rawDoc: any = null;
     try {
       rawDoc = await moloniCall<any>(sb, "supplierInvoices/getOne", { company_id: companyId, document_id: documentId });
-      number = rawDoc?.number ? `${rawDoc.document_set_name ?? "FORN"}/${rawDoc.number}` : null;
+      number = Number(rawDoc?.number) > 0 ? `${rawDoc.document_set_name ?? "FORN"}/${rawDoc.number}` : null;
     } catch { /* informativo */ }
 
-    const now = new Date().toISOString();
-    await sb.from("cost_invoices").update({
-      moloni_document_id: documentId, moloni_document_number: number ?? `Rascunho #${documentId}`,
-      moloni_status: "draft", moloni_sent_at: now,
-    }).eq("id", invoiceId);
-
-    const { data: prof } = await sb.from("profiles").select("full_name").eq("user_id", userId).maybeSingle();
-    await sb.from("cost_invoice_events").insert({
-      invoice_id: invoiceId, user_id: userId, user_name: prof?.full_name ?? null, action: "moloni_sent",
-      details: { document_id: documentId, number, reference: ref, supplier_created: supplierCreated, test: !!body?.test },
-    });
+    await recordSent(req, userId, invoiceId, documentId, number, { reference: ref, supplier_created: supplierCreated, test: !!body?.test });
     await logSync(sb, { entity: "cost_invoice", entity_id: invoiceId, action: "supplier_invoice_draft", success: true,
       payload: { document_id: documentId, number, status: rawDoc?.status, raw_number: rawDoc?.number } });
 

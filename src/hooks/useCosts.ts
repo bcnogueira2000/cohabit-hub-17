@@ -47,6 +47,9 @@ export interface CostInvoice {
   extractionConfidence: Record<string, "low" | "high"> | null;
   paidAt: string | null;
   moloniStatus: string;
+  moloniDocumentNumber: string | null;
+  moloniSentAt: string | null;
+  updatedAt: string;
   createdAt: string;
   createdByName: string | null;
   classifiedByName: string | null;
@@ -76,6 +79,9 @@ const mapInvoice = (r: any): CostInvoice => ({
   extractionConfidence: (r.extraction_confidence as CostInvoice["extractionConfidence"]) ?? null,
   paidAt: r.paid_at,
   moloniStatus: r.moloni_status,
+  moloniDocumentNumber: r.moloni_document_number ?? null,
+  moloniSentAt: r.moloni_sent_at ?? null,
+  updatedAt: r.updated_at,
   createdAt: r.created_at,
   createdByName: r.created_by_name,
   classifiedByName: r.classified_by_name,

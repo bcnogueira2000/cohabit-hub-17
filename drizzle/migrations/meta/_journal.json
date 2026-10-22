@@ -162,6 +162,13 @@
       "when": 1792614891346,
       "tag": "0022_cost_invoice_event_actor_fallback",
       "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1792671213723,
+      "tag": "0023_migration",
+      "breakpoints": true
     }
   ]
 }
