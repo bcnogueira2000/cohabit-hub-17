@@ -59,7 +59,7 @@ Deno.serve(async (req) => {
 
   let body: any;
   try { body = await req.json(); } catch { return json({ error: "JSON inválido" }, 400); }
-  const action = ["send", "check"].includes(body?.action) ? body.action : "discover";
+  const action = ["send", "check", "link"].includes(body?.action) ? body.action : "discover";
   const invoiceId = String(body?.invoice_id ?? "");
   if (action !== "discover" && !/^[0-9a-f-]{36}$/i.test(invoiceId)) return json({ error: "invoice_id inválido" }, 400);
 
@@ -91,7 +91,7 @@ Deno.serve(async (req) => {
 
     const { data: inv } = await sb.from("cost_invoices").select("*").eq("id", invoiceId).maybeSingle();
     if (!inv) return json({ error: "Fatura não encontrada." }, 404);
-    if (inv.status === "pending_classification") return json({ error: "Classifique a fatura antes de a enviar para o Moloni." }, 400);
+    if (inv.status === "to_classify") return json({ error: "Classifique a fatura antes de a enviar para o Moloni." }, 400);
     if (inv.moloni_document_id) return json({ error: `Esta fatura já foi enviada (${inv.moloni_document_number ?? inv.moloni_document_id}).` }, 409);
     const nif = String(inv.supplier_nif ?? "").replace(/\D/g, "");
     if (!nif) return json({ error: "A fatura não tem NIF do fornecedor." }, 400);
@@ -120,6 +120,14 @@ Deno.serve(async (req) => {
         await logSync(sb, { entity: "cost_invoice", entity_id: invoiceId, action: "supplier_invoice_duplicate", success: false, message: number, payload: { document_id: dup.document_id } });
         return json({ error: `Já existe no Moloni uma fatura deste fornecedor com a referência ${ref} (${number}). Não foi criada outra.`, duplicate: { document_id: dup.document_id, number } }, 409);
       }
+    }
+    if (action === "link") {
+      // Associa um rascunho já criado pela app (confirma fornecedor e referência no Moloni).
+      const docId = Number(body?.document_id);
+      const d = await moloniCall<any>(sb, "supplierInvoices/getOne", { company_id: companyId, document_id: docId });
+      if (String(d?.entity_vat) !== nif || String(d?.your_reference) !== ref) return json({ error: "O documento não corresponde a esta fatura." }, 400);
+      await recordSent(req, userId, invoiceId, docId, Number(d.number) > 0 ? `FORN/${d.number}` : null, { reference: ref, linked: true });
+      return json({ ok: true, document_id: docId, status: d.status, number: d.number });
     }
     if (action === "check") return json({ ok: true, duplicate: null, supplier_found: !!supplierId, reference: ref });
     if (!supplierId) {
