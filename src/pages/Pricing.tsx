@@ -43,10 +43,10 @@ const Pricing = () => {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-border text-left text-xs uppercase tracking-wider text-muted-foreground">
-                <th className="px-4 py-3 font-medium">Tipologia</th>
-                <th className="px-4 py-3 font-medium">Em vigor desde</th>
-                <th className="px-4 py-3 font-medium text-right">Preço de tabela</th>
-                <th className="px-4 py-3 font-medium text-right">Preço promocional</th>
+                <th className="px-4 py-3 font-medium whitespace-nowrap">Tipologia</th>
+                <th className="px-4 py-3 font-medium whitespace-nowrap">Em vigor desde</th>
+                <th className="px-4 py-3 font-medium text-right whitespace-nowrap">Preço de tabela</th>
+                <th className="px-4 py-3 font-medium text-right whitespace-nowrap">Preço promocional</th>
                 <th className="px-4 py-3 font-medium" />
               </tr>
             </thead>
