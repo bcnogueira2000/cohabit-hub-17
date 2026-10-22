@@ -42,9 +42,9 @@ Deno.serve(async (req) => {
 
   let body: any;
   try { body = await req.json(); } catch { return json({ error: "JSON inválido" }, 400); }
-  const action = body?.action === "send" ? "send" : "discover";
+  const action = ["send", "check"].includes(body?.action) ? body.action : "discover";
   const invoiceId = String(body?.invoice_id ?? "");
-  if (action === "send" && !/^[0-9a-f-]{36}$/i.test(invoiceId)) return json({ error: "invoice_id inválido" }, 400);
+  if (action !== "discover" && !/^[0-9a-f-]{36}$/i.test(invoiceId)) return json({ error: "invoice_id inválido" }, 400);
 
   const sb = adminClient();
   const creds = await loadCredentials(sb);
@@ -103,7 +103,9 @@ Deno.serve(async (req) => {
         await logSync(sb, { entity: "cost_invoice", entity_id: invoiceId, action: "supplier_invoice_duplicate", success: false, message: number, payload: { document_id: dup.document_id } });
         return json({ error: `Já existe no Moloni uma fatura deste fornecedor com a referência ${ref} (${number}). Não foi criada outra.`, duplicate: { document_id: dup.document_id, number } }, 409);
       }
-    } else {
+    }
+    if (action === "check") return json({ ok: true, duplicate: null, supplier_found: !!supplierId, reference: ref });
+    if (!supplierId) {
       const supPayload = {
         company_id: companyId, vat: nif, number: nif, name: inv.supplier_name || `Fornecedor ${nif}`,
         language_id: 1, address: "Desconhecida", zip_code: "0000-000", city: "Desconhecida", country_id: 1,
@@ -153,7 +155,7 @@ Deno.serve(async (req) => {
     let rawDoc: any = null;
     try {
       rawDoc = await moloniCall<any>(sb, "supplierInvoices/getOne", { company_id: companyId, document_id: documentId });
-      number = rawDoc?.number ? `${rawDoc.document_set_name ?? "FORN"}/${rawDoc.number}` : null;
+      number = Number(rawDoc?.number) > 0 ? `${rawDoc.document_set_name ?? "FORN"}/${rawDoc.number}` : null;
     } catch { /* informativo */ }
 
     const now = new Date().toISOString();
