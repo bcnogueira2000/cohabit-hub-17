@@ -5,18 +5,11 @@
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { adminClient, logSync, moloniCall, requireManager } from "../_shared/moloni.ts";
 import { loadCredentials } from "../_shared/moloni.ts";
+import { supplierReference } from "../_shared/moloniRef.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-
-/** "2600/000405" -> "LCCOM-405"; "FT 148" -> "LCCOM-148". Regra: último bloco numérico, sem zeros à esquerda. */
-export function supplierReference(invoiceNumber: string | null): string | null {
-  if (!invoiceNumber) return null;
-  const m = invoiceNumber.match(/(\d+)\D*$/);
-  if (!m) return null;
-  return `LCCOM-${String(Number(m[1]))}`;
-}
 
 async function getAllPaged(sb: any, endpoint: string, body: Record<string, unknown>, max = 2000) {
   const out: any[] = [];
