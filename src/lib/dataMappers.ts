@@ -14,6 +14,7 @@ export const mapRoom = (r: any): Room => ({
 
 export const mapResident = (r: any): Resident => ({
   id: r.id,
+  code: r.code ?? null,
   fullName: r.full_name,
   email: r.email,
   phone: r.phone ?? "",

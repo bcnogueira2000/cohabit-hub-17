@@ -85,6 +85,24 @@ Deno.serve(async (req) => {
     let customerId = resident.moloni_customer_id as number | null;
 
     if (!customerId) {
+      // O número de cliente no Moloni é o código da app. Se esse número já estiver
+      // ocupado por outra pessoa (NIF diferente), nunca liga nem sobrepõe.
+      const byNumber = await moloniCall<any[]>(sb, "customers/getByNumber", {
+        company_id: settings.companyId,
+        number: resident.code,
+      }).catch(() => []);
+      const sameNumber = Array.isArray(byNumber)
+        ? byNumber.find((c) => String(c?.number) === String(resident.code))
+        : null;
+      if (sameNumber && String(sameNumber.vat ?? "") !== String(resident.tax_number)) {
+        const message =
+          `O número de cliente ${resident.code} já pertence no Moloni a outro cliente (${sameNumber.name ?? "sem nome"}, NIF ${sameNumber.vat ?? "—"}). Nada foi alterado. Verifica no Moloni antes de sincronizar.`;
+        await logSync(sb, {
+          entity: "resident", entity_id: residentId, action: "sync_customer", success: false, message,
+          payload: { conflict: "number_taken", existing_customer_id: sameNumber.customer_id },
+        });
+        return json({ error: message, conflict_kind: "number_taken" }, 409);
+      }
       // Nunca ligado por esta app: se já existir um cliente com este NIF no Moloni,
       // não mexe em nada — pára e avisa para confirmação manual.
       const existing = await moloniCall<any[]>(sb, "customers/getByVat", {

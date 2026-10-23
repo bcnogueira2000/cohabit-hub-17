@@ -169,6 +169,13 @@
       "when": 1792671213723,
       "tag": "0023_migration",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1792770289047,
+      "tag": "0024_resident_code_fill_gaps",
+      "breakpoints": true
     }
   ]
 }

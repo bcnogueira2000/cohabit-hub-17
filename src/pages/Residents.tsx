@@ -25,8 +25,9 @@ const Residents = () => {
   const [tab, setTab] = useState<"current" | "former">("current");
   const current = residents.filter((r) => r.status !== "past");
   const former = residents.filter((r) => r.status === "past");
+  const q = search.trim().toLowerCase();
   const filtered = (tab === "current" ? current : former).filter((r) =>
-    r.fullName.toLowerCase().includes(search.toLowerCase())
+    r.fullName.toLowerCase().includes(q) || (r.code ?? "").toLowerCase().includes(q)
   );
 
   return (
@@ -45,7 +46,7 @@ const Residents = () => {
 
       <div className="relative mb-5 max-w-md">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <Input placeholder="Procurar residente…" value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9 bg-card border-border/70 rounded-full" />
+        <Input placeholder="Procurar por nome ou código…" value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9 bg-card border-border/70 rounded-full" />
       </div>
 
       <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -59,7 +60,10 @@ const Residents = () => {
                 <div className="flex items-start gap-3 mb-3">
                   <div className="h-12 w-12 rounded-full flex items-center justify-center text-primary-foreground font-semibold shrink-0" style={{ backgroundColor: r.avatarColor }}>{initials}</div>
                   <div className="flex-1 min-w-0">
-                    <div className="font-medium truncate">{shortName(r.fullName)}</div>
+                    <div className="flex items-baseline gap-2 min-w-0">
+                      <span className="font-medium truncate">{shortName(r.fullName)}</span>
+                      {r.code && <span className="text-xs font-mono text-muted-foreground shrink-0">{r.code}</span>}
+                    </div>
                     <div className={cn("inline-flex text-xs px-2 py-0.5 rounded-full mt-1", statusTone[r.status])}>{statusLabel[r.status]}</div>
                     {(() => {
                       const d = contractEndsInDays(r.status, r.moveOut);
