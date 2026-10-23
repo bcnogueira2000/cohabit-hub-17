@@ -243,6 +243,7 @@ const ResidentDetail = () => {
         <div className="h-20 w-20 rounded-full flex items-center justify-center text-primary-foreground font-display text-2xl font-semibold" style={{ backgroundColor: resident.avatarColor }}>{initials}</div>
         <div>
           <h1 className="font-display text-3xl font-semibold">{resident.fullName}</h1>
+          {resident.code && <div className="text-sm font-mono text-muted-foreground mt-0.5">Código de cliente: {resident.code}</div>}
           <div className="flex flex-wrap gap-3 text-sm text-muted-foreground mt-1">
             <span className="flex items-center gap-1.5"><Mail className="h-3.5 w-3.5" /> {resident.email}</span>
             <span className="flex items-center gap-1.5"><Phone className="h-3.5 w-3.5" /> {resident.phone}</span>

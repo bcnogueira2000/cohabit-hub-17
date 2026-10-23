@@ -13,6 +13,7 @@ export type RequestCategory =
 
 export interface Resident {
   id: string;
+  code: string | null;
   fullName: string;
   email: string;
   phone: string;
