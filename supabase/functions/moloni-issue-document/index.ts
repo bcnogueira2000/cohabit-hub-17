@@ -74,6 +74,17 @@ Deno.serve(async (req) => {
     if (!resident.moloni_customer_id) {
       return json({ error: "Residente ainda não sincronizado com o Moloni. Sincroniza o cliente primeiro." }, 400);
     }
+    // Ficha a usar: a que vale para o mês da renda (troca de NIF a meio do contrato).
+    const monthStart = `${charge.year}-${String(charge.month).padStart(2, "0")}-01`;
+    const { data: rec } = await sb
+      .from("resident_moloni_customers")
+      .select("id, moloni_customer_id")
+      .eq("resident_id", resident.id)
+      .lte("valid_from", monthStart)
+      .order("valid_from", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    const customerId = rec?.moloni_customer_id ?? resident.moloni_customer_id;
     if (!settings.documentSetId) {
       return json({ error: "Nenhum conjunto de documentos configurado no Moloni." }, 400);
     }
@@ -103,7 +114,7 @@ Deno.serve(async (req) => {
       date: today,
       expiration_date: charge.due_date ?? today,
       document_set_id: settings.documentSetId,
-      customer_id: resident.moloni_customer_id,
+      customer_id: customerId,
       our_reference: contract?.code ?? null,
       status: 1,
       products: [product],
@@ -131,6 +142,7 @@ Deno.serve(async (req) => {
         moloni_document_id: documentId,
         moloni_document_number: documentNumber,
         moloni_status: "issued",
+        moloni_customer_record_id: rec?.id ?? null,
         moloni_issued_at: new Date().toISOString(),
       })
       .eq("id", chargeId);

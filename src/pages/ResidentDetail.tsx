@@ -29,6 +29,7 @@ import ResidentFileUpload from "@/components/ResidentFileUpload";
 import ResidentDocuments from "@/components/residents/ResidentDocuments";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { BillingNifButton, BillingRecordsHistory } from "@/components/residents/BillingNifSection";
 import { useSyncMoloniCustomer, MoloniDuplicateError } from "@/hooks/useMoloni";
 import type { ChecklistItem, ResidentLegalFields } from "@/lib/types";
 import { profileGroup } from "@/lib/leadDocuments";
@@ -550,6 +551,7 @@ const ResidentDetail = () => {
                       </div>
                     </div>
                   )}
+                  {isStaff && <BillingRecordsHistory residentId={resident.id} />}
                   <div className="sm:col-span-2 flex flex-wrap items-center justify-end gap-2">
                     {resident.code && (
                       <span className="text-sm font-mono text-muted-foreground mr-1">Código: {resident.code}</span>
@@ -563,6 +565,7 @@ const ResidentDetail = () => {
                     >
                       {syncMoloni.isPending ? "A sincronizar…" : "Sincronizar com Moloni"}
                     </Button>
+                    {isStaff && <BillingNifButton residentId={resident.id} />}
 
                     <Button type="submit" disabled={updateLegal.isPending} className="rounded-full">
                       {updateLegal.isPending ? "A guardar…" : "Guardar dados pessoais"}

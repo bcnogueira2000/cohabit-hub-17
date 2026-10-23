@@ -1634,6 +1634,7 @@ export type Database = {
           created_at: string
           due_date: string
           id: string
+          moloni_customer_record_id: string | null
           moloni_document_id: number | null
           moloni_document_number: string | null
           moloni_issued_at: string | null
@@ -1650,6 +1651,7 @@ export type Database = {
           created_at?: string
           due_date: string
           id?: string
+          moloni_customer_record_id?: string | null
           moloni_document_id?: number | null
           moloni_document_number?: string | null
           moloni_issued_at?: string | null
@@ -1666,6 +1668,7 @@ export type Database = {
           created_at?: string
           due_date?: string
           id?: string
+          moloni_customer_record_id?: string | null
           moloni_document_id?: number | null
           moloni_document_number?: string | null
           moloni_issued_at?: string | null
@@ -1689,6 +1692,13 @@ export type Database = {
             columns: ["contract_id"]
             isOneToOne: false
             referencedRelation: "contracts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rent_charges_moloni_customer_record_id_fkey"
+            columns: ["moloni_customer_record_id"]
+            isOneToOne: false
+            referencedRelation: "resident_moloni_customers"
             referencedColumns: ["id"]
           },
         ]
@@ -1924,6 +1934,80 @@ export type Database = {
             foreignKeyName: "resident_internal_notes_resident_id_fkey"
             columns: ["resident_id"]
             isOneToOne: true
+            referencedRelation: "residents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      resident_moloni_customers: {
+        Row: {
+          active_from: string
+          address: string | null
+          archived_at: string | null
+          city: string | null
+          created_at: string
+          created_by: string | null
+          created_by_name: string | null
+          customer_number: string | null
+          id: string
+          moloni_customer_id: number
+          name: string | null
+          resident_id: string
+          status: string
+          suspended_in_moloni_at: string | null
+          suspended_marked_by: string | null
+          suspended_marked_by_name: string | null
+          valid_from: string
+          vat: string | null
+          zip_code: string | null
+        }
+        Insert: {
+          active_from?: string
+          address?: string | null
+          archived_at?: string | null
+          city?: string | null
+          created_at?: string
+          created_by?: string | null
+          created_by_name?: string | null
+          customer_number?: string | null
+          id?: string
+          moloni_customer_id: number
+          name?: string | null
+          resident_id: string
+          status?: string
+          suspended_in_moloni_at?: string | null
+          suspended_marked_by?: string | null
+          suspended_marked_by_name?: string | null
+          valid_from?: string
+          vat?: string | null
+          zip_code?: string | null
+        }
+        Update: {
+          active_from?: string
+          address?: string | null
+          archived_at?: string | null
+          city?: string | null
+          created_at?: string
+          created_by?: string | null
+          created_by_name?: string | null
+          customer_number?: string | null
+          id?: string
+          moloni_customer_id?: number
+          name?: string | null
+          resident_id?: string
+          status?: string
+          suspended_in_moloni_at?: string | null
+          suspended_marked_by?: string | null
+          suspended_marked_by_name?: string | null
+          valid_from?: string
+          vat?: string | null
+          zip_code?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "resident_moloni_customers_resident_id_fkey"
+            columns: ["resident_id"]
+            isOneToOne: false
             referencedRelation: "residents"
             referencedColumns: ["id"]
           },

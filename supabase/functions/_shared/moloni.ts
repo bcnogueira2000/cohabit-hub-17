@@ -222,6 +222,22 @@ export async function logSync(
   });
 }
 
+/** Valida o JWT e exige role staff/manager/admin. Devolve id e nome. */
+export async function requireStaff(req: Request): Promise<{ id: string; name: string | null }> {
+  const jwt = (req.headers.get("Authorization") ?? "").replace(/^Bearer\s+/i, "");
+  if (!jwt) throw new Error("UNAUTHORIZED");
+  const sb = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_ANON_KEY")!, {
+    global: { headers: { Authorization: `Bearer ${jwt}` } },
+  });
+  const { data: userData, error } = await sb.auth.getUser();
+  if (error || !userData?.user) throw new Error("UNAUTHORIZED");
+  const admin = adminClient();
+  const { data: roles } = await admin.from("user_roles").select("role").eq("user_id", userData.user.id);
+  if (!(roles ?? []).some((r: { role: string }) => ["staff", "manager", "admin"].includes(r.role))) throw new Error("FORBIDDEN");
+  const { data: prof } = await admin.from("profiles").select("full_name").eq("user_id", userData.user.id).maybeSingle();
+  return { id: userData.user.id, name: prof?.full_name ?? userData.user.email ?? null };
+}
+
 /** Valida o JWT e exige role manager/admin. Devolve o user id. */
 export async function requireManager(req: Request): Promise<string> {
   const authHeader = req.headers.get("Authorization") ?? "";

@@ -176,6 +176,13 @@
       "when": 1792770289047,
       "tag": "0024_resident_code_fill_gaps",
       "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1792772399454,
+      "tag": "0025_resident_moloni_customers",
+      "breakpoints": true
     }
   ]
 }

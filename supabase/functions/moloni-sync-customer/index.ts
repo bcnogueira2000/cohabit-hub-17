@@ -131,7 +131,22 @@ Deno.serve(async (req) => {
         }); // 200: é um pedido de confirmação, não uma falha do pedido
 
       }
-    } else if (!confirmed) {
+    } else {
+      // Ficha já ligada: nunca reescrever o NIF. Se divergir, usar «Atualizar NIF de faturação».
+      const current = await moloniCall<any>(sb, "customers/getOne", {
+        company_id: settings.companyId,
+        customer_id: customerId,
+      });
+      const moloniVat = String(current?.vat ?? "").trim();
+      if (moloniVat && moloniVat !== String(resident.tax_number).trim()) {
+        const message =
+          `O NIF na app (${resident.tax_number}) é diferente do NIF da ficha ativa no Moloni (${moloniVat}). Nada foi alterado. Usa o botão «Atualizar NIF de faturação».`;
+        await logSync(sb, { entity: "resident", entity_id: residentId, action: "sync_customer", success: false, message, payload: { conflict: "vat_changed", customer_id: customerId } });
+        return json({ error: message, conflict_kind: "vat_changed" }, 409);
+      }
+      if (current?.number) payload.number_override = current.number;
+    }
+    if (customerId && !confirmed) {
       // Já ligado: pedir confirmação explícita antes de sobrepor os dados no Moloni.
       return json({
         error:
@@ -147,7 +162,8 @@ Deno.serve(async (req) => {
 
 
     // O número do cliente no Moloni é sempre o código interno do residente (LC0001, …)
-    payload.number = resident.code;
+    payload.number = (payload.number_override as string | undefined) ?? resident.code;
+    delete payload.number_override;
 
     if (customerId) {
       await moloniCall(sb, "customers/update", { ...payload, customer_id: customerId });
@@ -157,6 +173,11 @@ Deno.serve(async (req) => {
       if (!customerId) throw new Error("O Moloni não devolveu o id do cliente.");
       // O Moloni atribui um número automático no insert — forçar o código interno.
       await moloniCall(sb, "customers/update", { ...payload, customer_id: customerId });
+      await sb.from("resident_moloni_customers").insert({
+        resident_id: residentId, moloni_customer_id: customerId, customer_number: String(payload.number),
+        vat: resident.tax_number, name: resident.full_name, address: resident.address,
+        zip_code: resident.postal_code, city: resident.city, status: "active", valid_from: "1900-01-01",
+      });
     }
 
 

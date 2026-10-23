@@ -25,6 +25,8 @@ export interface RentChargeRow {
   moloniDocumentId: number | null;
   moloniDocumentNumber: string | null;
   moloniStatus: string | null;
+  /** NIF da ficha Moloni com que a renda foi emitida. */
+  moloniVat?: string | null;
 }
 
 export const paymentStateLabels: Record<PaymentState, string> = {
@@ -105,7 +107,7 @@ export const useRentMonth = (year: number, month: number) =>
         supabase.from("room_typologies" as any).select("id, name"),
         supabase
           .from("rent_charges" as any)
-          .select("id, moloni_document_id, moloni_document_number, moloni_status")
+          .select("id, moloni_document_id, moloni_document_number, moloni_status, resident_moloni_customers(vat)")
           .in("id", rows.map((r) => r.id)),
       ]);
 
@@ -155,6 +157,7 @@ export const useRentMonth = (year: number, month: number) =>
             moloniDocumentId: moloniMap[r.id]?.moloni_document_id ?? null,
             moloniDocumentNumber: moloniMap[r.id]?.moloni_document_number ?? null,
             moloniStatus: moloniMap[r.id]?.moloni_status ?? null,
+            moloniVat: moloniMap[r.id]?.resident_moloni_customers?.vat ?? null,
             typologyName: room?.typology_id
               ? typMap[room.typology_id] ?? room?.typology ?? null
               : room?.typology ?? null,

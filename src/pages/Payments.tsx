@@ -574,6 +574,7 @@ const PaymentSheet = ({ charge, onClose }: { charge: RentChargeRow | null; onClo
                   <div className="text-sm">
                     Documento{" "}
                     <span className="font-mono">{charge.moloniDocumentNumber ?? `#${charge.moloniDocumentId}`}</span>
+                    {charge.moloniVat && <span className="text-muted-foreground"> · NIF {charge.moloniVat}</span>}
                     {charge.moloniStatus === "paid" && (
                       <span className="ml-2 text-xs text-success">pago no Moloni</span>
                     )}
