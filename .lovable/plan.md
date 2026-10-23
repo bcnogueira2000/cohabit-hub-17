@@ -1,4 +1,14 @@
-# Moloni: faturas de fornecedor (investigação, só leitura)
+# Menus inferiores iguais no telemóvel
+
+- Manter cinco ícones em ambos os módulos.
+- No financeiro, mostrar Contratos, Pagamentos, Custos, Operação e «Mais»; «Mais» abre Preços e Moloni.
+- Igualar a altura e o espaço inferior ao menu operacional, sem alterar o menu do computador.
+- Verificar os dois menus e a abertura das páginas através de «Mais» num ecrã de telemóvel.
+
+## Detalhes técnicos
+- Reutilizar a mesma definição de dimensões nos dois menus para evitar diferenças futuras.
+
+<!-- Previous research retained below for reference.
 
 Não houve escrita nem chamadas à API do Moloni. Nota: o site do Moloni está hoje temporariamente offline ("por motivos de segurança"). Por isso li cópias recentes da documentação oficial em moloni.pt/dev, e algumas listas de campos chegaram incompletas.
 
@@ -46,3 +56,4 @@ Não houve escrita nem chamadas à API do Moloni. Nota: o site do Moloni está h
 5. Se dá para apagar um rascunho pela API.
 6. Que série usar para compras, e se estes documentos são ou não comunicados à AT.
 7. Que permissões o utilizador da API precisa para documentos de compra. E se há limites de pedidos.
+-->
