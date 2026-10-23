@@ -1,5 +1,5 @@
 - [x] Mostrar e editar o perfil do residente com os valores existentes.
-- [ ] Igualar os menus inferiores operacional e financeiro e verificar Preços/Moloni em Mais.
+- [x] Igualar os menus inferiores operacional e financeiro e verificar Preços/Moloni em Mais.
 - [x] Exportar todos os documentos do residente em ZIP e verificar o resultado.
 - [x] Corrigir e verificar o pré-preenchimento do perfil existente no residente.
 - [x] Custos: caixa de entrada como centro da página (contagem, começar a classificar, inbox sempre visível).
