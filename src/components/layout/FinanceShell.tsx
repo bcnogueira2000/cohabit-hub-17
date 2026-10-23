@@ -1,5 +1,9 @@
 import { NavLink, Outlet, useLocation, useNavigate, Link } from "react-router-dom";
-import { FileText, Wallet, Tag, LogOut, ArrowLeft, Undo2, Receipt, PieChart } from "lucide-react";
+import { FileText, Wallet, Tag, LogOut, ArrowLeft, Undo2, Receipt, PieChart, MoreHorizontal } from "lucide-react";
+import { useState } from "react";
+import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { Button } from "@/components/ui/button";
+import { MobileBottomNav, mobileMainSpacing } from "./MobileBottomNav";
 import { useMyRoles, useProfile } from "@/hooks/useProfile";
 import { cn, getInitials } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
@@ -30,6 +34,9 @@ export const FinanceShell = () => {
   const { user, signOut } = useAuth();
   const { data: profile } = useProfile();
   useMyRoles();
+  const [moreOpen, setMoreOpen] = useState(false);
+  const moreItems = financeItems.slice(3);
+  const isMoreActive = moreItems.some((item) => location.pathname.startsWith(item.to));
 
   const handleSignOut = async () => { await signOut(); navigate("/auth", { replace: true }); };
 
@@ -109,16 +116,15 @@ export const FinanceShell = () => {
       </header>
 
       {/* Main */}
-      <main className="lg:pl-64 pb-20 lg:pb-0">
+      <main className={mobileMainSpacing}>
         <div key={location.pathname} className="animate-fade-in">
           <Outlet />
         </div>
       </main>
 
       {/* Mobile bottom nav */}
-      <nav className="lg:hidden fixed bottom-0 inset-x-0 z-30 bg-background/95 backdrop-blur border-t border-border">
-        <div className="grid grid-cols-6 h-16">
-          {financeItems.map(({ to, label, shortLabel, icon: Icon, end }) => (
+      <MobileBottomNav>
+          {financeItems.slice(0, 3).map(({ to, label, shortLabel, icon: Icon, end }) => (
             <NavLink
               key={to}
               to={to}
@@ -141,8 +147,26 @@ export const FinanceShell = () => {
             <Undo2 className="h-5 w-5" strokeWidth={1.5} />
             Operação
           </Link>
-        </div>
-      </nav>
+          <Sheet open={moreOpen} onOpenChange={setMoreOpen}>
+            <SheetTrigger asChild>
+              <Button variant="ghost" className={cn("h-full rounded-none flex-col gap-0.5 p-0 text-[11px] font-medium [&_svg]:size-5", isMoreActive ? "text-primary" : "text-muted-foreground")}>
+                <MoreHorizontal />
+                Mais
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="bottom" className="rounded-t-2xl pb-[max(env(safe-area-inset-bottom),1.5rem)]" aria-describedby={undefined}>
+              <SheetTitle>Mais</SheetTitle>
+              <div className="grid grid-cols-2 gap-2 pt-4">
+                {moreItems.map(({ to, label, icon: Icon }) => (
+                  <NavLink key={to} to={to} onClick={() => setMoreOpen(false)} className="flex min-w-0 items-center gap-3 rounded-lg p-3 bg-muted/40 hover:bg-muted transition-smooth">
+                    <Icon className="h-5 w-5 shrink-0 text-primary" />
+                    <span className="text-sm font-medium">{label}</span>
+                  </NavLink>
+                ))}
+              </div>
+            </SheetContent>
+          </Sheet>
+      </MobileBottomNav>
     </div>
   );
 };
