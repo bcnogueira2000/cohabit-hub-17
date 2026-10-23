@@ -76,6 +76,7 @@ export function BillingNifButton({ residentId }: { residentId: string }) {
     },
   });
 
+  const records = useBillingRecords(residentId);
   const p = preview.data;
   const nifOk = isValidPtNif(vat);
   const monthKey = (c: any) => `${c.year}-${String(c.month).padStart(2, "0")}`;
@@ -83,6 +84,7 @@ export function BillingNifButton({ residentId }: { residentId: string }) {
   const toMove = (p?.charges ?? []).filter((c: any) => !c.moloni_document_id && monthKey(c) >= month);
   const canNext = nifOk && address.trim() && number.trim() && /^\d{4}-\d{2}$/.test(month);
 
+  if (!(records.data ?? []).some((r: any) => r.status === "active")) return null;
   return (
     <>
       <Button type="button" variant="outline" className="rounded-full" onClick={start}>
