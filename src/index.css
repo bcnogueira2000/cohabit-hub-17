@@ -145,6 +145,20 @@
     min-width: 0;
   }
 
+  /* iOS WebKit: date/time inputs keep a fixed intrinsic width even with
+     min-width: 0 and overflow their grid cell. Removing the native
+     appearance lets them shrink; tapping still opens the date picker. */
+  @supports (-webkit-touch-callout: none) {
+    input[type="date"],
+    input[type="time"],
+    input[type="datetime-local"],
+    input[type="month"] {
+      -webkit-appearance: none;
+      appearance: none;
+      max-width: 100%;
+    }
+  }
+
   h1, h2, h3, h4, .font-display {
     font-family: 'Syne', system-ui, sans-serif;
     font-weight: 800;
