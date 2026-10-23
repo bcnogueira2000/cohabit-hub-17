@@ -133,6 +133,12 @@
     @apply bg-background text-foreground;
   }
 
+  /* Impede a página de deslizar para o lado quando algum elemento
+     é ligeiramente mais largo que o ecrã (telemóvel). */
+  html, body {
+    overflow-x: clip;
+  }
+
   /* iOS Safari gives inputs (esp. type=date) an intrinsic min-width that
      overflows grids/flex on narrow screens; allow them to shrink. */
   input, select, textarea {

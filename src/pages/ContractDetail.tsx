@@ -162,7 +162,7 @@ const ContractDetail = () => {
             {fmtDate(contract.startDate)} → {fmtDate(contract.actualEndDate ?? contract.endDate)}
           </p>
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex flex-wrap items-center justify-end gap-2 sm:gap-4">
           <div className="text-right">
             <span className="text-xs text-muted-foreground block">Renda atual</span>
             <span className="font-display text-2xl font-semibold">{eur(contract.currentRent)}</span>
