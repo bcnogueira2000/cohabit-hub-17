@@ -23,6 +23,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { NotificationBell } from "@/components/NotificationBell";
 import { BrandAvatar } from "@/components/ui/BrandAvatar";
 import logo from "@/assets/logo.png";
+import { MobileBottomNav, mobileMainSpacing } from "./MobileBottomNav";
 
 type NavItem = { to: string; label: string; icon: any; end?: boolean };
 type NavSection = { label: string; items: NavItem[] };
@@ -256,15 +257,14 @@ export const AppShell = () => {
       </header>
 
       {/* Main */}
-      <main className="lg:pl-64 pb-[calc(6rem+max(env(safe-area-inset-bottom),1rem))] lg:pb-0">
+      <main className={mobileMainSpacing}>
         <div key={location.pathname} className="animate-fade-in">
           <Outlet />
         </div>
       </main>
 
       {/* Mobile bottom nav */}
-      <nav className="lg:hidden fixed bottom-0 inset-x-0 z-30 bg-background/95 backdrop-blur border-t border-border pb-[max(calc(env(safe-area-inset-bottom)-1rem),0.25rem)]">
-        <div className="grid grid-cols-5 h-16">
+      <MobileBottomNav>
           {mobileBottom.map(({ to, label, icon: Icon, end }) => (
             <NavLink
               key={to}
@@ -313,8 +313,7 @@ export const AppShell = () => {
               </div>
             </SheetContent>
           </Sheet>
-        </div>
-      </nav>
+      </MobileBottomNav>
     </div>
   );
 };
