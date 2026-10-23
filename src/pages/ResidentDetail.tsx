@@ -550,7 +550,10 @@ const ResidentDetail = () => {
                       </div>
                     </div>
                   )}
-                  <div className="sm:col-span-2 flex flex-wrap justify-end gap-2">
+                  <div className="sm:col-span-2 flex flex-wrap items-center justify-end gap-2">
+                    {resident.code && (
+                      <span className="text-sm font-mono text-muted-foreground mr-1">Código: {resident.code}</span>
+                    )}
                     <Button
                       type="button"
                       variant="outline"
