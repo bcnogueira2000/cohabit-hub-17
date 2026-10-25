@@ -52,6 +52,7 @@ export interface ResidentLegalFields {
   nationality: string | null;
   documentType: string | null;
   documentNumber: string | null;
+  documentValidity?: string | null;
   taxNumber: string | null;
   employerOrSchool: string | null;
   dateOfBirth: string | null;

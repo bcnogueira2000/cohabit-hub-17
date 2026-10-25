@@ -105,6 +105,7 @@ const ResidentDetail = () => {
       nationality: resident.nationality,
       documentType: resident.documentType,
       documentNumber: resident.documentNumber,
+      documentValidity: resident.documentValidity ? resident.documentValidity.slice(0, 10) : null,
       taxNumber: resident.taxNumber,
       employerOrSchool: resident.employerOrSchool,
       dateOfBirth: resident.dateOfBirth,
@@ -143,6 +144,7 @@ const ResidentDetail = () => {
           nationality: clean(legal.nationality),
           documentType: clean(legal.documentType),
           documentNumber: clean(legal.documentNumber),
+          documentValidity: clean(legal.documentValidity ?? null),
           taxNumber: clean(legal.taxNumber),
           employerOrSchool: clean(legal.employerOrSchool),
           dateOfBirth: clean(legal.dateOfBirth),
@@ -307,6 +309,23 @@ const ResidentDetail = () => {
                   ) : (
                     <span className="text-muted-foreground">—</span>
                   )}
+                </div>
+              </div>
+              <div>
+                <div className="text-xs text-muted-foreground mb-0.5">Validade do documento</div>
+                <div className="font-medium">
+                  {(() => {
+                    const v = resident.documentValidity;
+                    if (!v) return <span className="text-muted-foreground">—</span>;
+                    const [y, m, d] = v.slice(0, 10).split("-");
+                    const label = `${d}/${m}/${y}`;
+                    const exp = new Date(Number(y), Number(m) - 1, Number(d));
+                    const today = new Date(); today.setHours(0, 0, 0, 0);
+                    const days = Math.round((exp.getTime() - today.getTime()) / 86400000);
+                    if (days < 0) return <span className="text-destructive">{label} · caducado</span>;
+                    if (days <= 90) return <span className="text-warning">{label} · a caducar</span>;
+                    return label;
+                  })()}
                 </div>
               </div>
               <div>
@@ -477,6 +496,16 @@ const ResidentDetail = () => {
                       className="mt-1.5"
                       value={legal.documentNumber ?? ""}
                       onChange={(e) => setLegal((s) => ({ ...s, documentNumber: e.target.value }))}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="legal-docvalid">Validade do documento</Label>
+                    <Input
+                      id="legal-docvalid"
+                      type="date"
+                      className="mt-1.5"
+                      value={legal.documentValidity ?? ""}
+                      onChange={(e) => setLegal((s) => ({ ...s, documentValidity: e.target.value }))}
                     />
                   </div>
                   <div>
