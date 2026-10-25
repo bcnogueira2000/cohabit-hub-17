@@ -64,6 +64,7 @@ export const useUpdateResidentLegal = () => {
           nationality: values.nationality,
           document_type: values.documentType,
           document_number: values.documentNumber,
+          ...(values.documentValidity !== undefined ? { document_validity: values.documentValidity } : {}),
           tax_number: values.taxNumber,
           employer_or_school: values.employerOrSchool,
           ...(values.profile !== undefined ? { profile: values.profile } : {}),
