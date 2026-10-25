@@ -1,7 +1,7 @@
 import { shortName } from "@/lib/shortName";
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Search, Mail, Phone, DoorClosed, MapPin } from "lucide-react";
+import { Search, Mail, Phone, DoorClosed, MapPin, AlertTriangle } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useResidents, useRooms, useRequests } from "@/hooks/useData";
@@ -30,12 +30,35 @@ const Residents = () => {
     r.fullName.toLowerCase().includes(q) || (r.code ?? "").toLowerCase().includes(q)
   );
 
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const expiring = current
+    .filter((r) => r.documentValidity)
+    .map((r) => ({ r, days: Math.round((new Date(r.documentValidity + "T00:00:00").getTime() - today.getTime()) / 86400000) }))
+    .filter((x) => x.days <= 60)
+    .sort((a, b) => a.days - b.days);
+
   return (
     <div className="px-4 lg:px-10 2xl:px-14 py-6 lg:py-10 max-w-[1600px] mx-auto">
       <div className="mb-6">
-        <h1 className="font-display text-3xl lg:text-4xl font-semibold">Residents</h1>
+        <h1 className="font-display text-3xl lg:text-4xl font-semibold">Residentes</h1>
         <p className="text-muted-foreground mt-1">{current.length} residentes atuais · {former.length} ex-residentes</p>
       </div>
+
+      {expiring.length > 0 && (
+        <div className="mb-5 rounded-xl border border-warning/40 bg-warning/10 p-4">
+          <div className="flex items-center gap-2 font-medium text-sm mb-2">
+            <AlertTriangle className="h-4 w-4 text-warning" />
+            {expiring.length} {expiring.length === 1 ? "documento de identificação caducado ou a caducar" : "documentos de identificação caducados ou a caducar"} (60 dias)
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {expiring.map(({ r, days }) => (
+              <Link key={r.id} to={`/residents/${r.id}`} className={cn("text-xs rounded-full px-2.5 py-1 border hover:underline", days < 0 ? "border-destructive/40 bg-destructive/10 text-destructive" : "border-warning/40 bg-card")}>
+                {shortName(r.fullName)} · {days < 0 ? "caducado" : `${days} dias`} ({new Date(r.documentValidity + "T00:00:00").toLocaleDateString("pt-PT")})
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
 
       <Tabs value={tab} onValueChange={(v) => setTab(v as "current" | "former")} className="mb-4">
         <TabsList>

@@ -183,6 +183,13 @@
       "when": 1792772399454,
       "tag": "0025_resident_moloni_customers",
       "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "7",
+      "when": 1792956406213,
+      "tag": "0026_document_expiry_alerts",
+      "breakpoints": true
     }
   ]
 }

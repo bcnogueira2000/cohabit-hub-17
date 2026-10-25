@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { NationalitySelect, PhoneInput, NationalityFormField, PhoneFormField } from "@/components/CountryFields";
 import { Link, useParams } from "react-router-dom";
-import { ArrowLeft, Mail, Phone, DoorClosed, Calendar, Check, Globe, Heart, AlertTriangle, CheckCircle2, FileText, Trash2, ShieldCheck } from "lucide-react";
+import { ArrowLeft, ChevronLeft, ChevronRight, Mail, Phone, DoorClosed, Calendar, Check, Globe, Heart, AlertTriangle, CheckCircle2, FileText, Trash2, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -238,9 +238,28 @@ const ResidentDetail = () => {
 
   return (
     <div className="px-4 lg:px-10 py-6 lg:py-10 max-w-6xl mx-auto">
-      <Button asChild variant="ghost" size="sm" className="mb-4 -ml-2">
-        <Link to="/residents"><ArrowLeft className="h-4 w-4 mr-1.5" /> Residents</Link>
-      </Button>
+      {(() => {
+        const group = residents.filter((r) => (r.status === "past") === (resident.status === "past"));
+        const idx = group.findIndex((r) => r.id === resident.id);
+        const prev = idx > 0 ? group[idx - 1] : null;
+        const next = idx >= 0 && idx < group.length - 1 ? group[idx + 1] : null;
+        return (
+          <div className="flex items-center justify-between mb-4">
+            <Button asChild variant="ghost" size="sm" className="-ml-2">
+              <Link to="/residents"><ArrowLeft className="h-4 w-4 mr-1.5" /> Residentes</Link>
+            </Button>
+            <div className="flex items-center gap-1">
+              <span className="text-xs text-muted-foreground mr-1">{idx + 1} / {group.length}</span>
+              <Button asChild={!!prev} variant="outline" size="icon" className="h-8 w-8" disabled={!prev} aria-label="Residente anterior">
+                {prev ? <Link to={`/residents/${prev.id}`}><ChevronLeft className="h-4 w-4" /></Link> : <ChevronLeft className="h-4 w-4" />}
+              </Button>
+              <Button asChild={!!next} variant="outline" size="icon" className="h-8 w-8" disabled={!next} aria-label="Residente seguinte">
+                {next ? <Link to={`/residents/${next.id}`}><ChevronRight className="h-4 w-4" /></Link> : <ChevronRight className="h-4 w-4" />}
+              </Button>
+            </div>
+          </div>
+        );
+      })()}
 
       <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-6">
         <div className="h-20 w-20 rounded-full flex items-center justify-center text-primary-foreground font-display text-2xl font-semibold" style={{ backgroundColor: resident.avatarColor }}>{initials}</div>

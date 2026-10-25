@@ -2607,6 +2607,7 @@ export type Database = {
         Returns: number
       }
       generate_cost_alerts: { Args: never; Returns: number }
+      generate_document_expiry_alerts: { Args: never; Returns: number }
       generate_finance_alerts: { Args: never; Returns: number }
       generate_lead_form_token: {
         Args: { p_lead_id: string }
