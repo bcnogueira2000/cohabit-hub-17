@@ -80,7 +80,7 @@ const useOccupancyData = () =>
     },
   });
 
-type Bar = { stayId: string; contractId: string | null; roomId: string; label: string; tone: "reserved" | "occupied"; startIdx: number; endIdx: number };
+type Bar = { stayId: string; contractId: string | null; roomId: string; label: string; tone: "reserved" | "occupied"; startIdx: number; endIdx: number; endDate: string };
 
 const avatarTones = [
   "bg-primary/90 text-primary-foreground",
@@ -260,6 +260,7 @@ const OccupancyMap = () => {
         tone,
         startIdx,
         endIdx,
+        endDate: end.toLocaleDateString("pt-PT", { day: "2-digit", month: "2-digit", year: "2-digit" }),
       });
       map.set(s.room_id, arr);
     }
