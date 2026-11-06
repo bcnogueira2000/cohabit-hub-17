@@ -55,6 +55,9 @@ const mapContract = (c: any, balances: Record<string, ContractBalance>): Contrac
   const periods = ((c.contract_rent_periods ?? []) as any[])
     .map(mapPeriod)
     .sort((a, b) => (a.validFrom < b.validFrom ? 1 : -1));
+  const today = new Date().toISOString().slice(0, 10);
+  const currentPeriod =
+    periods.find((p) => p.validFrom <= today) ?? periods[periods.length - 1];
   return {
     id: c.id,
     residentId: c.resident_id,
