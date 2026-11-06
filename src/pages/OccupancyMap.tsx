@@ -80,7 +80,7 @@ const useOccupancyData = () =>
     },
   });
 
-type Bar = { stayId: string; contractId: string | null; roomId: string; label: string; tone: "reserved" | "occupied"; startIdx: number; endIdx: number };
+type Bar = { stayId: string; contractId: string | null; roomId: string; label: string; tone: "reserved" | "occupied"; startIdx: number; endIdx: number; endDate: string };
 
 const avatarTones = [
   "bg-primary/90 text-primary-foreground",
@@ -260,6 +260,7 @@ const OccupancyMap = () => {
         tone,
         startIdx,
         endIdx,
+        endDate: end.toLocaleDateString("pt-PT", { day: "2-digit", month: "2-digit", year: "2-digit" }),
       });
       map.set(s.room_id, arr);
     }
@@ -556,7 +557,7 @@ const OccupancyMap = () => {
                                         key={bar.stayId}
                                         type="button"
                                         onClick={() => openBar(bar)}
-                                        title={`${bar.label} · ${bar.tone === "occupied" ? "Ocupado" : "Reservado"}`}
+                                        title={`${bar.label} · ${bar.tone === "occupied" ? "Ocupado" : "Reservado"} · sai ${bar.endDate}`}
                                         className={cn(
                                           "absolute top-1/2 -translate-y-1/2 h-6 rounded-md px-1 text-[9px] font-semibold text-left flex items-center gap-1 overflow-hidden transition-smooth hover:shadow-md hover:scale-[1.01]",
                                           bar.tone === "occupied"
@@ -579,6 +580,11 @@ const OccupancyMap = () => {
                                           {getInitials(bar.label).slice(0, 2)}
                                         </span>
                                         {width > 55 && <span className="truncate">{bar.label}</span>}
+                                        {width > 95 && (
+                                          <span className="ml-auto shrink-0 pl-1 opacity-80 tabular-nums">
+                                            {bar.endDate}
+                                          </span>
+                                        )}
                                       </button>
                                     );
                                   })}
