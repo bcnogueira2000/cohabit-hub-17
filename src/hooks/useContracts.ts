@@ -79,7 +79,7 @@ const mapContract = (c: any, balances: Record<string, ContractBalance>): Contrac
         ? null
         : Number(c.regular_rent_amount),
     rentPeriods: periods,
-    currentRent: periods[0]?.monthlyAmount ?? null,
+    currentRent: currentPeriod?.monthlyAmount ?? null,
     balance: balances[c.id] ?? null,
   };
 };
