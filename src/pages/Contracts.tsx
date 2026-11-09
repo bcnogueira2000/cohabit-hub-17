@@ -2,7 +2,8 @@ import { shortName } from "@/lib/shortName";
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
-import { Plus, FileText, BedDouble, TrendingDown, CalendarClock, ArrowRight } from "lucide-react";
+import { Plus, FileText, BedDouble, TrendingDown, CalendarClock, ArrowRight, Search } from "lucide-react";
+import { matchesSearch } from "@/lib/listSearch";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -29,6 +30,7 @@ const Contracts = () => {
   const { data: pricing = [] } = useTypologyPricing();
   const { data: rooms = [] } = useRooms();
 
+  const [search, setSearch] = useState("");
   const [status, setStatus] = useState<string>("all");
   const [typology, setTypology] = useState<string>("all");
   const [from, setFrom] = useState("");
@@ -55,6 +57,7 @@ const Contracts = () => {
   };
 
   const filtered = contracts.filter((c) => {
+    if (!matchesSearch(search, [c.residentName, roomOf(c.id)?.number])) return false;
     if (status !== "all" && c.status !== status) return false;
     if (typology !== "all" && roomOf(c.id)?.typology !== typology) return false;
     if (from && c.endDate < from) return false;
@@ -179,6 +182,18 @@ const Contracts = () => {
 
       {/* Filtros */}
       <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-end gap-2 mb-5">
+        <div className="col-span-2 min-w-0">
+          <Label className="text-xs text-muted-foreground">Pesquisar</Label>
+          <div className="relative mt-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" strokeWidth={1.5} />
+            <Input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Residente ou quarto"
+              className="w-full sm:w-[240px] rounded-full pl-9 text-base sm:text-sm"
+            />
+          </div>
+        </div>
         <div>
           <Label className="text-xs text-muted-foreground">Estado</Label>
           <Select value={status} onValueChange={setStatus}>
@@ -219,7 +234,11 @@ const Contracts = () => {
         <Card className="p-10 text-center border-dashed border-border/60">
           <FileText className="h-10 w-10 text-muted-foreground mx-auto mb-3" strokeWidth={1.5} />
           <p className="font-medium">Sem contratos</p>
-          <p className="text-sm text-muted-foreground mt-1">Cria o primeiro contrato para começar.</p>
+          <p className="text-sm text-muted-foreground mt-1">
+            {contracts.length > 0
+              ? "Nenhum contrato corresponde à pesquisa ou aos filtros."
+              : "Cria o primeiro contrato para começar."}
+          </p>
         </Card>
       ) : (
         <Card className="border-border/60 shadow-card overflow-x-auto">

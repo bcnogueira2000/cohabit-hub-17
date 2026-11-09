@@ -11,7 +11,9 @@ import {
   TrendingUp,
   AlertTriangle,
   PiggyBank,
+  Search,
 } from "lucide-react";
+import { matchesSearch } from "@/lib/listSearch";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -112,6 +114,7 @@ const Payments = () => {
   const [month, setMonth] = useState(now.getMonth() + 1);
   const [state, setState] = useState<string>("all");
   const [typology, setTypology] = useState<string>("all");
+  const [search, setSearch] = useState("");
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
   const { data: charges = [], isLoading } = useRentMonth(year, month);
@@ -127,11 +130,12 @@ const Payments = () => {
   const filtered = useMemo(
     () =>
       charges.filter((r) => {
+        if (!matchesSearch(search, [r.residentName, r.roomNumber])) return false;
         if (state !== "all" && r.state !== state) return false;
         if (typology !== "all" && r.typologyId !== typology) return false;
         return true;
       }),
-    [charges, state, typology]
+    [charges, state, typology, search]
   );
 
   const totals = useMemo(
@@ -282,6 +286,18 @@ const Payments = () => {
 
       {/* Filtros */}
       <div className="flex flex-wrap items-end gap-2 mb-5">
+        <div className="w-full sm:w-auto min-w-0">
+          <Label className="text-xs text-muted-foreground">Pesquisar</Label>
+          <div className="relative mt-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" strokeWidth={1.5} />
+            <Input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Residente ou quarto"
+              className="w-full sm:w-[240px] rounded-full pl-9 text-base sm:text-sm"
+            />
+          </div>
+        </div>
         <div>
           <Label className="text-xs text-muted-foreground">Estado</Label>
           <Select value={state} onValueChange={setState}>
@@ -315,7 +331,9 @@ const Payments = () => {
           <FileText className="h-10 w-10 text-muted-foreground mx-auto mb-3" strokeWidth={1.5} />
           <p className="font-medium">Sem rendas para {monthLabel(year, month)}</p>
           <p className="text-sm text-muted-foreground mt-1">
-            As rendas são geradas a partir dos contratos ativos.
+            {charges.length > 0
+              ? "Nenhuma renda corresponde à pesquisa ou aos filtros."
+              : "As rendas são geradas a partir dos contratos ativos."}
           </p>
         </Card>
       ) : (
