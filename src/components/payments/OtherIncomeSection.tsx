@@ -15,6 +15,8 @@ import { toast } from "@/hooks/use-toast";
 import { PaymentStateBadge } from "@/components/payments/PaymentStateBadge";
 import { PaymentEntry } from "@/components/payments/PaymentEntry";
 import { ServiceCatalogDialog } from "@/components/payments/ServiceCatalogDialog";
+import { ListSearchField } from "@/components/ListSearchField";
+import { matchesSearch } from "@/lib/listSearch";
 import {
   paymentMethodLabels,
   useChargeableContracts,
@@ -229,6 +231,7 @@ export const OtherIncomeSection = () => {
   const [ym, setYm] = useState({ y: now.getFullYear(), m: now.getMonth() + 1 });
   const [service, setService] = useState("all");
   const [state, setState] = useState("all");
+  const [search, setSearch] = useState("");
   const [creating, setCreating] = useState(false);
   const [catalogOpen, setCatalogOpen] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -238,6 +241,7 @@ export const OtherIncomeSection = () => {
 
   const month = rows.filter((r) => r.dueDate.startsWith(prefix));
   const list = month.filter((r) =>
+    matchesSearch(search, [r.residentName, r.roomNumber]) &&
     (service === "all" || r.name === service) &&
     (state === "all" || (state === "voided" ? r.status === "voided" : r.state === state)));
   const totals = useMemo(() => {
@@ -265,7 +269,8 @@ export const OtherIncomeSection = () => {
         ))}
       </div>
 
-      <div className="flex flex-wrap gap-3">
+      <div className="flex flex-wrap items-end gap-3">
+        <ListSearchField value={search} onChange={setSearch} />
         <Select value={service} onValueChange={setService}>
           <SelectTrigger className="w-56"><SelectValue /></SelectTrigger>
           <SelectContent><SelectItem value="all">Todos os serviços</SelectItem>{names.map((n) => <SelectItem key={n} value={n}>{n}</SelectItem>)}</SelectContent>
@@ -283,7 +288,9 @@ export const OtherIncomeSection = () => {
 
       <Card className="overflow-x-auto">
         {isLoading ? <p className="p-6 text-sm text-muted-foreground">A carregar…</p> : list.length === 0 ? (
-          <p className="p-6 text-sm text-muted-foreground">Sem lançamentos neste mês.</p>
+          <p className="p-6 text-sm text-muted-foreground">
+            {month.length > 0 ? "Nenhum lançamento corresponde à pesquisa ou aos filtros." : "Sem lançamentos neste mês."}
+          </p>
         ) : (
           <table className="w-full text-sm">
             <thead className="text-xs text-muted-foreground text-left">
