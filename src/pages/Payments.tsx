@@ -11,9 +11,24 @@ import {
   TrendingUp,
   AlertTriangle,
   PiggyBank,
-  Search,
 } from "lucide-react";
 import { matchesSearch } from "@/lib/listSearch";
+import { ListSearchField } from "@/components/ListSearchField";
+import { useRooms } from "@/hooks/useData";
+import { useStaysByContract } from "@/hooks/useContracts";
+
+/** Número do quarto de um contrato (pela estadia) ou de um quarto direto. */
+const useRoomNumberLookup = () => {
+  const { data: rooms = [] } = useRooms();
+  const { data: stayByContract = {} } = useStaysByContract();
+  return useMemo(() => {
+    const byId = new Map(rooms.map((r) => [r.id, String(r.number)]));
+    return (contractId?: string | null, roomId?: string | null) => {
+      const id = roomId ?? (contractId ? stayByContract[contractId]?.roomId : null);
+      return id ? byId.get(id) ?? null : null;
+    };
+  }, [rooms, stayByContract]);
+};
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -286,18 +301,7 @@ const Payments = () => {
 
       {/* Filtros */}
       <div className="flex flex-wrap items-end gap-2 mb-5">
-        <div className="w-full sm:w-auto min-w-0">
-          <Label className="text-xs text-muted-foreground">Pesquisar</Label>
-          <div className="relative mt-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" strokeWidth={1.5} />
-            <Input
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Residente ou quarto"
-              className="w-full sm:w-[240px] rounded-full pl-9 text-base sm:text-sm"
-            />
-          </div>
-        </div>
+        <ListSearchField value={search} onChange={setSearch} />
         <div>
           <Label className="text-xs text-muted-foreground">Estado</Label>
           <Select value={state} onValueChange={setState}>
@@ -658,9 +662,15 @@ const statusLabels: Record<string, string> = {
 };
 
 const DepositsSection = () => {
-  const { data: deposits = [], isLoading } = useDeposits();
+  const { data: allDeposits = [], isLoading } = useDeposits();
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const selected = deposits.find((d) => d.contractId === selectedId) ?? null;
+  const [search, setSearch] = useState("");
+  const roomNumberOf = useRoomNumberLookup();
+  const deposits = useMemo(
+    () => allDeposits.filter((d) => matchesSearch(search, [d.residentName, roomNumberOf(d.contractId)])),
+    [allDeposits, search, roomNumberOf]
+  );
+  const selected = allDeposits.find((d) => d.contractId === selectedId) ?? null;
 
   const totals = useMemo(
     () => ({
@@ -694,7 +704,11 @@ const DepositsSection = () => {
         </Card>
       </div>
 
-      <DepositsToReceiveSection />
+      <div className="flex flex-wrap items-end gap-2 mb-5">
+        <ListSearchField value={search} onChange={setSearch} />
+      </div>
+
+      <DepositsToReceiveSection search={search} roomNumberOf={roomNumberOf} />
 
       <h2 className="font-display text-xl font-semibold mb-3">Por devolver</h2>
 
@@ -705,7 +719,9 @@ const DepositsSection = () => {
           <PiggyBank className="h-10 w-10 text-muted-foreground mx-auto mb-3" strokeWidth={1.5} />
           <p className="font-medium">Sem cauções por devolver</p>
           <p className="text-sm text-muted-foreground mt-1">
-            Aparecem aqui os contratos cuja caução recebida ainda não foi devolvida.
+            {allDeposits.length > 0
+              ? "Nenhuma caução corresponde à pesquisa."
+              : "Aparecem aqui os contratos cuja caução recebida ainda não foi devolvida."}
           </p>
         </Card>
       ) : (
@@ -936,10 +952,20 @@ const DepositReturnSheet = ({ deposit, onClose }: { deposit: DepositRow | null; 
 
 // ============ Cauções por receber ============
 
-const DepositsToReceiveSection = () => {
-  const { data: pending = [], isLoading } = useDepositsToReceive();
+const DepositsToReceiveSection = ({
+  search,
+  roomNumberOf,
+}: {
+  search: string;
+  roomNumberOf: (contractId?: string | null, roomId?: string | null) => string | null;
+}) => {
+  const { data: allPending = [], isLoading } = useDepositsToReceive();
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const selected = pending.find((d) => d.contractId === selectedId) ?? null;
+  const pending = useMemo(
+    () => allPending.filter((d) => matchesSearch(search, [d.residentName, roomNumberOf(d.contractId)])),
+    [allPending, search, roomNumberOf]
+  );
+  const selected = allPending.find((d) => d.contractId === selectedId) ?? null;
 
   const totalPending = useMemo(
     () => pending.reduce((a, d) => a + (d.depositDue - d.depositReceived), 0),
@@ -965,7 +991,9 @@ const DepositsToReceiveSection = () => {
           <PiggyBank className="h-8 w-8 text-muted-foreground mx-auto mb-3" strokeWidth={1.5} />
           <p className="font-medium">Sem cauções por receber</p>
           <p className="text-sm text-muted-foreground mt-1">
-            Todos os contratos com caução definida já a receberam por completo.
+            {allPending.length > 0
+              ? "Nenhuma caução corresponde à pesquisa."
+              : "Todos os contratos com caução definida já a receberam por completo."}
           </p>
         </Card>
       ) : (
@@ -1189,9 +1217,15 @@ const DepositReceiptSheet = ({ deposit, onClose }: { deposit: DepositRow | null;
 // ============ Taxa de reserva ============
 
 const ReservationFeesSection = () => {
-  const { data: fees = [], isLoading } = useReservationFees();
+  const { data: allFees = [], isLoading } = useReservationFees();
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const selected = fees.find((f) => f.key === selectedId) ?? null;
+  const [search, setSearch] = useState("");
+  const roomNumberOf = useRoomNumberLookup();
+  const fees = useMemo(
+    () => allFees.filter((f) => matchesSearch(search, [f.residentName, roomNumberOf(f.contractId, f.roomId)])),
+    [allFees, search, roomNumberOf]
+  );
+  const selected = allFees.find((f) => f.key === selectedId) ?? null;
 
 
   const totals = useMemo(
@@ -1226,6 +1260,10 @@ const ReservationFeesSection = () => {
         </Card>
       </div>
 
+      <div className="flex flex-wrap items-end gap-2 mb-5">
+        <ListSearchField value={search} onChange={setSearch} />
+      </div>
+
       {isLoading ? (
         <p className="text-muted-foreground text-sm">A carregar…</p>
       ) : fees.length === 0 ? (
@@ -1233,7 +1271,9 @@ const ReservationFeesSection = () => {
           <FileText className="h-10 w-10 text-muted-foreground mx-auto mb-3" strokeWidth={1.5} />
           <p className="font-medium">Sem taxas de reserva</p>
           <p className="text-sm text-muted-foreground mt-1">
-            Aparecem aqui os contratos e as candidaturas com taxa de reserva definida.
+            {allFees.length > 0
+              ? "Nenhuma taxa de reserva corresponde à pesquisa."
+              : "Aparecem aqui os contratos e as candidaturas com taxa de reserva definida."}
           </p>
 
         </Card>

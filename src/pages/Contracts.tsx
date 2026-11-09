@@ -2,8 +2,9 @@ import { shortName } from "@/lib/shortName";
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
-import { Plus, FileText, BedDouble, TrendingDown, CalendarClock, ArrowRight, Search } from "lucide-react";
+import { Plus, FileText, BedDouble, TrendingDown, CalendarClock, ArrowRight } from "lucide-react";
 import { matchesSearch } from "@/lib/listSearch";
+import { ListSearchField } from "@/components/ListSearchField";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -182,18 +183,7 @@ const Contracts = () => {
 
       {/* Filtros */}
       <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-end gap-2 mb-5">
-        <div className="col-span-2 min-w-0">
-          <Label className="text-xs text-muted-foreground">Pesquisar</Label>
-          <div className="relative mt-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" strokeWidth={1.5} />
-            <Input
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Residente ou quarto"
-              className="w-full sm:w-[240px] rounded-full pl-9 text-base sm:text-sm"
-            />
-          </div>
-        </div>
+        <ListSearchField value={search} onChange={setSearch} className="col-span-2" />
         <div>
           <Label className="text-xs text-muted-foreground">Estado</Label>
           <Select value={status} onValueChange={setStatus}>
