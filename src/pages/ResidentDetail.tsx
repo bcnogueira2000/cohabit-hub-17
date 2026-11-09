@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { NationalitySelect, PhoneInput, NationalityFormField, PhoneFormField } from "@/components/CountryFields";
 import { Link, useParams } from "react-router-dom";
 import { ArrowLeft, ChevronLeft, ChevronRight, Mail, Phone, DoorClosed, Calendar, Check, Globe, Heart, AlertTriangle, CheckCircle2, FileText, Trash2, ShieldCheck } from "lucide-react";
@@ -71,6 +72,24 @@ const ResidentDetail = () => {
   const syncMoloni = useSyncMoloniCustomer();
   const [showMoloniConfirm, setShowMoloniConfirm] = useState(false);
   const isStaff = roles.some((r) => r === "staff" || r === "manager" || r === "admin");
+
+  // Contrato principal do residente: ativo > reservado > o mais recente (exclui cancelados).
+  const { data: mainContract } = useQuery({
+    queryKey: ["contracts", "resident-main", resident?.id],
+    enabled: !!resident?.id && isStaff,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("contracts")
+        .select("id, code, status, start_date")
+        .eq("resident_id", resident!.id)
+        .neq("status", "cancelled")
+        .order("start_date", { ascending: false });
+      if (error) throw error;
+      const rows = data ?? [];
+      const rank = (s: string) => (s === "active" ? 0 : s === "reserved" ? 1 : 2);
+      return [...rows].sort((a, b) => rank(a.status) - rank(b.status))[0] ?? null;
+    },
+  });
 
   const [legal, setLegal] = useState<ResidentLegalFields & { profile: string | null }>({
     profile: null,
@@ -265,7 +284,14 @@ const ResidentDetail = () => {
         <div className="h-20 w-20 rounded-full flex items-center justify-center text-primary-foreground font-display text-2xl font-semibold" style={{ backgroundColor: resident.avatarColor }}>{initials}</div>
         <div>
           <h1 className="font-display text-3xl font-semibold">{resident.fullName}</h1>
-          {resident.code && <div className="text-sm font-mono text-muted-foreground mt-0.5">Código de cliente: {resident.code}</div>}
+          {isStaff && mainContract && (
+            <Button asChild variant="outline" size="sm" className="mt-1.5 h-8">
+              <Link to={`/finance/contracts/${mainContract.id}`}>
+                <FileText className="h-3.5 w-3.5 mr-1.5" /> Ver contrato
+                {mainContract.code && <span className="ml-1.5 font-mono text-xs text-muted-foreground">{mainContract.code}</span>}
+              </Link>
+            </Button>
+          )}
           <div className="flex flex-wrap gap-3 text-sm text-muted-foreground mt-1">
             <span className="flex items-center gap-1.5"><Mail className="h-3.5 w-3.5" /> {resident.email}</span>
             <span className="flex items-center gap-1.5"><Phone className="h-3.5 w-3.5" /> {resident.phone}</span>
