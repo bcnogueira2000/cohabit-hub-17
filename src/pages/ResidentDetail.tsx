@@ -285,12 +285,12 @@ const ResidentDetail = () => {
         <div>
           <h1 className="font-display text-3xl font-semibold">{resident.fullName}</h1>
           {isStaff && mainContract && (
-            <Button asChild variant="outline" size="sm" className="mt-1.5 h-8">
-              <Link to={`/finance/contracts/${mainContract.id}`}>
-                <FileText className="h-3.5 w-3.5 mr-1.5" /> Ver contrato
-                {mainContract.code && <span className="ml-1.5 font-mono text-xs text-muted-foreground">{mainContract.code}</span>}
-              </Link>
-            </Button>
+            <Link
+              to={`/finance/contracts/${mainContract.id}`}
+              className="inline-block mt-0.5 text-sm text-primary underline underline-offset-4 hover:text-primary/80"
+            >
+              Ver contrato →
+            </Link>
           )}
           <div className="flex flex-wrap gap-3 text-sm text-muted-foreground mt-1">
             <span className="flex items-center gap-1.5"><Mail className="h-3.5 w-3.5" /> {resident.email}</span>
