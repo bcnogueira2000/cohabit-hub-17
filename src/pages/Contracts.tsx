@@ -234,7 +234,11 @@ const Contracts = () => {
         <Card className="p-10 text-center border-dashed border-border/60">
           <FileText className="h-10 w-10 text-muted-foreground mx-auto mb-3" strokeWidth={1.5} />
           <p className="font-medium">Sem contratos</p>
-          <p className="text-sm text-muted-foreground mt-1">Cria o primeiro contrato para começar.</p>
+          <p className="text-sm text-muted-foreground mt-1">
+            {contracts.length > 0
+              ? "Nenhum contrato corresponde à pesquisa ou aos filtros."
+              : "Cria o primeiro contrato para começar."}
+          </p>
         </Card>
       ) : (
         <Card className="border-border/60 shadow-card overflow-x-auto">

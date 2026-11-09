@@ -331,7 +331,9 @@ const Payments = () => {
           <FileText className="h-10 w-10 text-muted-foreground mx-auto mb-3" strokeWidth={1.5} />
           <p className="font-medium">Sem rendas para {monthLabel(year, month)}</p>
           <p className="text-sm text-muted-foreground mt-1">
-            As rendas são geradas a partir dos contratos ativos.
+            {charges.length > 0
+              ? "Nenhuma renda corresponde à pesquisa ou aos filtros."
+              : "As rendas são geradas a partir dos contratos ativos."}
           </p>
         </Card>
       ) : (
