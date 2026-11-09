@@ -11,9 +11,24 @@ import {
   TrendingUp,
   AlertTriangle,
   PiggyBank,
-  Search,
 } from "lucide-react";
 import { matchesSearch } from "@/lib/listSearch";
+import { ListSearchField } from "@/components/ListSearchField";
+import { useRooms } from "@/hooks/useData";
+import { useStaysByContract } from "@/hooks/useContracts";
+
+/** Número do quarto de um contrato (pela estadia) ou de um quarto direto. */
+const useRoomNumberLookup = () => {
+  const { data: rooms = [] } = useRooms();
+  const { data: stayByContract = {} } = useStaysByContract();
+  return useMemo(() => {
+    const byId = new Map(rooms.map((r) => [r.id, String(r.number)]));
+    return (contractId?: string | null, roomId?: string | null) => {
+      const id = roomId ?? (contractId ? stayByContract[contractId]?.roomId : null);
+      return id ? byId.get(id) ?? null : null;
+    };
+  }, [rooms, stayByContract]);
+};
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -286,18 +301,7 @@ const Payments = () => {
 
       {/* Filtros */}
       <div className="flex flex-wrap items-end gap-2 mb-5">
-        <div className="w-full sm:w-auto min-w-0">
-          <Label className="text-xs text-muted-foreground">Pesquisar</Label>
-          <div className="relative mt-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" strokeWidth={1.5} />
-            <Input
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Residente ou quarto"
-              className="w-full sm:w-[240px] rounded-full pl-9 text-base sm:text-sm"
-            />
-          </div>
-        </div>
+        <ListSearchField value={search} onChange={setSearch} />
         <div>
           <Label className="text-xs text-muted-foreground">Estado</Label>
           <Select value={state} onValueChange={setState}>
