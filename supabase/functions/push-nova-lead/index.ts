@@ -93,7 +93,7 @@ Deno.serve(async (req) => {
       if (!subs?.length) return json({ error: "Este dispositivo ainda não tem as notificações ativas" }, 400);
       const r = await sendTo(subs as Sub[], {
         title: "Living Colours",
-        body: "Notificações ativas neste dispositivo. Vais ser avisado quando entrar uma lead nova.",
+        body: "Notificações ativas neste dispositivo. Vais receber aqui os alertas importantes da equipa.",
         url: "/leads",
         tag: "teste",
       });

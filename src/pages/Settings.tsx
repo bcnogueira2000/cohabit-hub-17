@@ -1,4 +1,4 @@
-import { Settings as Cog, Tag, Sparkles, MapPin, Clock, Bell } from "lucide-react";
+import { Settings as Cog, Tag, Sparkles, MapPin, Clock, Bell, Smartphone } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
@@ -9,6 +9,8 @@ import { useAppSettings } from "@/hooks/useAppSettings";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { PushToggle } from "@/components/PushToggle";
+import { useIsStaff } from "@/hooks/useProfile";
 
 const SLA_KEYS = [
   { key: "sla_urgent", label: "Urgente" },
@@ -21,6 +23,7 @@ const Settings = () => {
   const { data: spaces = [] } = useSpaces();
   const { settings, isLoading, isSaving, updateSetting } = useAppSettings();
   const qc = useQueryClient();
+  const isStaff = useIsStaff();
   const toggleSpace = useMutation({
     mutationFn: async ({ id, active }: { id: string; active: boolean }) => {
       const { error } = await supabase
@@ -140,6 +143,14 @@ const Settings = () => {
             ))}
           </div>
         </Card>
+
+        {isStaff && (
+          <Card className="p-5 border-border/60 shadow-card">
+            <h2 className="font-display text-xl font-semibold mb-1 flex items-center gap-2"><Smartphone className="h-5 w-5 text-primary" /> Notificações no dispositivo</h2>
+            <p className="text-sm text-muted-foreground mb-4">Recebe alertas operacionais importantes no teu telemóvel.</p>
+            <PushToggle />
+          </Card>
+        )}
 
         <Card className="p-5 border-border/60 shadow-card">
           <h2 className="font-display text-xl font-semibold mb-4 flex items-center gap-2"><Bell className="h-5 w-5 text-primary" /> Notificações</h2>
