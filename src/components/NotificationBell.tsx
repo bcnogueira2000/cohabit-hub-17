@@ -103,7 +103,7 @@ export const NotificationBell = ({ className, iconClassName }: Props) => {
             </ul>
           )}
         </ScrollArea>
-        {isStaff && <PushToggle />}
+        {isStaff && <PushToggle compact />}
       </PopoverContent>
     </Popover>
   );

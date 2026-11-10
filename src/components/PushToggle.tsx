@@ -19,7 +19,7 @@ const MESSAGES: Record<string, string> = {
   denied: "As notificações estão bloqueadas. Ativa-as nos Ajustes do iPhone → Notificações → Living Colours.",
 };
 
-export const PushToggle = () => {
+export const PushToggle = ({ compact = false }: { compact?: boolean }) => {
   const { user } = useAuth();
   const [active, setActive] = useState<boolean | null>(null);
   const [busy, setBusy] = useState(false);
@@ -71,11 +71,14 @@ export const PushToggle = () => {
     }
   };
 
+  // No sino só aparece o convite para ativar; gerir/testar/desativar fica nas Definições.
+  if (compact && (active !== false || availability === "denied" || availability === "unsupported")) return null;
+
   return (
-    <div className="border-t border-border p-3 space-y-2">
+    <div className={compact ? "border-t border-border p-3 space-y-2" : "space-y-2"}>
       <div className="flex items-center gap-2 text-xs font-medium">
         <Smartphone className="h-3.5 w-3.5 text-muted-foreground" />
-        Avisos no telemóvel (lead nova)
+        {compact ? "Notificações no telemóvel" : active ? "Ativas neste dispositivo" : "Desativadas neste dispositivo"}
       </div>
       {availability !== "supported" && availability !== "denied" ? (
         <p className="text-xs text-muted-foreground">{MESSAGES[availability]}</p>
