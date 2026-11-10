@@ -10,6 +10,8 @@ import {
   useMarkNotificationRead,
 } from "@/hooks/useNotifications";
 import { cn } from "@/lib/utils";
+import { useIsStaff } from "@/hooks/useProfile";
+import { PushToggle } from "@/components/PushToggle";
 
 const formatTime = (iso: string) => {
   const d = new Date(iso);
@@ -30,6 +32,7 @@ export const NotificationBell = ({ className, iconClassName }: Props) => {
   const unread = useUnreadCount();
   const markAll = useMarkAllNotificationsRead();
   const markOne = useMarkNotificationRead();
+  const isStaff = useIsStaff();
 
   return (
     <Popover>
@@ -100,6 +103,7 @@ export const NotificationBell = ({ className, iconClassName }: Props) => {
             </ul>
           )}
         </ScrollArea>
+        {isStaff && <PushToggle />}
       </PopoverContent>
     </Popover>
   );
