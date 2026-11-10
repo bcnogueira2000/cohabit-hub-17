@@ -2,3 +2,6 @@ project_id = "rjwyxssxbknyhsnnirhq"
 
 [functions.notificar-formulario-preenchido]
 verify_jwt = false
+
+[functions.push-nova-lead]
+verify_jwt = false
